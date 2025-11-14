@@ -1,5 +1,6 @@
 ==== UPDATE LOG ====
 
 NAME, DATE, DESCRIPTION
+ptnguy01, 11/14/2025, Uploaded controller.c and Makefile - Makefile needs modification to run on BeagleBone
 willjdes, 11/13/2025, Google Doc created
 willjdes, 11/13/2025, Git repo created
