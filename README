@@ -1,6 +1,7 @@
 ==== UPDATE LOG ====
 
 NAME, DATE, DESCRIPTION
+willjdes, 11/15/2025, Used built-in xpad.c module from bbb and tested functionality with tetris.c using QT
 ptnguy01, 11/14/2025, Uploaded controller.c and Makefile - Makefile needs modification to run on BeagleBone
 willjdes, 11/13/2025, Google Doc created
 willjdes, 11/13/2025, Git repo created

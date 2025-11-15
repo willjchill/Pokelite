@@ -1,10 +1,11 @@
 ifneq ($(KERNELRELEASE),)
     # Kernel build system sees this part
-    obj-m := controller.o
+    obj-m := xpad.o 
 
 else
     # Paths for cross-compiling on EC535 environment
-    KERNELDIR := $(EC535)/bbb/stock/stock-linux-4.19.82-ti-rt-r33
+    # Requires kernel that includes framebuffer module (fb)!
+    KERNELDIR := $(EC535)/bbb/stock/stock-linux-4.19.82-ti-rt-r33-fb
     PWD := $(shell pwd)
     ARCH := arm
     CROSS := arm-linux-gnueabihf-
@@ -14,5 +15,4 @@ default:
 
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) clean
-
 endif
