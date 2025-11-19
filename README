@@ -1,6 +1,7 @@
 ==== UPDATE LOG ====
 
 NAME, DATE, DESCRIPTION
+ptnguy01, 11/19/2025, Added animations for player sprite, added collisions for obstacles on map
 ptnguy01, 11/18/2025, Uploaded src for basic movement using assets to feature/graphics branch
 ptnguy01, 11/17/2025, Uploaded basic controlling movement to feature/MainGame
 ptnguy01, 11/14/2025, Uploaded controller.c and Makefile - Makefile needs modification to run on BeagleBone
