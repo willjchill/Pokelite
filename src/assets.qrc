@@ -1,6 +1,18 @@
 <RCC>
     <qresource prefix="/">
         <file>assets/background.png</file>
-        <file>assets/front.png</file>
+        <file>assets/right3.png</file>
+        <file>assets/right2.png</file>
+        <file>assets/right1.png</file>
+        <file>assets/left3.png</file>
+        <file>assets/left2.png</file>
+        <file>assets/left1.png</file>
+        <file>assets/back3.png</file>
+        <file>assets/back2.png</file>
+        <file>assets/back1.png</file>
+        <file>assets/front3.png</file>
+        <file>assets/front2.png</file>
+        <file>assets/front1.png</file>
+        <file>assets/collision.png</file>
     </qresource>
 </RCC>

@@ -1,0 +1,19 @@
+# Ignore Qt build directories
+build/
+*/build/
+
+# Ignore Qt Creator junk
+*.user
+*.pro.user
+*.qbs.user
+*.qmlproject.user
+*.creator
+*.creator.user
+
+# Ignore Mac junk
+.DS_Store
+
+# Ignore clangd cache
+.qtc_clangd/
+.cache/
+
