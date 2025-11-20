@@ -1,6 +1,8 @@
 ==== UPDATE LOG ====
 
 NAME, DATE, DESCRIPTION
+willjdes, 11/20/2025, Further tweaking game state and fixing pokemon database. Basic attacks should work. No modifiers like poison or flinch etc exist. Also need to add "catching" and wild encounter probabilities.
+willjdes, 11/19/2025, Setup pokemon JSON files, parser, battle logic, initial object designs
 ptnguy01, 11/19/2025, Added animations for player sprite, added collisions for obstacles on map
 ptnguy01, 11/18/2025, Uploaded src for basic movement using assets to feature/graphics branch
 ptnguy01, 11/17/2025, Uploaded basic controlling movement to feature/MainGame
