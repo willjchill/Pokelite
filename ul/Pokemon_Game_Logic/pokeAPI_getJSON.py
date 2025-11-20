@@ -9,6 +9,7 @@ OUTPUT_POKEDEX = "firered_pokedex.json"
 OUTPUT_MOVES = "firered_moves.json"
 REQUEST_TIMEOUT = 30  # 30 second timeout for requests
 MAX_RETRIES = 3
+MAX_GENERATION = 3  # Only include moves from Generation 3 or earlier
 
 # Cache to store unique moves so we don't fetch "Tackle" 100 times
 unique_moves_registry = set()
@@ -144,6 +145,38 @@ def fetch_move_details(move_name):
                 return None
             
             data = res.json()
+            
+            # Filter: Only include moves from Generation 3 or earlier
+            if 'generation' in data and data['generation']:
+                generation_name = data['generation'].get('name', '') if isinstance(data['generation'], dict) else ''
+                # Extract generation number from name (e.g., "generation-i", "generation-ii", "generation-iii")
+                if generation_name:
+                    gen_num = None
+                    if generation_name == 'generation-i':
+                        gen_num = 1
+                    elif generation_name == 'generation-ii':
+                        gen_num = 2
+                    elif generation_name == 'generation-iii':
+                        gen_num = 3
+                    elif generation_name == 'generation-iv':
+                        gen_num = 4
+                    elif generation_name == 'generation-v':
+                        gen_num = 5
+                    elif generation_name == 'generation-vi':
+                        gen_num = 6
+                    elif generation_name == 'generation-vii':
+                        gen_num = 7
+                    elif generation_name == 'generation-viii':
+                        gen_num = 8
+                    elif generation_name == 'generation-ix':
+                        gen_num = 9
+                    
+                    # Skip moves from later generations
+                    if gen_num is not None and gen_num > MAX_GENERATION:
+                        print(f"[FILTERED] Skipping {move_name} (Generation {gen_num} - only Gen {MAX_GENERATION} and earlier allowed)")
+                        return None
+                # If generation field exists but name can't be parsed, include it anyway (better safe than sorry)
+            
             break  # Success
             
         except (Timeout, ConnectionError) as e:
@@ -371,8 +404,10 @@ def main():
 
     print("\n--- PHASE 2: Fetching Move Details ---")
     print(f"Found {len(unique_moves_registry)} unique moves. Fetching details...")
+    print(f"[NOTE] Only moves from Generation {MAX_GENERATION} or earlier will be included.")
     
     final_move_dex = {}
+    filtered_count = 0
     count = 0
     for move_name in unique_moves_registry:
         count += 1
@@ -381,6 +416,10 @@ def main():
         details = fetch_move_details(move_name)
         if details:
             final_move_dex[move_name] = details
+        else:
+            # Move was filtered out or failed to fetch
+            if move_name not in move_details_cache:
+                filtered_count += 1
         
         # Small sleep to be nice to the API
         time.sleep(0.1)
@@ -390,6 +429,8 @@ def main():
         with open(OUTPUT_MOVES, 'w', encoding='utf-8') as f:
             json.dump(final_move_dex, f, indent=2, ensure_ascii=False)
         print(f"Saved {OUTPUT_MOVES} ({len(final_move_dex)} move entries)")
+        if filtered_count > 0:
+            print(f"[INFO] {filtered_count} moves were filtered out (Generation {MAX_GENERATION + 1} or later)")
     except IOError as e:
         print(f"[ERROR] Failed to save {OUTPUT_MOVES}: {e}")
         return
