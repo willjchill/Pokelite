@@ -4,29 +4,7 @@
 #include <map>
 #include <algorithm>
 #include <cctype>
-
-// Simple JSON value extraction helpers
-static std::string trim(const std::string& str) {
-    size_t first = str.find_first_not_of(" \t\n\r");
-    if (first == std::string::npos) return "";
-    size_t last = str.find_last_not_of(" \t\n\r");
-    return str.substr(first, (last - first + 1));
-}
-
-static std::string unquote(const std::string& str) {
-    if (str.length() >= 2 && str[0] == '"' && str[str.length()-1] == '"') {
-        return str.substr(1, str.length() - 2);
-    }
-    return str;
-}
-
-static int parseInt(const std::string& str, int defaultValue = 0) {
-    try {
-        return std::stoi(str);
-    } catch (...) {
-        return defaultValue;
-    }
-}
+#include <jsoncpp/json/json.h>
 
 // Database storage
 static std::map<int, PokemonSpeciesData> pokemonDatabase;
@@ -74,91 +52,63 @@ static MoveCategory stringToMoveCategory(const std::string& cat) {
     return MoveCategory::STATUS;
 }
 
-// Simple JSON parser for our specific structure
+// JSON parser using jsoncpp library
 static void parsePokemonJSON(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         return;
     }
     
-    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    Json::Value root;
+    Json::CharReaderBuilder readerBuilder;
+    std::string errors;
+    
+    if (!Json::parseFromStream(readerBuilder, file, &root, &errors)) {
+        file.close();
+        return;
+    }
+    
     file.close();
     
-    // Find each Pokemon object
-    size_t pos = 0;
-    while ((pos = content.find("\"id\":", pos)) != std::string::npos) {
+    // Iterate through array of Pokemon
+    if (!root.isArray()) {
+        return;
+    }
+    
+    for (const auto& pokemon : root) {
+        if (!pokemon.isObject()) continue;
+        
         // Extract ID
-        size_t idStart = content.find_first_of("0123456789", pos);
-        if (idStart == std::string::npos) {
-            pos += 5;
-            continue;
-        }
-        size_t idEnd = content.find_first_not_of("0123456789", idStart);
-        if (idEnd == std::string::npos) idEnd = content.length();
-        int id = parseInt(content.substr(idStart, idEnd - idStart));
+        int id = pokemon.get("id", 0).asInt();
+        if (id == 0) continue;
         
         // Extract name
-        size_t namePos = content.find("\"name\":", pos);
-        if (namePos == std::string::npos) {
-            pos += 5;
-            continue;
-        }
-        size_t nameStart = content.find("\"", namePos + 7);
-        if (nameStart == std::string::npos) {
-            pos += 5;
-            continue;
-        }
-        nameStart += 1;
-        size_t nameEnd = content.find("\"", nameStart);
-        if (nameEnd == std::string::npos) {
-            pos += 5;
-            continue;
-        }
-        std::string name = content.substr(nameStart, nameEnd - nameStart);
+        std::string name = pokemon.get("name", "").asString();
+        if (name.empty()) continue;
         
         // Extract types
-        size_t typesPos = content.find("\"types\":", pos);
         Type primaryType = Type::NORMAL;
         Type secondaryType = Type::NONE;
-        if (typesPos != std::string::npos) {
-            size_t arrayStart = content.find("[", typesPos);
-            size_t arrayEnd = content.find("]", arrayStart);
-            std::string typesStr = content.substr(arrayStart, arrayEnd - arrayStart);
-            
-            size_t type1Start = typesStr.find("\"") + 1;
-            size_t type1End = typesStr.find("\"", type1Start);
-            if (type1Start != std::string::npos && type1End != std::string::npos) {
-                primaryType = stringToType(typesStr.substr(type1Start, type1End - type1Start));
+        if (pokemon.isMember("types") && pokemon["types"].isArray()) {
+            const Json::Value& types = pokemon["types"];
+            if (types.size() > 0 && types[0].isString()) {
+                primaryType = stringToType(types[0].asString());
             }
-            
-            size_t type2Start = typesStr.find("\"", type1End + 1);
-            size_t type2End = typesStr.find("\"", type2Start + 1);
-            if (type2Start != std::string::npos && type2End != std::string::npos) {
-                secondaryType = stringToType(typesStr.substr(type2Start + 1, type2End - type2Start - 1));
+            if (types.size() > 1 && types[1].isString()) {
+                secondaryType = stringToType(types[1].asString());
             }
         }
         
         // Extract base stats
-        size_t statsPos = content.find("\"base_stats\":", pos);
         int hp = 50, attack = 50, defense = 50, spAtk = 50, spDef = 50, speed = 50;
-        if (statsPos != std::string::npos) {
-            // Simple extraction - find each stat value
-            auto extractStat = [&](const std::string& statName) -> int {
-                size_t statPos = content.find("\"" + statName + "\":", statsPos);
-                if (statPos == std::string::npos) return 50;
-                size_t valStart = content.find_first_of("0123456789", statPos);
-                if (valStart == std::string::npos) return 50;
-                size_t valEnd = content.find_first_not_of("0123456789", valStart);
-                if (valEnd == std::string::npos) valEnd = content.length();
-                return parseInt(content.substr(valStart, valEnd - valStart), 50);
-            };
-            
-            hp = extractStat("hp");
-            attack = extractStat("attack");
-            defense = extractStat("defense");
-            spAtk = extractStat("special-attack");
-            spDef = extractStat("special-defense");
-            speed = extractStat("speed");
+        if (pokemon.isMember("base_stats") && pokemon["base_stats"].isObject()) {
+            const Json::Value& stats = pokemon["base_stats"];
+            hp = stats.get("hp", 50).asInt();
+            attack = stats.get("attack", 50).asInt();
+            defense = stats.get("defense", 50).asInt();
+            spAtk = stats.get("special-attack", 50).asInt();
+            spDef = stats.get("special-defense", 50).asInt();
+            speed = stats.get("speed", 50).asInt();
         }
         
         PokemonSpeciesData species = {id, name, primaryType, secondaryType, 
@@ -166,52 +116,24 @@ static void parsePokemonJSON(const std::string& filename) {
         pokemonDatabase[id] = species;
         
         // Extract evolution data
-        size_t evoPos = content.find("\"evolution\":", pos);
         std::vector<EvolutionData> evolutions;
-        if (evoPos != std::string::npos && evoPos + 25 < content.length()) {
-            // Check if it's "Final Stage" string or array
-            if (content.length() < evoPos + 25 || content.substr(evoPos + 13, 12) != "\"Final Stage\"") {
-                // It's an array
-                size_t evoArrayStart = content.find("[", evoPos);
-                size_t evoArrayEnd = content.find("]", evoArrayStart);
-                if (evoArrayStart != std::string::npos && evoArrayEnd != std::string::npos) {
-                    size_t evoObjStart = content.find("{", evoArrayStart);
-                    while (evoObjStart < evoArrayEnd && evoObjStart != std::string::npos) {
-                        size_t evoObjEnd = content.find("}", evoObjStart);
-                        
-                        // Extract evolves_to
-                        size_t toPos = content.find("\"evolves_to\":", evoObjStart);
-                        std::string evolvesTo = "";
-                        if (toPos != std::string::npos && toPos < evoObjEnd) {
-                            size_t toStart = content.find("\"", toPos + 13);
-                            if (toStart != std::string::npos && toStart < evoObjEnd) {
-                                toStart += 1;
-                                size_t toEnd = content.find("\"", toStart);
-                                if (toEnd != std::string::npos && toEnd < evoObjEnd) {
-                                    evolvesTo = content.substr(toStart, toEnd - toStart);
-                                }
-                            }
-                        }
-                        
-                        // Extract condition
-                        size_t condPos = content.find("\"condition\":", evoObjStart);
-                        std::string condition = "";
+        if (pokemon.isMember("evolution")) {
+            const Json::Value& evo = pokemon["evolution"];
+            if (evo.isArray()) {
+                for (const auto& evoItem : evo) {
+                    if (evoItem.isObject()) {
+                        std::string evolvesTo = evoItem.get("evolves_to", "").asString();
+                        std::string condition = evoItem.get("condition", "").asString();
                         int evoLevel = 0;
-                        if (condPos != std::string::npos && condPos < evoObjEnd) {
-                            size_t condStart = content.find("\"", condPos + 12);
-                            if (condStart != std::string::npos && condStart < evoObjEnd) {
-                                condStart += 1;
-                                size_t condEnd = content.find("\"", condStart);
-                                if (condEnd != std::string::npos && condEnd < evoObjEnd) {
-                                    condition = content.substr(condStart, condEnd - condStart);
-                                    
-                                    // Parse level if condition is "Lvl X"
-                                    if (condition.find("Lvl") == 0) {
-                                        size_t levelStart = condition.find_first_of("0123456789");
-                                        if (levelStart != std::string::npos) {
-                                            evoLevel = parseInt(condition.substr(levelStart));
-                                        }
-                                    }
+                        
+                        // Parse level if condition is "Lvl X"
+                        if (condition.find("Lvl") == 0) {
+                            size_t levelStart = condition.find_first_of("0123456789");
+                            if (levelStart != std::string::npos) {
+                                try {
+                                    evoLevel = std::stoi(condition.substr(levelStart));
+                                } catch (...) {
+                                    evoLevel = 0;
                                 }
                             }
                         }
@@ -219,8 +141,6 @@ static void parsePokemonJSON(const std::string& filename) {
                         if (!evolvesTo.empty()) {
                             evolutions.push_back({evolvesTo, condition, evoLevel});
                         }
-                        
-                        evoObjStart = content.find("{", evoObjEnd);
                     }
                 }
             }
@@ -228,51 +148,22 @@ static void parsePokemonJSON(const std::string& filename) {
         evolutionDatabase[id] = evolutions;
         
         // Extract level-up moves
-        size_t movesPos = content.find("\"level_up_moves\":", pos);
         std::vector<LevelUpMove> levelUpMoves;
-        if (movesPos != std::string::npos) {
-            size_t movesArrayStart = content.find("[", movesPos);
-            size_t movesArrayEnd = content.find("]", movesArrayStart);
-            if (movesArrayStart != std::string::npos && movesArrayEnd != std::string::npos) {
-                size_t moveObjStart = content.find("{", movesArrayStart);
-                while (moveObjStart < movesArrayEnd && moveObjStart != std::string::npos) {
-                    size_t moveObjEnd = content.find("}", moveObjStart);
-                    
-                    // Extract move name
-                    size_t moveNamePos = content.find("\"move\":", moveObjStart);
-                    std::string moveName = "";
-                    if (moveNamePos != std::string::npos && moveNamePos < moveObjEnd) {
-                        size_t nameStart = content.find("\"", moveNamePos + 7);
-                        if (nameStart != std::string::npos && nameStart < moveObjEnd) {
-                            nameStart += 1;
-                            size_t nameEnd = content.find("\"", nameStart);
-                            if (nameEnd != std::string::npos && nameEnd < moveObjEnd) {
-                                moveName = content.substr(nameStart, nameEnd - nameStart);
-                            }
-                        }
-                    }
-                    
-                    // Extract level
-                    size_t levelPos = content.find("\"level\":", moveObjStart);
-                    int level = 1;
-                    if (levelPos != std::string::npos && levelPos < moveObjEnd) {
-                        size_t levelStart = content.find_first_of("0123456789", levelPos);
-                        if (levelStart != std::string::npos && levelStart < moveObjEnd) {
-                            size_t levelEnd = content.find_first_not_of("0123456789", levelStart);
-                            if (levelEnd == std::string::npos) levelEnd = content.length();
-                            level = parseInt(content.substr(levelStart, levelEnd - levelStart), 1);
-                        }
-                    }
+        if (pokemon.isMember("level_up_moves") && pokemon["level_up_moves"].isArray()) {
+            const Json::Value& moves = pokemon["level_up_moves"];
+            for (const auto& moveItem : moves) {
+                if (moveItem.isObject()) {
+                    std::string moveName = moveItem.get("move", "").asString();
+                    int level = moveItem.get("level", 1).asInt();
                     
                     if (!moveName.empty()) {
-                        // Get move metadata directly from the map (don't call getMoveMetadataByName
-                        // which would check initialization - we're still in the middle of parsing)
+                        // Get move metadata directly from the map
                         MoveMetadata moveMeta;
                         auto moveIt = moveMetadataByName.find(moveName);
                         if (moveIt != moveMetadataByName.end()) {
                             moveMeta = moveIt->second;
                         } else {
-                            // Default move if not found (shouldn't happen if moves were parsed first)
+                            // Default move if not found
                             moveMeta = {"tackle", Type::NORMAL, 40, 100, 35, MoveCategory::PHYSICAL, ""};
                         }
                         LevelUpMove lum;
@@ -285,15 +176,10 @@ static void parsePokemonJSON(const std::string& filename) {
                         lum.category = moveMeta.category;
                         levelUpMoves.push_back(lum);
                     }
-                    
-                    moveObjStart = content.find("{", moveObjEnd);
                 }
             }
         }
         movesetDatabase[id] = levelUpMoves;
-        
-        // Move to next Pokemon
-        pos = content.find("\"id\":", pos + 1);
     }
 }
 
@@ -303,71 +189,57 @@ static void parseMovesJSON(const std::string& filename) {
         return;
     }
     
-    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    Json::Value root;
+    Json::CharReaderBuilder readerBuilder;
+    std::string errors;
+    
+    if (!Json::parseFromStream(readerBuilder, file, &root, &errors)) {
+        file.close();
+        return;
+    }
+    
     file.close();
     
-    // Find each move object
-    size_t pos = 0;
-    while ((pos = content.find("\"", pos)) != std::string::npos) {
-        // Extract move key (name)
-        size_t keyStart = pos + 1;
-        size_t keyEnd = content.find("\"", keyStart);
-        if (keyEnd == std::string::npos) break;
-        std::string moveKey = content.substr(keyStart, keyEnd - keyStart);
+    // Iterate through object (keys are move names)
+    if (!root.isObject()) {
+        return;
+    }
+    
+    for (auto it = root.begin(); it != root.end(); ++it) {
+        std::string moveKey = it.key().asString();
+        const Json::Value& moveObj = *it;
         
-        // Find the move object
-        size_t objStart = content.find("{", keyEnd);
-        if (objStart == std::string::npos) break;
-        size_t objEnd = content.find("}", objStart);
-        if (objEnd == std::string::npos) break;
+        if (!moveObj.isObject()) continue;
         
-        // Extract move data
-        auto extractString = [&](const std::string& field) -> std::string {
-            size_t fieldPos = content.find("\"" + field + "\":", objStart);
-            if (fieldPos == std::string::npos || fieldPos > objEnd) return "";
-            size_t valStart = content.find("\"", fieldPos + field.length() + 2);
-            if (valStart == std::string::npos || valStart > objEnd) return "";
-            valStart += 1;
-            size_t valEnd = content.find("\"", valStart);
-            if (valEnd == std::string::npos || valEnd > objEnd) return "";
-            return content.substr(valStart, valEnd - valStart);
-        };
+        std::string name = moveObj.get("name", moveKey).asString();
+        std::string typeStr = moveObj.get("type", "").asString();
         
-        auto extractInt = [&](const std::string& field, int defaultValue = -1) -> int {
-            size_t fieldPos = content.find("\"" + field + "\":", objStart);
-            if (fieldPos == std::string::npos || fieldPos > objEnd) return defaultValue;
-            // Check for null
-            if (fieldPos + field.length() + 6 < content.length() && 
-                content.substr(fieldPos + field.length() + 2, 4) == "null") {
-                return defaultValue;
-            }
-            size_t valStart = content.find_first_of("0123456789-", fieldPos);
-            if (valStart == std::string::npos || valStart > objEnd) return defaultValue;
-            size_t valEnd = content.find_first_not_of("0123456789", valStart);
-            if (valEnd == std::string::npos) valEnd = content.length();
-            return parseInt(content.substr(valStart, valEnd - valStart), defaultValue);
-        };
+        // Handle null values for power and accuracy
+        int power = 0;
+        if (moveObj.isMember("power") && !moveObj["power"].isNull()) {
+            power = moveObj["power"].asInt();
+        }
         
-        std::string name = extractString("name");
-        std::string typeStr = extractString("type");
-        int power = extractInt("power", 0);
-        int accuracy = extractInt("accuracy", 100);
-        int pp = extractInt("pp", 20);
-        std::string damageClass = extractString("damage_class");
-        std::string description = extractString("description");
+        int accuracy = 100;
+        if (moveObj.isMember("accuracy") && !moveObj["accuracy"].isNull()) {
+            accuracy = moveObj["accuracy"].asInt();
+            if (accuracy < 0) accuracy = 100;
+        }
+        
+        int pp = moveObj.get("pp", 20).asInt();
+        std::string damageClass = moveObj.get("damage_class", "").asString();
+        std::string description = moveObj.get("description", "").asString();
         
         MoveMetadata meta;
         meta.name = name.empty() ? moveKey : name;
         meta.type = stringToType(typeStr);
         meta.power = power;
-        meta.accuracy = accuracy < 0 ? 100 : accuracy;
+        meta.accuracy = accuracy;
         meta.maxPP = pp;
         meta.category = stringToMoveCategory(damageClass);
         meta.description = description;
         
         moveMetadataByName[moveKey] = meta;
-        
-        pos = objEnd + 1;
     }
 }
 

@@ -1448,6 +1448,73 @@
     ]
   },
   {
+    "id": 25,
+    "name": "pikachu",
+    "types": [
+      "electric"
+    ],
+    "base_stats": {
+      "hp": 35,
+      "attack": 55,
+      "defense": 40,
+      "special-attack": 50,
+      "special-defense": 50,
+      "speed": 90
+    },
+    "evolution": [
+      {
+        "evolves_to": "raichu",
+        "condition": "Use thunder-stone"
+      }
+    ],
+    "level_up_moves": [
+      {
+        "move": "thunder-shock",
+        "level": 1
+      },
+      {
+        "move": "growl",
+        "level": 1
+      },
+      {
+        "move": "tail-whip",
+        "level": 6
+      },
+      {
+        "move": "thunder-wave",
+        "level": 8
+      },
+      {
+        "move": "quick-attack",
+        "level": 11
+      },
+      {
+        "move": "double-team",
+        "level": 15
+      },
+      {
+        "move": "slam",
+        "level": 20
+      },
+      {
+        "move": "thunderbolt",
+        "level": 26
+      },
+      {
+        "move": "agility",
+        "level": 33
+      },
+      {
+        "move": "thunder",
+        "level": 41
+      },
+      {
+        "move": "light-screen",
+        "level": 50
+      }
+    ]
+  },
+  {
     "id": 26,
     "name": "raichu",
     "types": [
