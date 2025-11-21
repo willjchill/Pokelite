@@ -1,0 +1,53 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Qt Creator
+*.autosave
+*.pro.user
+*.pro.user.*
+*.qmake.stash
+*.qmlc
+*.jsc
+*.moc
+*.obj
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.user
+
+# Build folders
+build*/
+*/build-*
+/build
+/bin
+/lib
+
+# C++ compiled files
+*.o
+*.lo
+*.la
+*.al
+*.libs
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
+*.out
+
+# Qt generated files
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# Logs
+*.log
+
+# Backup files
+*~
+*.swp
+*.tmp

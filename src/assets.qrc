@@ -14,5 +14,37 @@
         <file>assets/front2.png</file>
         <file>assets/front1.png</file>
         <file>assets/collision.png</file>
+        <file>assets/intro/copyright/copyright_01.png</file>
+        <file>assets/intro/grass/grass_01.png</file>
+        <file>assets/intro/grass/grass_02.png</file>
+        <file>assets/intro/grass/grass_03.png</file>
+        <file>assets/intro/grass/grass_04.png</file>
+        <file>assets/intro/grass/grass_05.png</file>
+        <file>assets/intro/grass/grass_06.png</file>
+        <file>assets/intro/title/title_01.png</file>
+        <file>assets/intro/title/title_02.png</file>
+        <file>assets/intro/title/title_03.png</file>
+        <file>assets/intro/title/title_04.png</file>
+        <file>assets/intro/fire/fire_01.png</file>
+        <file>assets/intro/fire/fire_02.png</file>
+        <file>assets/intro/fire/fire_03.png</file>
+        <file>assets/intro/fire/fire_04.png</file>
+        <file>assets/intro/fire/fire_05.png</file>
+        <file>assets/intro/fire/fire_06.png</file>
+        <file>assets/intro/fire/fire_07.png</file>
+        <file>assets/intro/fire/fire_08.png</file>
+        <file>assets/intro/fire/fire_09.png</file>
+        <file>assets/intro/fire/fire_10.png</file>
+        <file>assets/intro/press/press_off.png</file>
+        <file>assets/intro/press/press_on.png</file>
+        <file>assets/tallgrass.png</file>
+        <file>assets/battle/battle_bg.png</file>
+        <file>assets/battle/charizard.png</file>
+        <file>assets/battle/trainer.png</file>
+        <file>assets/battle/ui/arrow_cursor.png</file>
+        <file>assets/battle/ui/command_box.png</file>
+        <file>assets/battle/ui/dialogue_box.png</file>
+        <file>assets/battle/ui/hp_box_enemy.png</file>
+        <file>assets/battle/ui/hp_box_player.png</file>
     </qresource>
 </RCC>

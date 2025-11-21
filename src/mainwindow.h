@@ -5,14 +5,19 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
+#include <QGraphicsRectItem>
+#include <QGraphicsTextItem>
 #include <QKeyEvent>
 #include <QTimer>
 #include <QPixmap>
 #include <QImage>
 #include <vector>
 #include <map>
-#include <QImage>
 #include <QColor>
+#include <QRandomGenerator>
+#include <QVector>
+#include <QGraphicsOpacityEffect>
+#include <QPropertyAnimation>
 
 
 class MainWindow : public QMainWindow
@@ -28,35 +33,101 @@ protected:
     void keyReleaseEvent(QKeyEvent *event) override;
 
 private:
-    // Scene + View
-    QGraphicsScene *scene;
-    QGraphicsView *view;
+    // ---------- Overworld ----------
+    QGraphicsScene *scene = nullptr;
+    QGraphicsView  *view  = nullptr;
 
-    // Sprites
-    QGraphicsPixmapItem *background;
-    QGraphicsPixmapItem *player;
+    QGraphicsPixmapItem *background = nullptr;
+    QGraphicsPixmapItem *player     = nullptr;
 
-    // Movement
-    float speed = 4.0f;
-    bool isMoving = false;
+    float speed    = 4.0f;
+    bool  isMoving = false;
 
     void clampPlayer();
-    // Area where players cannot go or slows down when moving over - BLACK for solid , BLUE for slow down zone
     bool isSolidPixel(int x, int y);
-    bool isSlowPixel(int x, int y);
+    bool isSlowPixel (int x, int y);
+    bool isGrassPixel(int x, int y);
 
-
-    // Animation
     std::map<QString, std::vector<QPixmap>> animations;
     QString currentDirection = "front";
-    int frameIndex = 1;
-    QTimer animationTimer;
+    int     frameIndex       = 1;
+    QTimer  animationTimer;
 
     void loadAnimations();
 
-
-    // Collision mask
     QImage collisionMask;
+    QImage tallGrassMask;
+
+    // ---------- Battle ----------
+    bool inBattle = false;
+
+    QGraphicsScene *battleScene      = nullptr;
+    QGraphicsPixmapItem *battleTrainerItem = nullptr;
+    QGraphicsPixmapItem *battleEnemyItem   = nullptr;
+
+    // Battle input
+    int battleMenuIndex = 0;
+    bool inBattleMenu = false;
+    QGraphicsTextItem *battleCursor = nullptr;
+
+    void updateBattleCursor();
+    void handleBattleKey(QKeyEvent *event);
+
+
+    // Fade overlay
+    QGraphicsRectItem *battleFadeRect = nullptr;
+    QTimer battleFadeTimer;
+
+    // HP bars
+    QGraphicsRectItem *enemyHpBack  = nullptr;
+    QGraphicsRectItem *enemyHpFill  = nullptr;
+    QGraphicsRectItem *playerHpBack = nullptr;
+    QGraphicsRectItem *playerHpFill = nullptr;
+
+    // Text box + typewriter
+    QGraphicsRectItem *battleTextBoxRect = nullptr;
+    QGraphicsTextItem *battleTextItem    = nullptr;
+    QString fullBattleText;
+    int battleTextIndex = 0;
+    QTimer battleTextTimer;
+
+    // Command menu
+    QGraphicsRectItem *battleMenuRect = nullptr;
+    QVector<QGraphicsTextItem*> battleMenuOptions;
+
+    QGraphicsPixmapItem *enemyHpBackSprite = nullptr;
+    QGraphicsPixmapItem *playerHpBackSprite = nullptr;
+    QGraphicsPixmapItem *dialogueBoxSprite = nullptr;
+    QGraphicsPixmapItem *commandBoxSprite = nullptr;
+    QGraphicsPixmapItem *battleCursorSprite = nullptr;
+
+    QGraphicsRectItem *enemyHpMask = nullptr;
+    QGraphicsRectItem *playerHpMask = nullptr;
+    void setHpColor(QGraphicsRectItem *hpBar, float hpPercent);
+
+
+    QGraphicsOpacityEffect *fadeEffect = nullptr;
+    QPropertyAnimation *fadeAnim = nullptr;
+
+    QPropertyAnimation *cmdSlideAnim = nullptr;
+    QPropertyAnimation *dialogueSlideAnim = nullptr;
+
+    void fadeInBattleScreen();
+    void fadeOutBattleScreen(std::function<void()> onFinished = nullptr);
+
+    QGraphicsEllipseItem *battleCircleMask = nullptr;
+    QVariantAnimation *battleCircleAnim = nullptr;
+
+    void battleZoomReveal();
+    void slideInCommandMenu();
+    void slideOutCommandMenu(std::function<void()> onFinished = nullptr);
+
+    void animateMenuSelection(int index);
+
+
+    // Encounter trigger
+    void tryWildEncounter();
+    void setupBattleUI();
 };
 
 #endif // MAINWINDOW_H
