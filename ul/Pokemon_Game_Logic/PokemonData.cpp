@@ -4,7 +4,7 @@
 #include <map>
 #include <algorithm>
 #include <cctype>
-#include <jsoncpp/json/json.h>
+#include  "json/json.h"
 
 // Database storage
 static std::map<int, PokemonSpeciesData> pokemonDatabase;
