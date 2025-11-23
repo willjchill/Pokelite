@@ -31,41 +31,6 @@ Pokemon::Pokemon(int dexNumber, int level)
     }
 }
 
-// Legacy constructor: Create Pokemon by name (for backwards compatibility)
-Pokemon::Pokemon(const std::string& name, int level, Type primaryType, Type secondaryType)
-    : name(name), level(level), primaryType(primaryType), secondaryType(secondaryType), 
-      experience(0), fainted(false) {
-    // Try to find dex number by name
-    dexNumber = -1;
-    auto allSpecies = getAllPokemonSpeciesData();
-    for (const auto& species : allSpecies) {
-        if (species.name == name) {
-            dexNumber = species.dexNumber;
-            speciesData = species;
-            break;
-        }
-    }
-    
-    // If not found, create default species data
-    if (dexNumber == -1) {
-        speciesData = {0, name, primaryType, secondaryType, 50, 50, 50, 50, 50, 50};
-    }
-    
-    // Calculate stats
-    calculateStats();
-    currentHP = maxHP;
-    
-    // Learn moves available up to current level
-    learnMovesForLevel(level);
-    
-    // Ensure Pokemon has at least one move
-    if (moves.empty()) {
-        MoveMetadata tackleMeta = getMoveMetadataByName("tackle");
-        Attack tackle(tackleMeta.name, tackleMeta.type, tackleMeta.power, tackleMeta.accuracy, tackleMeta.maxPP, tackleMeta.category);
-        addMove(tackle);
-    }
-}
-
 void Pokemon::calculateStats() {
     // Gen 3 stat calculation formula:
     // HP = ((2 * BaseHP + IV + EV/4) * Level / 100) + Level + 10

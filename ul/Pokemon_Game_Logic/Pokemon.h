@@ -35,10 +35,7 @@ private:
 public:
     // Create Pokemon by species ID (dex number) and level
     Pokemon(int dexNumber, int level);
-    
-    // Legacy constructor for backwards compatibility (creates by name lookup)
-    Pokemon(const std::string& name, int level, Type primaryType, Type secondaryType = Type::NONE);
-    
+
     // Getters
     int getDexNumber() const { return dexNumber; }
     std::string getName() const { return name; }
