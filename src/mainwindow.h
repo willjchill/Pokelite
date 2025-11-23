@@ -123,11 +123,14 @@ private:
     void slideOutCommandMenu(std::function<void()> onFinished = nullptr);
 
     void animateMenuSelection(int index);
+    void animateCommandSelection(int index);
 
 
     // Encounter trigger
     void tryWildEncounter();
     void setupBattleUI();
+    void animateBattleEntrances();
+
 };
 
 #endif // MAINWINDOW_H
