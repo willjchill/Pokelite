@@ -2,12 +2,18 @@
 #include <QDebug>
 #include <QBrush>
 #include <QPen>
+#include <QApplication>
+#include <QShowEvent>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent), gamepadThread(nullptr)
 {
     // Overworld window size
     setFixedSize(380, 639);
+
+    // Set focus policy to ensure keyboard input works
+    setFocusPolicy(Qt::StrongFocus);
+    setFocus();
 
     // Scene
     scene = new QGraphicsScene(0, 0, 380, 639, this);
@@ -17,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     view->setFixedSize(380, 639);
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setFocusPolicy(Qt::StrongFocus);
 
     // IMPORTANT: show the view as the central widget
     setCentralWidget(view);
@@ -88,9 +95,20 @@ MainWindow::MainWindow(QWidget *parent)
         battleTextIndex++;
         battleTextItem->setPlainText(fullBattleText.left(battleTextIndex));
     });
+
+    // Initialize gamepad thread
+    gamepadThread = new GamepadThread("/dev/input/event1", this);
+    connect(gamepadThread, &GamepadThread::inputReceived, this, &MainWindow::handleGamepadInput);
+    gamepadThread->start();
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow()
+{
+    if (gamepadThread) {
+        gamepadThread->stop();
+        delete gamepadThread;
+    }
+}
 
 void MainWindow::loadAnimations()
 {
@@ -320,11 +338,14 @@ void MainWindow::tryWildEncounter()
     view->setFixedSize(480, 272);
     setFixedSize(480, 272);
 
+    // Ensure focus for input
+    setFocus();
+    view->setFocus();
+
     // 4. Fade-in
     battleZoomReveal();
 
     animateBattleEntrances();
-    view->setFocus();
 
 
 
@@ -967,4 +988,97 @@ void MainWindow::animateBattleEntrances()
         playerSlide->start(QAbstractAnimation::DeleteWhenStopped);
         enemySlide->start(QAbstractAnimation::DeleteWhenStopped);
     });
+}
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+    QMainWindow::showEvent(event);
+    // Ensure focus when window is shown
+    setFocus();
+    view->setFocus();
+}
+
+void MainWindow::handleGamepadInput(int type, int code, int value)
+{
+    // Linux input event types
+    // EV_KEY = 1 (button events)
+    // EV_ABS = 3 (analog stick/dpad events)
+    
+    if (type == 1) { // EV_KEY - button press/release
+        bool pressed = (value == 1);
+        
+        // Map Xbox controller buttons to keyboard keys
+        // BTN_A = 304, BTN_B = 305, BTN_X = 306, BTN_Y = 307
+        // BTN_TL = 310, BTN_TR = 311
+        // BTN_SELECT = 314, BTN_START = 315
+        
+        if (code == 304) { // A button
+            if (pressed) {
+                simulateKeyPress(Qt::Key_Return);
+            } else {
+                simulateKeyRelease(Qt::Key_Return);
+            }
+        } else if (code == 305) { // B button
+            if (pressed) {
+                simulateKeyPress(Qt::Key_Escape);
+            } else {
+                simulateKeyRelease(Qt::Key_Escape);
+            }
+        }
+    } else if (type == 3) { // EV_ABS - analog stick/dpad
+        // ABS_X = 0 (left stick X or dpad left/right)
+        // ABS_Y = 1 (left stick Y or dpad up/down)
+        // ABS_HAT0X = 16 (dpad X)
+        // ABS_HAT0Y = 17 (dpad Y)
+        
+        if (code == 16) { // D-pad X
+            if (value == -1) { // Left
+                simulateKeyPress(Qt::Key_A);
+            } else if (value == 1) { // Right
+                simulateKeyPress(Qt::Key_D);
+            } else { // Released
+                simulateKeyRelease(Qt::Key_A);
+                simulateKeyRelease(Qt::Key_D);
+            }
+        } else if (code == 17) { // D-pad Y
+            if (value == -1) { // Up
+                simulateKeyPress(Qt::Key_W);
+            } else if (value == 1) { // Down
+                simulateKeyPress(Qt::Key_S);
+            } else { // Released
+                simulateKeyRelease(Qt::Key_W);
+                simulateKeyRelease(Qt::Key_S);
+            }
+        } else if (code == 0) { // Left stick X
+            if (value < -10000) { // Left threshold
+                simulateKeyPress(Qt::Key_A);
+            } else if (value > 10000) { // Right threshold
+                simulateKeyPress(Qt::Key_D);
+            } else { // Center
+                simulateKeyRelease(Qt::Key_A);
+                simulateKeyRelease(Qt::Key_D);
+            }
+        } else if (code == 1) { // Left stick Y
+            if (value < -10000) { // Up threshold
+                simulateKeyPress(Qt::Key_W);
+            } else if (value > 10000) { // Down threshold
+                simulateKeyPress(Qt::Key_S);
+            } else { // Center
+                simulateKeyRelease(Qt::Key_W);
+                simulateKeyRelease(Qt::Key_S);
+            }
+        }
+    }
+}
+
+void MainWindow::simulateKeyPress(Qt::Key key)
+{
+    QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
+    QApplication::postEvent(this, event);
+}
+
+void MainWindow::simulateKeyRelease(Qt::Key key)
+{
+    QKeyEvent *event = new QKeyEvent(QEvent::KeyRelease, key, Qt::NoModifier);
+    QApplication::postEvent(this, event);
 }

@@ -8,6 +8,7 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsTextItem>
 #include <QKeyEvent>
+#include <QShowEvent>
 #include <QTimer>
 #include <QPixmap>
 #include <QImage>
@@ -18,7 +19,7 @@
 #include <QVector>
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
-
+#include "gamepadthread.h"
 
 class MainWindow : public QMainWindow
 {
@@ -31,6 +32,7 @@ public:
 protected:
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private:
     // ---------- Overworld ----------
@@ -130,6 +132,12 @@ private:
     void tryWildEncounter();
     void setupBattleUI();
     void animateBattleEntrances();
+
+    // Gamepad support
+    GamepadThread *gamepadThread;
+    void handleGamepadInput(int type, int code, int value);
+    void simulateKeyPress(Qt::Key key);
+    void simulateKeyRelease(Qt::Key key);
 
 };
 

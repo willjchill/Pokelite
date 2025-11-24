@@ -7,12 +7,13 @@ CONFIG += c++17
 SOURCES += \
     introscreen.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    gamepadthread.cpp
 
 HEADERS += \
     introscreen.h \
-    introscreen.h \
-    mainwindow.h
+    mainwindow.h \
+    gamepadthread.h
 
 FORMS += \
     mainwindow.ui

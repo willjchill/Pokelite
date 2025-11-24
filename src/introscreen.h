@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QVector>
+#include "gamepadthread.h"
 
 class IntroScreen : public QWidget
 {
@@ -20,6 +21,7 @@ signals:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private slots:
     void advanceFrame();
@@ -45,6 +47,11 @@ private:
 
     void switchPhase(Phase newPhase);
     void loadFrames();
+
+    // Gamepad support
+    GamepadThread *gamepadThread;
+    void handleGamepadInput(int type, int code, int value);
+    void simulateKeyPress(Qt::Key key);
 };
 
 #endif // INTROSCREEN_H
