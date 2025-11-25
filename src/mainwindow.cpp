@@ -2,19 +2,22 @@
 #include <QDebug>
 #include <QBrush>
 #include <QPen>
+#include <QPainterPath>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    // Overworld window size
-    setFixedSize(380, 639);
+    //
+    // OVERWORLD WINDOW = 480 x 272 (GBA-style, same as battle)
+    //
+    setFixedSize(480, 272);
 
-    // Scene
-    scene = new QGraphicsScene(0, 0, 380, 639, this);
+    // Create scene first (we will set the real rect after loading background)
+    scene = new QGraphicsScene(this);
 
     // View
     view = new QGraphicsView(scene, this);
-    view->setFixedSize(380, 639);
+    view->setFixedSize(480, 272);
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
@@ -24,6 +27,17 @@ MainWindow::MainWindow(QWidget *parent)
     // Background map
     background = scene->addPixmap(QPixmap(":/assets/background.png"));
     background->setZValue(0);
+
+    // If background loaded, set scene rect to match its size
+    if (!background->pixmap().isNull()) {
+        scene->setSceneRect(0, 0,
+                            background->pixmap().width(),
+                            background->pixmap().height());
+    } else {
+        // Fallback if background fails
+        scene->setSceneRect(0, 0, 380, 639);
+        qDebug() << "WARNING: background.png missing, using default scene size.";
+    }
 
     // Load collision mask
     collisionMask.load(":/assets/collision.png");
@@ -45,7 +59,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     player = scene->addPixmap(animations[currentDirection][frameIndex]);
     player->setZValue(1);
+    // Start somewhere reasonable (center-ish); you can adjust
     player->setPos(160, 300);
+
+    // Initial camera lock on player
+    updateCamera();
 
     // Walk animation timer
     connect(&animationTimer, &QTimer::timeout, this, [this]() {
@@ -166,6 +184,58 @@ bool MainWindow::isGrassPixel(int x, int y)
 }
 
 // ---------------------------------------------------------
+// CAMERA FOLLOW
+// ---------------------------------------------------------
+
+void MainWindow::updateCamera()
+{
+    if (!view || !player || !scene)
+        return;
+
+    QRectF mapRect = scene->sceneRect();
+
+    // If map is smaller than view, just center on map
+    const qreal viewW = 480;
+    const qreal viewH = 272;
+
+    if (mapRect.width() <= viewW && mapRect.height() <= viewH) {
+        view->centerOn(mapRect.center());
+        return;
+    }
+
+    // Target camera center = player center
+    qreal targetX = player->x() + player->boundingRect().width()  / 2.0;
+    qreal targetY = player->y() + player->boundingRect().height() / 2.0;
+
+    // Compute allowed min/max center positions so we don't show outside map
+    qreal halfW = viewW / 2.0;
+    qreal halfH = viewH / 2.0;
+
+    qreal minCenterX = mapRect.left()  + halfW;
+    qreal maxCenterX = mapRect.right() - halfW;
+    qreal minCenterY = mapRect.top()   + halfH;
+    qreal maxCenterY = mapRect.bottom()- halfH;
+
+    if (mapRect.width() <= viewW) {
+        // Can't scroll horizontally, freeze in middle
+        targetX = mapRect.center().x();
+    } else {
+        if (targetX < minCenterX) targetX = minCenterX;
+        if (targetX > maxCenterX) targetX = maxCenterX;
+    }
+
+    if (mapRect.height() <= viewH) {
+        // Can't scroll vertically, freeze in middle
+        targetY = mapRect.center().y();
+    } else {
+        if (targetY < minCenterY) targetY = minCenterY;
+        if (targetY > maxCenterY) targetY = maxCenterY;
+    }
+
+    view->centerOn(targetX, targetY);
+}
+
+// ---------------------------------------------------------
 // MOVEMENT + ANIMATION
 // ---------------------------------------------------------
 
@@ -175,7 +245,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         handleBattleKey(event);   // Move in battle menu
         return;
     }
-
 
     float dx = 0;
     float dy = 0;
@@ -214,6 +283,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if (!isSolidPixel(px, py))
         player->setPos(tryPos);
 
+    // Camera follow after movement
+    updateCamera();
+
     // 100% encounter when standing in grass (if not already in battle)
     if (!inBattle && isGrassPixel(px, py)) {
         tryWildEncounter();
@@ -241,6 +313,9 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
         animationTimer.stop();
         frameIndex = 1;  // idle frame
         player->setPixmap(animations[currentDirection][frameIndex]);
+
+        // keep camera updated even when you stop
+        updateCamera();
     }
 }
 
@@ -249,13 +324,17 @@ void MainWindow::clampPlayer()
     QRectF bounds = player->boundingRect();
     QPointF pos = player->pos();
 
-    if (pos.x() < 0) pos.setX(0);
-    if (pos.x() > 380 - bounds.width())
-        pos.setX(380 - bounds.width());
+    QRectF mapRect = scene->sceneRect();
 
-    if (pos.y() < 0) pos.setY(0);
-    if (pos.y() > 639 - bounds.height())
-        pos.setY(639 - bounds.height());
+    if (pos.x() < mapRect.left())
+        pos.setX(mapRect.left());
+    if (pos.x() > mapRect.right() - bounds.width())
+        pos.setX(mapRect.right() - bounds.width());
+
+    if (pos.y() < mapRect.top())
+        pos.setY(mapRect.top());
+    if (pos.y() > mapRect.bottom() - bounds.height())
+        pos.setY(mapRect.bottom() - bounds.height());
 
     player->setPos(pos);
 }
@@ -325,8 +404,6 @@ void MainWindow::tryWildEncounter()
 
     animateBattleEntrances();
     view->setFocus();
-
-
 
     // 5. Menu animation AFTER fade begins
     slideInCommandMenu();
@@ -423,7 +500,7 @@ void MainWindow::setupBattleUI()
     battleScene->addItem(battleTextItem);
 
     // Continue with typewriter setup
-    fullBattleText  = "What will BULBASAUR do?"; // MODIFY THIS SO IT FITS THE POKEMON
+    fullBattleText  = "What will BULBASAUR do?";
     battleTextIndex = 0;
     battleTextItem->setPlainText("");
     battleTextTimer.start(30);
@@ -462,6 +539,7 @@ void MainWindow::setupBattleUI()
 
     //
     // 6. Cursor (BIG + properly aligned)
+    //
 
     QPixmap arrowPx(":/assets/battle/ui/arrow_cursor.png");
     if (!arrowPx.isNull()) {
@@ -633,10 +711,6 @@ void MainWindow::battleZoomReveal()
 
     // Add easing curve for dramatic feel
     anim->setEasingCurve(QEasingCurve::OutCubic);
-    // Could also use:
-    // QEasingCurve::InOutQuad (gentle)
-    // QEasingCurve::OutBack (bouncy overshoot)
-    // QEasingCurve::OutExpo (VERY dramatic)
 
     connect(anim, &QVariantAnimation::valueChanged, this,
             [=](const QVariant &v)
@@ -862,7 +936,7 @@ void MainWindow::animateCommandSelection(int index)
         QString commands[4] = {
             "You chose FIGHT!",
             "You opened your BAG...",
-            "You check your POKéMON...",
+            "You check your POK\u00e9MON...",
             "You attempt to RUN..."
         };
 
