@@ -1,0 +1,27 @@
+CompileFlags:
+  Add:
+    # --- kernel include paths ---
+    - -I/ad/eng/users/w/i/willjdes/Coding/Homework_ECE535/Lab4/stock-linux-4.19.82-ti-rt-r33/include
+    - -I/ad/eng/users/w/i/willjdes/Coding/Homework_ECE535/Lab4/stock-linux-4.19.82-ti-rt-r33/include/uapi
+    - -I/ad/eng/users/w/i/willjdes/Coding/Homework_ECE535/Lab4/stock-linux-4.19.82-ti-rt-r33/arch/arm/include
+    - -I/ad/eng/users/w/i/willjdes/Coding/Homework_ECE535/Lab4/stock-linux-4.19.82-ti-rt-r33/arch/arm/include/uapi
+    - -I/ad/eng/users/w/i/willjdes/Coding/Homework_ECE535/Lab4/stock-linux-4.19.82-ti-rt-r33/include/generated
+    - -I/ad/eng/users/w/i/willjdes/Coding/Homework_ECE535/Lab4/stock-linux-4.19.82-ti-rt-r33/arch/arm/include/generated
+
+    # --- kernel build defines ---
+    - -D__KERNEL__
+    - -DMODULE
+    - -D__ARM_ARCH=7__
+    - -D__ARM_EABI__
+    - -D__LINUX_ARM_ARCH__=7
+    - -DCONFIG_HZ=1000
+    - -D__clang__=1
+    - -DIS_ENABLED(x)=0
+
+    # --- optional niceties / suppress clangd-specific warnings ---
+    - -Wall
+    - -Wno-unused-function
+    - -Wno-unused-variable
+    - -Wno-misleading-indentation
+    - -Wno-ignored-attributes
+

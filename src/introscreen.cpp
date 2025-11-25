@@ -1,13 +1,20 @@
 #include "introscreen.h"
 #include <QKeyEvent>
+#include <QShowEvent>
+#include <QApplication>
 #include <QDebug>
 
 IntroScreen::IntroScreen(QWidget *parent)
     : QWidget(parent),
     frameIndex(0),
-    phaseTicks(0)
+    phaseTicks(0),
+    gamepadThread(nullptr)
 {
     setFixedSize(480, 272);
+    
+    // Set focus policy to ensure keyboard input works
+    setFocusPolicy(Qt::StrongFocus);
+    setFocus();
 
     imageLabel = new QLabel(this);
     imageLabel->setFixedSize(480, 272);
@@ -19,9 +26,20 @@ IntroScreen::IntroScreen(QWidget *parent)
     connect(&frameTimer, &QTimer::timeout, this, &IntroScreen::advanceFrame);
 
     frameTimer.start(33);    // ~30 FPS
+
+    // Initialize gamepad thread
+    gamepadThread = new GamepadThread("/dev/input/event1", this);
+    connect(gamepadThread, &GamepadThread::inputReceived, this, &IntroScreen::handleGamepadInput);
+    gamepadThread->start();
 }
 
-IntroScreen::~IntroScreen() {}
+IntroScreen::~IntroScreen()
+{
+    if (gamepadThread) {
+        gamepadThread->stop();
+        delete gamepadThread;
+    }
+}
 
 void IntroScreen::loadFrames()
 {
@@ -117,4 +135,29 @@ void IntroScreen::keyPressEvent(QKeyEvent *event)
     }
 
     QWidget::keyPressEvent(event);
+}
+
+void IntroScreen::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    // Ensure focus when window is shown
+    setFocus();
+}
+
+void IntroScreen::handleGamepadInput(int type, int code, int value)
+{
+    // Only handle button presses for intro screen
+    if (type == 1 && value == 1) { // EV_KEY, pressed
+        if (code == 304) { // A button
+            simulateKeyPress(Qt::Key_Return);
+        } else if (code == 315) { // Start button
+            simulateKeyPress(Qt::Key_Return);
+        }
+    }
+}
+
+void IntroScreen::simulateKeyPress(Qt::Key key)
+{
+    QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
+    QApplication::postEvent(this, event);
 }
