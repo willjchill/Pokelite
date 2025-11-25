@@ -48,4 +48,3 @@ private:
 };
 
 #endif // INTROSCREEN_H
-

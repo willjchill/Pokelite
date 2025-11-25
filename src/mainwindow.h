@@ -8,6 +8,7 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsTextItem>
 #include <QKeyEvent>
+#include <QShowEvent>
 #include <QTimer>
 #include <QPixmap>
 #include <QImage>
@@ -22,6 +23,9 @@
 #include <QGraphicsEllipseItem>
 #include <QGraphicsPathItem>
 
+// NEW
+#include "map/map_loader.h"
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -33,9 +37,14 @@ public:
 protected:
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private:
-    // ---------- Overworld ----------
+
+    // ============================================================
+    // OVERWORLD SYSTEM
+    // ============================================================
+
     QGraphicsScene *scene = nullptr;
     QGraphicsView  *view  = nullptr;
 
@@ -50,7 +59,7 @@ private:
     bool isSlowPixel (int x, int y);
     bool isGrassPixel(int x, int y);
 
-    void updateCamera();   // <--- CAMERA FOLLOW
+    void updateCamera();
 
     std::map<QString, std::vector<QPixmap>> animations;
     QString currentDirection = "front";
@@ -61,15 +70,31 @@ private:
 
     QImage collisionMask;
     QImage tallGrassMask;
+    QImage exitMask; // NEW EXIT MASK
 
-    // ---------- Battle ----------
+    // ============================================================
+    // MAP SYSTEM (NEW)
+    // ============================================================
+
+    QString currentMapName;
+    MapData currentMap;
+
+    void loadMap(const QString &name);     // load map data then apply
+    void applyMap(const MapData &m);       // actually apply to scene
+
+    QString detectExitAtPlayerPosition();  // checks exitMask pixel
+    void checkForMapExit();                // decides if we switch maps
+
+    // ============================================================
+    // BATTLE SYSTEM
+    // ============================================================
+
     bool inBattle = false;
 
     QGraphicsScene *battleScene      = nullptr;
     QGraphicsPixmapItem *battleTrainerItem = nullptr;
     QGraphicsPixmapItem *battleEnemyItem   = nullptr;
 
-    // Battle input
     int battleMenuIndex = 0;
     bool inBattleMenu = false;
     QGraphicsTextItem *battleCursor = nullptr;
@@ -77,25 +102,20 @@ private:
     void updateBattleCursor();
     void handleBattleKey(QKeyEvent *event);
 
-
-    // Fade overlay
     QGraphicsRectItem *battleFadeRect = nullptr;
     QTimer battleFadeTimer;
 
-    // HP bars
     QGraphicsRectItem *enemyHpBack  = nullptr;
     QGraphicsRectItem *enemyHpFill  = nullptr;
     QGraphicsRectItem *playerHpBack = nullptr;
     QGraphicsRectItem *playerHpFill = nullptr;
 
-    // Text box + typewriter
     QGraphicsRectItem *battleTextBoxRect = nullptr;
     QGraphicsTextItem *battleTextItem    = nullptr;
     QString fullBattleText;
     int battleTextIndex = 0;
     QTimer battleTextTimer;
 
-    // Command menu
     QGraphicsRectItem *battleMenuRect = nullptr;
     QVector<QGraphicsTextItem*> battleMenuOptions;
 
@@ -107,8 +127,8 @@ private:
 
     QGraphicsRectItem *enemyHpMask = nullptr;
     QGraphicsRectItem *playerHpMask = nullptr;
-    void setHpColor(QGraphicsRectItem *hpBar, float hpPercent);
 
+    void setHpColor(QGraphicsRectItem *hpBar, float hpPercent);
 
     QGraphicsOpacityEffect *fadeEffect = nullptr;
     QPropertyAnimation *fadeAnim = nullptr;
@@ -129,11 +149,18 @@ private:
     void animateMenuSelection(int index);
     void animateCommandSelection(int index);
 
-
-    // Encounter trigger
     void tryWildEncounter();
     void setupBattleUI();
     void animateBattleEntrances();
+
+    // ======== BATTLE LOGIC FUNCTIONS ========
+    void playerSelectedOption(int index);
+    void playerChoseMove(int moveIndex);
+    void enemyTurn();
+    void closeBattleReturnToMap();
+
+    QGraphicsScene* overworldScene = nullptr;
+
 
 };
 

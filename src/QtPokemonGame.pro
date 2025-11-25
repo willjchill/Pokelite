@@ -5,17 +5,19 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += c++17
 
 SOURCES += \
+    battle/battle_system.cpp \
+    battle/battle_animations.cpp\
     introscreen.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    map/map_loader.cpp \
+
 
 HEADERS += \
+    battle/battle_system.h \
     introscreen.h \
-    introscreen.h \
-    mainwindow.h
-
-FORMS += \
-    mainwindow.ui
+    mainwindow.h \
+    map/map_loader.h
 
 RESOURCES += assets.qrc
 
