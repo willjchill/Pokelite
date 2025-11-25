@@ -19,6 +19,9 @@
 #include <QVector>
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
+#include <QVariantAnimation>
+#include <QGraphicsEllipseItem>
+#include <QGraphicsPathItem>
 #include "gamepadthread.h"
 
 class MainWindow : public QMainWindow
@@ -49,6 +52,8 @@ private:
     bool isSolidPixel(int x, int y);
     bool isSlowPixel (int x, int y);
     bool isGrassPixel(int x, int y);
+
+    void updateCamera();   // <--- CAMERA FOLLOW
 
     std::map<QString, std::vector<QPixmap>> animations;
     QString currentDirection = "front";
