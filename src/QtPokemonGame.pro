@@ -12,12 +12,17 @@ SOURCES += \
     mainwindow.cpp \
     map/map_loader.cpp \
 
+    gamepadthread.cpp
 
 HEADERS += \
     battle/battle_system.h \
     introscreen.h \
     mainwindow.h \
     map/map_loader.h
+    gamepadthread.h
+
+FORMS += \
+    mainwindow.ui
 
 RESOURCES += assets.qrc
 

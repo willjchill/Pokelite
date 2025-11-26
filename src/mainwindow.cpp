@@ -8,13 +8,17 @@
 // ============================================================
 // CONSTRUCTOR
 // ============================================================
+#include <QShowEvent>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent), gamepadThread(nullptr)
 {
     setFixedSize(480, 272);
 
     scene = new QGraphicsScene(0, 0, 480, 272, this);
+      
+    setFocusPolicy(Qt::StrongFocus);
+    setFocus();
 
     view = new QGraphicsView(scene, this);
     view->setFixedSize(480, 272);
@@ -54,7 +58,13 @@ MainWindow::MainWindow(QWidget *parent)
     loadMap("route1");
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow()
+{
+    if (gamepadThread) {
+        gamepadThread->stop();
+        delete gamepadThread;
+    }
+}
 
 
 // ============================================================
@@ -308,6 +318,71 @@ void MainWindow::showEvent(QShowEvent *event)
     QMainWindow::showEvent(event);
     setFocus();
     view->setFocus();
+    inBattle = true;
+    inBattleMenu = false;
+
+    // 1. Create battle scene first
+    battleScene = new QGraphicsScene(0, 0, 480, 272, this);
+
+    // --- Background ---
+    QPixmap battleBg(":/assets/battle/battle_bg.png");
+    if (battleBg.isNull()) {
+        battleBg = QPixmap(480, 272);
+        battleBg.fill(Qt::black);
+    }
+    battleScene->addPixmap(battleBg)->setZValue(0);
+
+    // --- Trainer ---
+    QPixmap trainer(":/assets/battle/trainer.png");
+    if (!trainer.isNull()) {
+        float maxW = 120.0f, maxH = 120.0f;
+        float sx = maxW / trainer.width();
+        float sy = maxH / trainer.height();
+        float scale = std::min(sx, sy);
+
+        battleTrainerItem = battleScene->addPixmap(trainer);
+        battleTrainerItem->setScale(scale);
+
+        qreal trainerH = trainer.height() * scale;
+        battleTrainerItem->setPos(20, 272 - trainerH - 60);
+        battleTrainerItem->setZValue(1);
+    }
+
+    // --- Enemy ---
+    QPixmap enemy(":/assets/battle/charizard.png");
+    if (!enemy.isNull()) {
+        float maxW = 140.0f, maxH = 140.0f;
+        float sx = maxW / enemy.width();
+        float sy = maxH / enemy.height();
+        float scale = std::min(sx, sy);
+
+        battleEnemyItem = battleScene->addPixmap(enemy);
+        battleEnemyItem->setScale(scale);
+
+        qreal enemyW = enemy.width() * scale;
+        battleEnemyItem->setPos(480 - enemyW - 30, 30);
+        battleEnemyItem->setZValue(1);
+    }
+
+    // 2. Build UI (HP boxes, textbox, command box)
+    setupBattleUI();
+
+    // 3. Switch to the battle scene FIRST
+    view->setScene(battleScene);
+    view->setFixedSize(480, 272);
+    setFixedSize(480, 272);
+
+    // Ensure focus for input
+    setFocus();
+    view->setFocus();
+
+    // 4. Fade-in
+    battleZoomReveal();
+
+    animateBattleEntrances();
+
+    // 5. Menu animation AFTER fade begins
+    slideInCommandMenu();
 }
 
 void MainWindow::closeBattleReturnToMap()
@@ -344,3 +419,211 @@ void MainWindow::closeBattleReturnToMap()
 #include "battle/battle_system.cpp"
 #include "battle/battle_animations.cpp"
 #include "map/map_loader.cpp"
+    slideOut->start(QAbstractAnimation::DeleteWhenStopped);
+
+
+    // 4. Replace dialogue text after menu disappears
+    QTimer::singleShot(260, this, [=]() {
+
+        QString commands[4] = {
+            "You chose FIGHT!",
+            "You opened your BAG...",
+            "You check your POK\u00e9MON...",
+            "You attempt to RUN..."
+        };
+
+        fullBattleText = commands[index];
+        battleTextItem->setPlainText("");
+        battleTextIndex = 0;
+
+        battleTextTimer.start(22); // typewriter
+    });
+}
+
+void MainWindow::animateBattleEntrances()
+{
+    if (!battleTrainerItem || !battleEnemyItem) return;
+
+    //
+    // STEP 1 — CREATE CIRCLE MASK THAT OPENS FROM CENTER
+    //
+    QGraphicsPathItem *mask = new QGraphicsPathItem();
+    mask->setBrush(Qt::black);
+    mask->setPen(Qt::NoPen);
+    mask->setZValue(9999);
+    battleScene->addItem(mask);
+
+    QPainterPath fullScreen;
+    fullScreen.addRect(0, 0, 480, 272);
+
+    // Circle reveal animation
+    QVariantAnimation *circleAnim = new QVariantAnimation(this);
+    circleAnim->setDuration(900);
+    circleAnim->setStartValue(0.0);     // tiny hole (fully black)
+    circleAnim->setEndValue(450.0);     // fully open
+    circleAnim->setEasingCurve(QEasingCurve::OutCubic);
+
+    connect(circleAnim, &QVariantAnimation::valueChanged, this,
+            [=](const QVariant &v)
+            {
+                qreal r = v.toReal();
+                qreal cx = 240;   // center
+                qreal cy = 136;
+
+                QPainterPath hole;
+                hole.addEllipse(cx - r, cy - r, r * 2, r * 2);
+
+                QPainterPath maskPath = fullScreen.subtracted(hole);
+                mask->setPath(maskPath);
+            });
+
+    connect(circleAnim, &QVariantAnimation::finished, this,
+            [=]() {
+                battleScene->removeItem(mask);
+                delete mask;
+            });
+
+    circleAnim->start(QAbstractAnimation::DeleteWhenStopped);
+
+
+    //
+    // STEP 2 — PREPARE SPRITES OFFSCREEN
+    //
+    QPointF playerFinal = battleTrainerItem->pos();
+    QPointF enemyFinal  = battleEnemyItem->pos();
+
+    battleTrainerItem->setX(playerFinal.x() - 500);  // slide from left
+    battleEnemyItem->setX(enemyFinal.x() + 500);     // slide from right
+
+
+    //
+    // STEP 3 — PLAYER SLIDE IN
+    //
+    QVariantAnimation *playerSlide = new QVariantAnimation(this);
+    playerSlide->setDuration(750);
+    playerSlide->setStartValue(battleTrainerItem->x());
+    playerSlide->setEndValue(playerFinal.x());
+    playerSlide->setEasingCurve(QEasingCurve::OutBack);
+
+    connect(playerSlide, &QVariantAnimation::valueChanged, this,
+            [&](const QVariant &v) {
+                battleTrainerItem->setX(v.toReal());
+            });
+
+
+    //
+    // STEP 4 — ENEMY SLIDE IN
+    //
+    QVariantAnimation *enemySlide = new QVariantAnimation(this);
+    enemySlide->setDuration(750);
+    enemySlide->setStartValue(battleEnemyItem->x());
+    enemySlide->setEndValue(enemyFinal.x());
+    enemySlide->setEasingCurve(QEasingCurve::OutBack);
+
+    connect(enemySlide, &QVariantAnimation::valueChanged, this,
+            [&](const QVariant &v) {
+                battleEnemyItem->setX(v.toReal());
+            });
+
+
+    //
+    // STEP 5 — Start sliding EXACTLY AS THE CIRCLE OPENS
+    //
+    QTimer::singleShot(100, this, [=]() {
+        playerSlide->start(QAbstractAnimation::DeleteWhenStopped);
+        enemySlide->start(QAbstractAnimation::DeleteWhenStopped);
+    });
+}
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+    QMainWindow::showEvent(event);
+    // Ensure focus when window is shown
+    setFocus();
+    view->setFocus();
+}
+
+void MainWindow::handleGamepadInput(int type, int code, int value)
+{
+    // Linux input event types
+    // EV_KEY = 1 (button events)
+    // EV_ABS = 3 (analog stick/dpad events)
+    
+    if (type == 1) { // EV_KEY - button press/release
+        bool pressed = (value == 1);
+        
+        // Map Xbox controller buttons to keyboard keys
+        // BTN_A = 304, BTN_B = 305, BTN_X = 306, BTN_Y = 307
+        // BTN_TL = 310, BTN_TR = 311
+        // BTN_SELECT = 314, BTN_START = 315
+        
+        if (code == 304) { // A button
+            if (pressed) {
+                simulateKeyPress(Qt::Key_Return);
+            } else {
+                simulateKeyRelease(Qt::Key_Return);
+            }
+        } else if (code == 305) { // B button
+            if (pressed) {
+                simulateKeyPress(Qt::Key_Escape);
+            } else {
+                simulateKeyRelease(Qt::Key_Escape);
+            }
+        }
+    } else if (type == 3) { // EV_ABS - analog stick/dpad
+        // ABS_X = 0 (left stick X or dpad left/right)
+        // ABS_Y = 1 (left stick Y or dpad up/down)
+        // ABS_HAT0X = 16 (dpad X)
+        // ABS_HAT0Y = 17 (dpad Y)
+        
+        if (code == 16) { // D-pad X
+            if (value == -1) { // Left
+                simulateKeyPress(Qt::Key_A);
+            } else if (value == 1) { // Right
+                simulateKeyPress(Qt::Key_D);
+            } else { // Released
+                simulateKeyRelease(Qt::Key_A);
+                simulateKeyRelease(Qt::Key_D);
+            }
+        } else if (code == 17) { // D-pad Y
+            if (value == -1) { // Up
+                simulateKeyPress(Qt::Key_W);
+            } else if (value == 1) { // Down
+                simulateKeyPress(Qt::Key_S);
+            } else { // Released
+                simulateKeyRelease(Qt::Key_W);
+                simulateKeyRelease(Qt::Key_S);
+            }
+        } else if (code == 0) { // Left stick X
+            if (value < -10000) { // Left threshold
+                simulateKeyPress(Qt::Key_A);
+            } else if (value > 10000) { // Right threshold
+                simulateKeyPress(Qt::Key_D);
+            } else { // Center
+                simulateKeyRelease(Qt::Key_A);
+                simulateKeyRelease(Qt::Key_D);
+            }
+        } else if (code == 1) { // Left stick Y
+            if (value < -10000) { // Up threshold
+                simulateKeyPress(Qt::Key_W);
+            } else if (value > 10000) { // Down threshold
+                simulateKeyPress(Qt::Key_S);
+            } else { // Center
+                simulateKeyRelease(Qt::Key_W);
+                simulateKeyRelease(Qt::Key_S);
+            }
+        }
+    }
+}
+
+void MainWindow::simulateKeyPress(Qt::Key key)
+{
+    QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
+    QApplication::postEvent(this, event);
+}
+
+void MainWindow::simulateKeyRelease(Qt::Key key)
+{
+    QKeyEvent *event = new QKeyEvent(QEvent::KeyRelease, key, Qt::NoModifier);
+    QApplication::postEvent(this, event);
+}

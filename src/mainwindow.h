@@ -22,6 +22,7 @@
 #include <QVariantAnimation>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsPathItem>
+#include "gamepadthread.h"
 
 // NEW
 #include "map/map_loader.h"
@@ -161,6 +162,11 @@ private:
 
     QGraphicsScene* overworldScene = nullptr;
 
+    // Gamepad support
+    GamepadThread *gamepadThread;
+    void handleGamepadInput(int type, int code, int value);
+    void simulateKeyPress(Qt::Key key);
+    void simulateKeyRelease(Qt::Key key);
 
 };
 

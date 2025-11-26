@@ -1,0 +1,13 @@
+==== UPDATE LOG ====
+
+NAME, DATE, DESCRIPTION
+willjdes, 11/23/2025, Adding ARM Makefile. Allows userland code to be run properly on BeagleBone. Note that QT uses C++17 and game logic uses C++11.
+willjdes, 11/20/2025, Further tweaking game state and fixing pokemon database. Basic attacks should work. No modifiers like poison or flinch etc exist. Also need to add "catching" and wild encounter probabilities.
+willjdes, 11/19/2025, Setup pokemon JSON files, parser, battle logic, initial object designs
+ptnguy01, 11/19/2025, Added animations for player sprite, added collisions for obstacles on map
+ptnguy01, 11/18/2025, Uploaded src for basic movement using assets to feature/graphics branch
+ptnguy01, 11/17/2025, Uploaded basic controlling movement to feature/MainGame
+willjdes, 11/15/2025, Used built-in xpad.c module from bbb and tested functionality with tetris.c using QT
+ptnguy01, 11/14/2025, Uploaded controller.c and Makefile - Makefile needs modification to run on BeagleBone
+willjdes, 11/13/2025, Google Doc created
+willjdes, 11/13/2025, Git repo created

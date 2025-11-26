@@ -1,0 +1,33 @@
+CompileFlags:
+  # Remove flags that might conflict or are unnecessary for the language server
+  Remove: [-W*, -fparams=*]
+
+  # Add flags to force C++17 and include Qt directories
+  Add:
+    - "-std=c++17"
+    - "-stdlib=libstdc++"
+    - "-DQT_WIDGETS_LIB"
+    - "-DQT_GUI_LIB"
+    - "-DQT_CORE_LIB"
+    
+    # Standard Qt Include Paths (Adjust 'qt5' to 'qt6' if needed)
+    # Common location for generic Linux (Arch/Fedora)
+    - "-I/usr/include/qt"
+    - "-I/usr/include/qt/QtCore"
+    - "-I/usr/include/qt/QtGui"
+    - "-I/usr/include/qt/QtWidgets"
+    
+    # Common location for Debian/Ubuntu based systems
+    - "-I/usr/include/x86_64-linux-gnu/qt5"
+    - "-I/usr/include/x86_64-linux-gnu/qt5/QtCore"
+    - "-I/usr/include/x86_64-linux-gnu/qt5/QtGui"
+    - "-I/usr/include/x86_64-linux-gnu/qt5/QtWidgets"
+
+Diagnostics:
+  # Tweak this if you get too many 'unused include' warnings from Qt headers
+  UnusedIncludes: Strict
+  
+  # Suppress specific Qt macro warnings that often confuse clangd
+  Suppress:
+    - "unknown_warning_option"
+    - "-Wreserved-id-macro"
