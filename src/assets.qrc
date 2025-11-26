@@ -46,5 +46,20 @@
         <file>assets/battle/ui/dialogue_box.png</file>
         <file>assets/battle/ui/hp_box_enemy.png</file>
         <file>assets/battle/ui/hp_box_player.png</file>
+        <file>assets/maps/route1/background.png</file>
+        <file>assets/maps/route1/collision.png</file>
+        <file>assets/maps/route1/tallgrass.png</file>
+        <file>assets/overworld/player/back1.png</file>
+        <file>assets/overworld/player/back2.png</file>
+        <file>assets/overworld/player/back3.png</file>
+        <file>assets/overworld/player/front1.png</file>
+        <file>assets/overworld/player/front2.png</file>
+        <file>assets/overworld/player/front3.png</file>
+        <file>assets/overworld/player/left1.png</file>
+        <file>assets/overworld/player/left2.png</file>
+        <file>assets/overworld/player/left3.png</file>
+        <file>assets/overworld/player/right1.png</file>
+        <file>assets/overworld/player/right2.png</file>
+        <file>assets/overworld/player/right3.png</file>
     </qresource>
 </RCC>
