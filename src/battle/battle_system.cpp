@@ -33,23 +33,66 @@ void BattleSystem::processFightAction(int moveIndex) {
 }
 
 void BattleSystem::processBagAction(int itemIndex) {
-    if (battle) {
+    if (battle && battle->getPlayer1()) {
+        // Get item name before processing
+        const auto& items = battle->getPlayer1()->getBag().getItems();
+        QString itemName = "item";
+        if (itemIndex >= 0 && itemIndex < static_cast<int>(items.size()) && items[itemIndex].getQuantity() > 0) {
+            itemName = capitalizeFirst(toQString(items[itemIndex].getName()));
+        }
+        
         battle->processBagAction(itemIndex);
-        updateLastMessage();
+        
+        // Set message about item use
+        lastMessage = "You used " + itemName + "!";
+        
+        // Don't call updateLastMessage() as it would overwrite our custom message
     }
 }
 
 void BattleSystem::processPokemonAction(int pokemonIndex) {
-    if (battle) {
+    if (battle && battle->getPlayer1()) {
+        const auto& team = battle->getPlayer1()->getTeam();
+        int activeIndex = battle->getPlayer1()->getActivePokemonIndex();
+        
+        // Check if trying to switch to the same Pokemon
+        if (pokemonIndex == activeIndex) {
+            QString pokemonName = capitalizeFirst(toQString(team[pokemonIndex].getName()));
+            lastMessage = "You are already using " + pokemonName + "!";
+            // Don't process the switch, just set the message
+            return;
+        }
+        
+        // Check if Pokemon is fainted
+        if (pokemonIndex >= 0 && pokemonIndex < static_cast<int>(team.size()) && team[pokemonIndex].isFainted()) {
+            lastMessage = "That Pokemon has fainted!";
+            return;
+        }
+        
+        // Get Pokemon name before switching
+        QString pokemonName = "Pokemon";
+        if (pokemonIndex >= 0 && pokemonIndex < static_cast<int>(team.size())) {
+            pokemonName = capitalizeFirst(toQString(team[pokemonIndex].getName()));
+        }
+        
         battle->processPokemonAction(pokemonIndex);
-        updateLastMessage();
+        
+        // Set message about switching
+        lastMessage = "Switched to " + pokemonName + "!";
+        
+        // Don't call updateLastMessage() as it would overwrite our custom message
     }
 }
 
 void BattleSystem::processRunAction() {
     if (battle) {
         battle->processRunAction();
-        updateLastMessage();
+        // Set appropriate message based on result
+        if (battle->getState() == BattleState::BATTLE_END) {
+            lastMessage = "Got away safely!";
+        } else {
+            lastMessage = "Can't escape!";
+        }
     }
 }
 
@@ -253,6 +296,17 @@ std::vector<bool> BattleSystem::getTeamFainted() const {
     return fainted;
 }
 
+std::vector<int> BattleSystem::getTeamLevels() const {
+    std::vector<int> levels;
+    if (battle && battle->getPlayer1()) {
+        const auto& team = battle->getPlayer1()->getTeam();
+        for (const auto& pokemon : team) {
+            levels.push_back(pokemon.getLevel());
+        }
+    }
+    return levels;
+}
+
 int BattleSystem::getActivePokemonIndex() const {
     if (battle && battle->getPlayer1()) {
         return battle->getPlayer1()->getActivePokemonIndex();
@@ -278,6 +332,11 @@ QString BattleSystem::toQString(const std::string& str) const {
     return QString::fromStdString(str);
 }
 
+QString BattleSystem::capitalizeFirst(const QString& str) const {
+    if (str.isEmpty()) return str;
+    return str[0].toUpper() + str.mid(1).toLower();
+}
+
 void BattleSystem::updateLastMessage() {
     // Update last message based on battle state
     if (!battle) return;
@@ -295,6 +354,9 @@ void BattleSystem::updateLastMessage() {
             break;
         case BattleState::POKEMON_MENU:
             lastMessage = "Choose a Pokemon!";
+            break;
+        case BattleState::RUN_CONFIRM:
+            // Message will be set by processRunAction
             break;
         default:
             break;

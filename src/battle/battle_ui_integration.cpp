@@ -13,6 +13,15 @@
 static QGraphicsRectItem *moveMenuRect = nullptr;
 static QVector<QGraphicsTextItem*> moveMenuOptions;
 
+// BAG MENU UI
+static QGraphicsRectItem *bagMenuRect = nullptr;
+static QVector<QGraphicsTextItem*> bagMenuOptions;
+
+// POKEMON MENU UI
+static QGraphicsRectItem *pokemonMenuRect = nullptr;
+static QVector<QGraphicsTextItem*> pokemonMenuOptions;
+
+
 // Helper to destroy the move menu cleanly
 static void destroyMoveMenu(QGraphicsScene *scene)
 {
@@ -33,6 +42,49 @@ static void destroyMoveMenu(QGraphicsScene *scene)
         moveMenuRect = nullptr;
     }
 }
+
+// Helper to destroy the bag menu
+static void destroyBagMenu(QGraphicsScene *scene)
+{
+    if (scene) {
+        for (QGraphicsTextItem *t : bagMenuOptions) {
+            if (t) {
+                scene->removeItem(t);
+                delete t;
+            }
+        }
+    }
+    bagMenuOptions.clear();
+
+    if (bagMenuRect) {
+        if (scene)
+            scene->removeItem(bagMenuRect);
+        delete bagMenuRect;
+        bagMenuRect = nullptr;
+    }
+}
+
+// Helper to destroy the pokemon menu
+static void destroyPokemonMenu(QGraphicsScene *scene)
+{
+    if (scene) {
+        for (QGraphicsTextItem *t : pokemonMenuOptions) {
+            if (t) {
+                scene->removeItem(t);
+                delete t;
+            }
+        }
+    }
+    pokemonMenuOptions.clear();
+
+    if (pokemonMenuRect) {
+        if (scene)
+            scene->removeItem(pokemonMenuRect);
+        delete pokemonMenuRect;
+        pokemonMenuRect = nullptr;
+    }
+}
+
 
 // ======================================================
 // ===================== BATTLE START ===================
@@ -74,12 +126,16 @@ void MainWindow::tryWildEncounter()
     // Reset state
     inBattle        = true;
     inBattleMenu    = true;
+    inBagMenu       = false;
+    inPokemonMenu   = false;
     battleMenuIndex = 0;
     fullBattleText.clear();
     battleTextIndex = 0;
 
-    // Clean any leftover move menu from previous battle
+    // Clean any leftover menus from previous battle
     destroyMoveMenu(battleScene);
+    destroyBagMenu(battleScene);
+    destroyPokemonMenu(battleScene);
 
     // New battle scene
     battleScene = new QGraphicsScene(0, 0, 480, 272, this);
@@ -248,6 +304,22 @@ void MainWindow::setupBattleUI()
     playerHpFill->setZValue(4);
     battleScene->addItem(playerHpFill);
 
+    // Enemy Pokemon name text
+    enemyPokemonNameText = new QGraphicsTextItem();
+    enemyPokemonNameText->setDefaultTextColor(Qt::black);
+    enemyPokemonNameText->setFont(font);
+    enemyPokemonNameText->setPos(20 + 5, 10 + 2);
+    enemyPokemonNameText->setZValue(5);
+    battleScene->addItem(enemyPokemonNameText);
+
+    // Player Pokemon name text
+    playerPokemonNameText = new QGraphicsTextItem();
+    playerPokemonNameText->setDefaultTextColor(Qt::black);
+    playerPokemonNameText->setFont(font);
+    playerPokemonNameText->setPos(260 + 5, 140 + 2);
+    playerPokemonNameText->setZValue(5);
+    battleScene->addItem(playerPokemonNameText);
+
     // Dialogue box
     QPixmap dialogPx(":/assets/battle/ui/dialogue_box.png");
     dialogueBoxSprite = battleScene->addPixmap(dialogPx);
@@ -326,9 +398,19 @@ void MainWindow::handleBattleKey(QKeyEvent *event)
         return;
 
     bool inMoveMenu = battleSystem->isWaitingForPlayerMove();
-
-    int maxIndex = inMoveMenu ? moveMenuOptions.size()
-                              : battleMenuOptions.size();
+    
+    // Determine which menu we're in and get max index
+    int maxIndex = 0;
+    if (inBagMenu) {
+        maxIndex = bagMenuOptions.size();
+    } else if (inPokemonMenu) {
+        maxIndex = pokemonMenuOptions.size();
+    } else if (inMoveMenu) {
+        maxIndex = moveMenuOptions.size();
+    } else if (inBattleMenu) {
+        maxIndex = battleMenuOptions.size();
+    }
+    
     if (maxIndex == 0)
         return;
 
@@ -336,27 +418,36 @@ void MainWindow::handleBattleKey(QKeyEvent *event)
 
     // ---- CURSOR MOVEMENT (arrows + WASD) ----
     if (key == Qt::Key_Left || key == Qt::Key_A) {
-        if (battleMenuIndex % 2 == 1)
+        if (battleMenuIndex % 2 == 1) {
             battleMenuIndex--;
+        }
     }
     else if (key == Qt::Key_Right || key == Qt::Key_D) {
-        if (battleMenuIndex % 2 == 0 && battleMenuIndex + 1 < maxIndex)
+        if (battleMenuIndex % 2 == 0 && battleMenuIndex + 1 < maxIndex) {
             battleMenuIndex++;
+        }
     }
     else if (key == Qt::Key_Up || key == Qt::Key_W) {
-        if (battleMenuIndex >= 2)
+        if (battleMenuIndex >= 2) {
             battleMenuIndex -= 2;
+        }
     }
     else if (key == Qt::Key_Down || key == Qt::Key_S) {
-        if (battleMenuIndex + 2 < maxIndex)
+        if (battleMenuIndex + 2 < maxIndex) {
             battleMenuIndex += 2;
+        }
     }
     else if (key == Qt::Key_Return || key == Qt::Key_Enter) {
         // Confirm selection
-        if (inMoveMenu)
+        if (inBagMenu) {
+            playerSelectedBagItem(battleMenuIndex);
+        } else if (inPokemonMenu) {
+            playerSelectedPokemon(battleMenuIndex);
+        } else if (inMoveMenu) {
             playerChoseMove(battleMenuIndex);
-        else if (inBattleMenu)
+        } else if (inBattleMenu) {
             playerSelectedOption(battleMenuIndex);
+        }
         return;
     }
 
@@ -372,15 +463,28 @@ void MainWindow::updateBattleCursor()
 {
     if (!battleCursorSprite) return;
 
-    if (battleSystem && battleSystem->isWaitingForPlayerMove() && !moveMenuOptions.isEmpty()) {
-        QGraphicsTextItem *target = moveMenuOptions[battleMenuIndex];
-        battleCursorSprite->setPos(target->pos().x() - 28,
-                                   target->pos().y() - 2);
-    } else if (!battleMenuOptions.isEmpty()) {
-        QGraphicsTextItem *target = battleMenuOptions[battleMenuIndex];
+    QGraphicsTextItem *target = nullptr;
+    
+    if (inBagMenu && !bagMenuOptions.isEmpty() && battleMenuIndex < bagMenuOptions.size()) {
+        target = bagMenuOptions[battleMenuIndex];
+    } else if (inPokemonMenu && !pokemonMenuOptions.isEmpty() && battleMenuIndex < pokemonMenuOptions.size()) {
+        target = pokemonMenuOptions[battleMenuIndex];
+    } else if (battleSystem && battleSystem->isWaitingForPlayerMove() && !moveMenuOptions.isEmpty() && battleMenuIndex < moveMenuOptions.size()) {
+        target = moveMenuOptions[battleMenuIndex];
+    } else if (!battleMenuOptions.isEmpty() && battleMenuIndex < battleMenuOptions.size()) {
+        target = battleMenuOptions[battleMenuIndex];
+    }
+    
+    if (target) {
         battleCursorSprite->setPos(target->pos().x() - 28,
                                    target->pos().y() - 2);
     }
+}
+
+// Helper function to capitalize first letter
+static QString capitalizeFirst(const QString& str) {
+    if (str.isEmpty()) return str;
+    return str[0].toUpper() + str.mid(1).toLower();
 }
 
 // ======================================================
@@ -390,6 +494,27 @@ void MainWindow::updateBattleCursor()
 void MainWindow::updateBattleUI()
 {
     if (!battleSystem) return;
+    
+    // Update Pokemon names
+    if (enemyPokemonNameText) {
+        QString enemyName = battleSystem->getEnemyPokemonName();
+        if (enemyName.isEmpty()) {
+            enemyName = "FOE";
+        } else {
+            enemyName = capitalizeFirst(enemyName);
+        }
+        enemyPokemonNameText->setPlainText(enemyName);
+    }
+    
+    if (playerPokemonNameText) {
+        QString playerName = battleSystem->getPlayerPokemonName();
+        if (playerName.isEmpty()) {
+            playerName = "POKEMON";
+        } else {
+            playerName = capitalizeFirst(playerName);
+        }
+        playerPokemonNameText->setPlainText(playerName);
+    }
     
     // Update HP bars
     int playerHP = battleSystem->getPlayerHP();
@@ -421,6 +546,10 @@ void MainWindow::playerSelectedOption(int index)
     // 0 = FIGHT
     if (index == 0) {
         battleSystem->processAction(BattleAction::FIGHT);
+        
+        // Clean up any other menus
+        destroyBagMenu(battleScene);
+        destroyPokemonMenu(battleScene);
         
         // Build move menu
         destroyMoveMenu(battleScene);
@@ -491,30 +620,29 @@ void MainWindow::playerSelectedOption(int index)
     // 1 = BAG
     if (index == 1) {
         battleSystem->processAction(BattleAction::BAG);
-        fullBattleText = "Your BAG is empty!";
-        battleTextIndex = 0;
-        battleTextItem->setPlainText("");
-        battleTextTimer.start(22);
+        showBagMenu();
         return;
     }
     
     // 2 = POKEMON
     if (index == 2) {
         battleSystem->processAction(BattleAction::POKEMON);
-        fullBattleText = "You have no other POKEMON!";
-        battleTextIndex = 0;
-        battleTextItem->setPlainText("");
-        battleTextTimer.start(22);
+        showPokemonMenu();
         return;
     }
     
     // 3 = RUN
     if (index == 3) {
-        battleSystem->processAction(BattleAction::RUN);
+        // Process run action directly to get the result
+        battleSystem->processRunAction();
         
+        // Check if run was successful
+        bool runSuccessful = battleSystem->isBattleOver();
+        
+        // Get the message (should be set by processRunAction)
         fullBattleText = battleSystem->getLastMessage();
         if (fullBattleText.isEmpty()) {
-            fullBattleText = "You got away safely!";
+            fullBattleText = runSuccessful ? "Got away safely!" : "Can't escape!";
         }
         battleTextIndex = 0;
         battleTextItem->setPlainText("");
@@ -522,11 +650,19 @@ void MainWindow::playerSelectedOption(int index)
         
         inBattleMenu = false;
         
-        QTimer::singleShot(600, [=]() {
-            fadeOutBattleScreen([=]() {
-                closeBattleReturnToMap();
+        if (runSuccessful) {
+            // Run was successful - close the battle
+            QTimer::singleShot(1000, [=]() {
+                fadeOutBattleScreen([=]() {
+                    closeBattleReturnToMap();
+                });
             });
-        });
+        } else {
+            // Run failed - enemy gets a turn, then continue battle
+            QTimer::singleShot(1000, [=]() {
+                enemyTurn();
+            });
+        }
         return;
     }
 }
@@ -544,11 +680,15 @@ void MainWindow::playerChoseMove(int moveIndex)
     // BACK option is last
     if (moveIndex >= (int)moves.size()) {
         destroyMoveMenu(battleScene);
+        destroyBagMenu(battleScene);
+        destroyPokemonMenu(battleScene);
         
         // Reset battle state back to main menu
         battleSystem->returnToMainMenu();
         
         inBattleMenu = true;
+        inBagMenu = false;
+        inPokemonMenu = false;
         battleMenuIndex = 0;
         
         fullBattleText = "What will " + battleSystem->getPlayerPokemonName() + " do?";
@@ -682,6 +822,8 @@ void MainWindow::closeBattleReturnToMap()
     
     inBattle = false;
     inBattleMenu = false;
+    inBagMenu = false;
+    inPokemonMenu = false;
     
     // Return to overworld
     if (overworldScene) {
@@ -736,6 +878,273 @@ void MainWindow::fadeOutBattleScreen(std::function<void()> onFinished)
 
     fadeAnim->start();
 }
+
+// ======================================================
+// ============ BAG MENU UI ===================
+// ======================================================
+
+void MainWindow::showBagMenu()
+{
+    if (!battleSystem || !battleScene) return;
+    
+    // Clean up other menus
+    destroyMoveMenu(battleScene);
+    destroyPokemonMenu(battleScene);
+    
+    std::vector<QString> items = battleSystem->getBagItems();
+    std::vector<int> quantities = battleSystem->getBagItemQuantities();
+    
+    QFont f("Pokemon Fire Red", 9, QFont::Bold);
+    
+    // Create menu box
+    const qreal boxW = 240, boxH = 120;
+    qreal boxX = dialogueBoxSprite->pos().x() + 10;
+    qreal boxY = dialogueBoxSprite->pos().y() - boxH - 4;
+    
+    bagMenuRect = new QGraphicsRectItem(boxX, boxY, boxW, boxH);
+    bagMenuRect->setBrush(Qt::white);
+    bagMenuRect->setPen(QPen(Qt::black, 2));
+    bagMenuRect->setZValue(3);
+    battleScene->addItem(bagMenuRect);
+    
+    bagMenuOptions.clear();
+    int numItems = std::min(6, (int)items.size() + 1); // +1 for BACK
+    for (int i = 0; i < numItems; ++i) {
+        QString label;
+        if (i < (int)items.size()) {
+            QString itemName = items[i];
+            if (itemName.length() > 15) {
+                itemName = itemName.left(13) + "...";
+            }
+            label = itemName + " x" + QString::number(quantities[i]);
+        } else {
+            label = "BACK";
+        }
+        
+        QGraphicsTextItem *t = new QGraphicsTextItem(label);
+        t->setFont(f);
+        t->setDefaultTextColor(Qt::black);
+        
+        int row = i / 2;
+        int col = i % 2;
+        t->setPos(boxX + 12 + col * 115,
+                  boxY + 10 + row * 20);
+        t->setZValue(4);
+        
+        battleScene->addItem(t);
+        bagMenuOptions.push_back(t);
+    }
+    
+    inBagMenu = true;
+    inBattleMenu = false;
+    inPokemonMenu = false;
+    battleMenuIndex = 0;
+    
+    fullBattleText = "Choose an item!";
+    battleTextIndex = 0;
+    battleTextItem->setPlainText("");
+    battleTextTimer.start(22);
+    
+    updateBattleCursor();
+}
+
+// ======================================================
+// ============ POKEMON MENU UI ===================
+// ======================================================
+
+void MainWindow::showPokemonMenu()
+{
+    if (!battleSystem || !battleScene) return;
+    
+    // Clean up other menus
+    destroyMoveMenu(battleScene);
+    destroyBagMenu(battleScene);
+    
+    std::vector<QString> names = battleSystem->getTeamNames();
+    std::vector<int> hp = battleSystem->getTeamHP();
+    std::vector<int> maxHP = battleSystem->getTeamMaxHP();
+    std::vector<int> levels = battleSystem->getTeamLevels();
+    std::vector<bool> fainted = battleSystem->getTeamFainted();
+    int activeIndex = battleSystem->getActivePokemonIndex();
+    
+    QFont f("Pokemon Fire Red", 9, QFont::Bold);
+    
+    // Create menu box - make it bigger to fit more info
+    const qreal boxW = 240, boxH = 140;
+    qreal boxX = dialogueBoxSprite->pos().x() + 10;
+    qreal boxY = dialogueBoxSprite->pos().y() - boxH - 4;
+    
+    pokemonMenuRect = new QGraphicsRectItem(boxX, boxY, boxW, boxH);
+    pokemonMenuRect->setBrush(Qt::white);
+    pokemonMenuRect->setPen(QPen(Qt::black, 2));
+    pokemonMenuRect->setZValue(3);
+    battleScene->addItem(pokemonMenuRect);
+    
+    pokemonMenuOptions.clear();
+    int numPokemon = std::min(6, (int)names.size() + 1); // +1 for BACK
+    for (int i = 0; i < numPokemon; ++i) {
+        QString label;
+        if (i < (int)names.size()) {
+            QString pokemonName = capitalizeFirst(names[i]);
+            if (pokemonName.length() > 10) {
+                pokemonName = pokemonName.left(8) + "...";
+            }
+            QString status = fainted[i] ? "FAINTED" : (i == activeIndex ? "ACTIVE" : "");
+            label = pokemonName + " Lv" + QString::number(levels[i]) + "\nHP " + QString::number(hp[i]) + "/" + QString::number(maxHP[i]);
+            if (!status.isEmpty()) {
+                label += "\n" + status;
+            }
+        } else {
+            label = "BACK";
+        }
+        
+        QGraphicsTextItem *t = new QGraphicsTextItem(label);
+        t->setFont(f);
+        t->setDefaultTextColor(Qt::black);
+        
+        int row = i / 2;
+        int col = i % 2;
+        t->setPos(boxX + 12 + col * 115,
+                  boxY + 10 + row * 25);
+        t->setZValue(4);
+        
+        battleScene->addItem(t);
+        pokemonMenuOptions.push_back(t);
+    }
+    
+    inPokemonMenu = true;
+    inBattleMenu = false;
+    inBagMenu = false;
+    battleMenuIndex = 0;
+    
+    fullBattleText = "Choose a Pokemon!";
+    battleTextIndex = 0;
+    battleTextItem->setPlainText("");
+    battleTextTimer.start(22);
+    
+    updateBattleCursor();
+}
+
+
+// ======================================================
+// ============ BAG/POKEMON/SUBMENU HANDLERS ===================
+// ======================================================
+
+void MainWindow::playerSelectedBagItem(int index)
+{
+    if (!battleSystem) return;
+    
+    std::vector<QString> items = battleSystem->getBagItems();
+    
+    // BACK option is last
+    if (index >= (int)items.size()) {
+        destroyBagMenu(battleScene);
+        
+        battleSystem->returnToMainMenu();
+        
+        inBagMenu = false;
+        inBattleMenu = true;
+        battleMenuIndex = 0;
+        
+        fullBattleText = "What will " + battleSystem->getPlayerPokemonName() + " do?";
+        battleTextIndex = 0;
+        battleTextItem->setPlainText("");
+        battleTextTimer.start(22);
+        
+        updateBattleCursor();
+        return;
+    }
+    
+    // Use item
+    battleSystem->processBagAction(index);
+    destroyBagMenu(battleScene);
+    
+    inBagMenu = false;
+    inBattleMenu = false;
+    battleMenuIndex = 0;
+    
+    fullBattleText = battleSystem->getLastMessage();
+    if (fullBattleText.isEmpty()) {
+        fullBattleText = "Used item!";
+    }
+    battleTextIndex = 0;
+    battleTextItem->setPlainText("");
+    battleTextTimer.start(22);
+    
+    updateBattleUI();
+    
+    // Enemy gets a turn after using item
+    QTimer::singleShot(1000, [=]() {
+        enemyTurn();
+    });
+}
+
+void MainWindow::playerSelectedPokemon(int index)
+{
+    if (!battleSystem) return;
+    
+    std::vector<QString> names = battleSystem->getTeamNames();
+    
+    // BACK option is last
+    if (index >= (int)names.size()) {
+        destroyPokemonMenu(battleScene);
+        
+        battleSystem->returnToMainMenu();
+        
+        inPokemonMenu = false;
+        inBattleMenu = true;
+        battleMenuIndex = 0;
+        
+        fullBattleText = "What will " + battleSystem->getPlayerPokemonName() + " do?";
+        battleTextIndex = 0;
+        battleTextItem->setPlainText("");
+        battleTextTimer.start(22);
+        
+        updateBattleCursor();
+        return;
+    }
+    
+    // Switch Pokemon
+    int oldActiveIndex = battleSystem->getActivePokemonIndex();
+    battleSystem->processPokemonAction(index);
+    destroyPokemonMenu(battleScene);
+    
+    inPokemonMenu = false;
+    battleMenuIndex = 0;
+    
+    fullBattleText = battleSystem->getLastMessage();
+    if (fullBattleText.isEmpty()) {
+        fullBattleText = "Go! " + battleSystem->getPlayerPokemonName() + "!";
+    }
+    battleTextIndex = 0;
+    battleTextItem->setPlainText("");
+    battleTextTimer.start(22);
+    
+    updateBattleUI();
+    
+    // Check if switch was successful (active index changed) or if it was an error message
+    bool switchSuccessful = (battleSystem->getActivePokemonIndex() != oldActiveIndex);
+    bool isErrorMessage = (fullBattleText.contains("already using") || fullBattleText.contains("fainted"));
+    
+    if (switchSuccessful && !isErrorMessage) {
+        // Switch was successful - enemy gets a turn
+        inBattleMenu = false;
+        QTimer::singleShot(1000, [=]() {
+            enemyTurn();
+        });
+    } else {
+        // Switch failed or error - return to menu without enemy turn
+        inBattleMenu = true;
+        QTimer::singleShot(1000, [=]() {
+            fullBattleText = "What will " + battleSystem->getPlayerPokemonName() + " do?";
+            battleTextIndex = 0;
+            battleTextItem->setPlainText("");
+            battleTextTimer.start(22);
+            updateBattleCursor();
+        });
+    }
+}
+
 
 // ======================================================
 // ================== HP COLOR HELPER ===================

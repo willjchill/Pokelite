@@ -55,6 +55,7 @@ public:
     std::vector<QString> getTeamNames() const;
     std::vector<int> getTeamHP() const;
     std::vector<int> getTeamMaxHP() const;
+    std::vector<int> getTeamLevels() const;
     std::vector<bool> getTeamFainted() const;
     int getActivePokemonIndex() const;
     
@@ -79,6 +80,8 @@ private:
     
     // Helper to convert std::string to QString
     QString toQString(const std::string& str) const;
+    // Helper to capitalize first letter
+    QString capitalizeFirst(const QString& str) const;
 };
 
 #endif // BATTLE_SYSTEM_H

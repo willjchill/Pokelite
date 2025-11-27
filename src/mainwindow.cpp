@@ -235,6 +235,18 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         handleBattleKey(event);
         return;
     }
+    
+    // Handle overworld menu
+    if (inOverworldMenu || inOverworldBagMenu || inOverworldPokemonMenu) {
+        handleOverworldMenuKey(event);
+        return;
+    }
+    
+    // Open menu with 'M' key
+    if (event->key() == Qt::Key_M) {
+        showOverworldMenu();
+        return;
+    }
 
     float dx=0, dy=0;
 
@@ -415,4 +427,323 @@ void MainWindow::simulateKeyRelease(Qt::Key key)
 {
     QKeyEvent *event = new QKeyEvent(QEvent::KeyRelease, key, Qt::NoModifier);
     QApplication::postEvent(this, event);
+}
+
+// ============================================================
+// OVERWORLD MENU SYSTEM
+// ============================================================
+
+void MainWindow::showOverworldMenu()
+{
+    if (!scene || inOverworldMenu) return;
+    
+    hideOverworldSubMenu();
+    
+    QFont font("Pokemon Fire Red", 12, QFont::Bold);
+    
+    // Create menu box in center of screen
+    const qreal boxW = 200, boxH = 100;
+    qreal boxX = (480 - boxW) / 2;
+    qreal boxY = (272 - boxH) / 2;
+    
+    overworldMenuRect = new QGraphicsRectItem(boxX, boxY, boxW, boxH);
+    overworldMenuRect->setBrush(Qt::white);
+    overworldMenuRect->setPen(QPen(Qt::black, 3));
+    overworldMenuRect->setZValue(10);
+    scene->addItem(overworldMenuRect);
+    
+    overworldMenuOptions.clear();
+    QString options[3] = {"BAG", "POKEMON", "EXIT"};
+    for (int i = 0; i < 3; ++i) {
+        QGraphicsTextItem *t = new QGraphicsTextItem(options[i]);
+        t->setFont(font);
+        t->setDefaultTextColor(Qt::black);
+        t->setPos(boxX + 20, boxY + 15 + i * 25);
+        t->setZValue(11);
+        scene->addItem(t);
+        overworldMenuOptions.push_back(t);
+    }
+    
+    // Cursor
+    QPixmap arrow(":/assets/battle/ui/arrow_cursor.png");
+    if (arrow.isNull()) {
+        // Fallback: create a simple arrow
+        arrow = QPixmap(20, 20);
+        arrow.fill(Qt::transparent);
+    }
+    overworldCursorSprite = scene->addPixmap(arrow);
+    overworldCursorSprite->setScale(2.0);
+    overworldCursorSprite->setZValue(12);
+    
+    inOverworldMenu = true;
+    overworldMenuIndex = 0;
+    updateOverworldMenuCursor();
+}
+
+void MainWindow::hideOverworldMenu()
+{
+    if (overworldMenuRect) {
+        scene->removeItem(overworldMenuRect);
+        delete overworldMenuRect;
+        overworldMenuRect = nullptr;
+    }
+    
+    for (QGraphicsTextItem *t : overworldMenuOptions) {
+        if (t) {
+            scene->removeItem(t);
+            delete t;
+        }
+    }
+    overworldMenuOptions.clear();
+    
+    if (overworldCursorSprite) {
+        scene->removeItem(overworldCursorSprite);
+        delete overworldCursorSprite;
+        overworldCursorSprite = nullptr;
+    }
+    
+    hideOverworldSubMenu();
+    inOverworldMenu = false;
+    overworldMenuIndex = 0;
+}
+
+void MainWindow::updateOverworldMenuCursor()
+{
+    if (!overworldCursorSprite) return;
+    
+    QGraphicsTextItem *target = nullptr;
+    QVector<QGraphicsTextItem*> *options = nullptr;
+    
+    if (inOverworldBagMenu && !overworldBagMenuOptions.isEmpty()) {
+        options = &overworldBagMenuOptions;
+    } else if (inOverworldPokemonMenu && !overworldPokemonMenuOptions.isEmpty()) {
+        options = &overworldPokemonMenuOptions;
+    } else if (inOverworldMenu && !overworldMenuOptions.isEmpty()) {
+        options = &overworldMenuOptions;
+    }
+    
+    if (options && overworldMenuIndex < options->size()) {
+        target = (*options)[overworldMenuIndex];
+        overworldCursorSprite->setPos(target->pos().x() - 30, target->pos().y() - 2);
+        overworldCursorSprite->setVisible(true);
+    } else {
+        overworldCursorSprite->setVisible(false);
+    }
+}
+
+void MainWindow::handleOverworldMenuKey(QKeyEvent *event)
+{
+    int key = event->key();
+    
+    if (inOverworldBagMenu || inOverworldPokemonMenu) {
+        // Handle submenu navigation
+        QVector<QGraphicsTextItem*> *options = inOverworldBagMenu ? &overworldBagMenuOptions : &overworldPokemonMenuOptions;
+        int maxIndex = options->size();
+        
+        if (key == Qt::Key_Up || key == Qt::Key_W) {
+            if (overworldMenuIndex > 0)
+                overworldMenuIndex--;
+        }
+        else if (key == Qt::Key_Down || key == Qt::Key_S) {
+            if (overworldMenuIndex < maxIndex - 1)
+                overworldMenuIndex++;
+        }
+        else if (key == Qt::Key_Escape || key == Qt::Key_B) {
+            hideOverworldSubMenu();
+            showOverworldMenu();
+            return;
+        }
+        else if (key == Qt::Key_Return || key == Qt::Key_Enter) {
+            // BACK is last option
+            if (overworldMenuIndex >= maxIndex - 1) {
+                hideOverworldSubMenu();
+                showOverworldMenu();
+                return;
+            }
+            // TODO: Handle item/pokemon selection
+        }
+        
+        updateOverworldMenuCursor();
+        return;
+    }
+    
+    if (!inOverworldMenu) return;
+    
+    // Main menu navigation
+    if (key == Qt::Key_Up || key == Qt::Key_W) {
+        if (overworldMenuIndex > 0)
+            overworldMenuIndex--;
+    }
+    else if (key == Qt::Key_Down || key == Qt::Key_S) {
+        if (overworldMenuIndex < overworldMenuOptions.size() - 1)
+            overworldMenuIndex++;
+    }
+    else if (key == Qt::Key_Return || key == Qt::Key_Enter) {
+        overworldMenuSelected(overworldMenuIndex);
+        return;
+    }
+    else if (key == Qt::Key_Escape || key == Qt::Key_M) {
+        hideOverworldMenu();
+        return;
+    }
+    
+    updateOverworldMenuCursor();
+}
+
+void MainWindow::overworldMenuSelected(int index)
+{
+    if (index == 0) { // BAG
+        showOverworldBagMenu();
+    } else if (index == 1) { // POKEMON
+        showOverworldPokemonMenu();
+    } else if (index == 2) { // EXIT
+        hideOverworldMenu();
+    }
+}
+
+void MainWindow::showOverworldBagMenu()
+{
+    if (!scene || !gamePlayer) return;
+    
+    hideOverworldMenu();
+    hideOverworldSubMenu();
+    
+    const auto& items = gamePlayer->getBag().getItems();
+    QFont font("Pokemon Fire Red", 10, QFont::Bold);
+    
+    // Create menu box
+    const qreal boxW = 300, boxH = 200;
+    qreal boxX = (480 - boxW) / 2;
+    qreal boxY = (272 - boxH) / 2;
+    
+    overworldBagMenuRect = new QGraphicsRectItem(boxX, boxY, boxW, boxH);
+    overworldBagMenuRect->setBrush(Qt::white);
+    overworldBagMenuRect->setPen(QPen(Qt::black, 3));
+    overworldBagMenuRect->setZValue(10);
+    scene->addItem(overworldBagMenuRect);
+    
+    overworldBagMenuOptions.clear();
+    int itemCount = 0;
+    for (size_t i = 0; i < items.size() && itemCount < 8; ++i) {
+        if (items[i].getQuantity() > 0) {
+            QString label = capitalizeFirst(QString::fromStdString(items[i].getName())) + 
+                           " x" + QString::number(items[i].getQuantity());
+            QGraphicsTextItem *t = new QGraphicsTextItem(label);
+            t->setFont(font);
+            t->setDefaultTextColor(Qt::black);
+            t->setPos(boxX + 15, boxY + 15 + itemCount * 22);
+            t->setZValue(11);
+            scene->addItem(t);
+            overworldBagMenuOptions.push_back(t);
+            itemCount++;
+        }
+    }
+    
+    // Add BACK option
+    QGraphicsTextItem *back = new QGraphicsTextItem("BACK");
+    back->setFont(font);
+    back->setDefaultTextColor(Qt::black);
+    back->setPos(boxX + 15, boxY + 15 + itemCount * 22);
+    back->setZValue(11);
+    scene->addItem(back);
+    overworldBagMenuOptions.push_back(back);
+    
+    inOverworldBagMenu = true;
+    overworldMenuIndex = 0;
+    updateOverworldMenuCursor();
+}
+
+void MainWindow::showOverworldPokemonMenu()
+{
+    if (!scene || !gamePlayer) return;
+    
+    hideOverworldMenu();
+    hideOverworldSubMenu();
+    
+    const auto& team = gamePlayer->getTeam();
+    QFont font("Pokemon Fire Red", 10, QFont::Bold);
+    
+    // Create menu box
+    const qreal boxW = 300, boxH = 200;
+    qreal boxX = (480 - boxW) / 2;
+    qreal boxY = (272 - boxH) / 2;
+    
+    overworldPokemonMenuRect = new QGraphicsRectItem(boxX, boxY, boxW, boxH);
+    overworldPokemonMenuRect->setBrush(Qt::white);
+    overworldPokemonMenuRect->setPen(QPen(Qt::black, 3));
+    overworldPokemonMenuRect->setZValue(10);
+    scene->addItem(overworldPokemonMenuRect);
+    
+    overworldPokemonMenuOptions.clear();
+    int activeIndex = gamePlayer->getActivePokemonIndex();
+    for (size_t i = 0; i < team.size() && i < 6; ++i) {
+        QString name = capitalizeFirst(QString::fromStdString(team[i].getName()));
+        QString status = team[i].isFainted() ? "FAINTED" : (static_cast<int>(i) == activeIndex ? "ACTIVE" : "");
+        QString label = name + " Lv" + QString::number(team[i].getLevel()) + 
+                       "\nHP " + QString::number(team[i].getCurrentHP()) + "/" + QString::number(team[i].getMaxHP());
+        if (!status.isEmpty()) {
+            label += " " + status;
+        }
+        
+        QGraphicsTextItem *t = new QGraphicsTextItem(label);
+        t->setFont(font);
+        t->setDefaultTextColor(Qt::black);
+        t->setPos(boxX + 15, boxY + 15 + i * 30);
+        t->setZValue(11);
+        scene->addItem(t);
+        overworldPokemonMenuOptions.push_back(t);
+    }
+    
+    // Add BACK option
+    QGraphicsTextItem *back = new QGraphicsTextItem("BACK");
+    back->setFont(font);
+    back->setDefaultTextColor(Qt::black);
+    back->setPos(boxX + 15, boxY + 15 + team.size() * 30);
+    back->setZValue(11);
+    scene->addItem(back);
+    overworldPokemonMenuOptions.push_back(back);
+    
+    inOverworldPokemonMenu = true;
+    overworldMenuIndex = 0;
+    updateOverworldMenuCursor();
+}
+
+void MainWindow::hideOverworldSubMenu()
+{
+    if (overworldBagMenuRect) {
+        scene->removeItem(overworldBagMenuRect);
+        delete overworldBagMenuRect;
+        overworldBagMenuRect = nullptr;
+    }
+    
+    for (QGraphicsTextItem *t : overworldBagMenuOptions) {
+        if (t) {
+            scene->removeItem(t);
+            delete t;
+        }
+    }
+    overworldBagMenuOptions.clear();
+    
+    if (overworldPokemonMenuRect) {
+        scene->removeItem(overworldPokemonMenuRect);
+        delete overworldPokemonMenuRect;
+        overworldPokemonMenuRect = nullptr;
+    }
+    
+    for (QGraphicsTextItem *t : overworldPokemonMenuOptions) {
+        if (t) {
+            scene->removeItem(t);
+            delete t;
+        }
+    }
+    overworldPokemonMenuOptions.clear();
+    
+    inOverworldBagMenu = false;
+    inOverworldPokemonMenu = false;
+    overworldMenuIndex = 0;
+}
+
+QString MainWindow::capitalizeFirst(const QString& str) {
+    if (str.isEmpty()) return str;
+    return str[0].toUpper() + str.mid(1).toLower();
 }

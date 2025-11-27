@@ -69,6 +69,7 @@ public:
     
     // Execute turn
     void executeTurn(int player1MoveIndex, int player2MoveIndex);
+    void executeEnemyTurn();  // Execute only enemy's turn (for items/switches/failed run)
     
     // Reset to main menu (for BACK button)
     void returnToMainMenu();

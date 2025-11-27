@@ -368,6 +368,41 @@ void Battle::executeTurn(int player1MoveIndex, int player2MoveIndex) {
     displayBattleStatus();
 }
 
+void Battle::executeEnemyTurn() {
+    // Execute only the enemy's turn (for items/switches/failed run)
+    Pokemon* p1Pokemon = player1->getActivePokemon();
+    Pokemon* p2Pokemon = player2->getActivePokemon();
+    
+    if (!p1Pokemon || !p2Pokemon || p1Pokemon->isFainted() || p2Pokemon->isFainted()) {
+        return;
+    }
+    
+    // Select random move for enemy
+    int enemyMoveIndex = 0;
+    if (!p2Pokemon->getMoves().empty()) {
+        std::uniform_int_distribution<> moveSelect(0, static_cast<int>(p2Pokemon->getMoves().size()) - 1);
+        enemyMoveIndex = moveSelect(gen);
+    }
+    
+    // Execute enemy's move
+    if (enemyMoveIndex >= 0 && enemyMoveIndex < static_cast<int>(p2Pokemon->getMoves().size())) {
+        Attack& move = p2Pokemon->getMoves()[enemyMoveIndex];
+        if (move.canUse() && checkAccuracy(move)) {
+            int damage = calculateDamage(*p2Pokemon, *p1Pokemon, move);
+            p1Pokemon->takeDamage(damage);
+            move.use();
+            std::cout << p2Pokemon->getName() << " used " << move.getName() << "!\n";
+            std::cout << "Dealt " << damage << " damage to " << p1Pokemon->getName() << "!\n";
+        } else if (!move.canUse()) {
+            std::cout << "No PP left for " << move.getName() << "!\n";
+        } else {
+            std::cout << p2Pokemon->getName() << "'s attack missed!\n";
+        }
+    }
+    
+    displayBattleStatus();
+}
+
 void Battle::processFightAction(int moveIndex) {
     Pokemon* active = player1->getActivePokemon();
     if (!active) return;
@@ -439,6 +474,8 @@ void Battle::processBagAction(int itemIndex) {
     }
     
     displayBattleStatus();
+    // Enemy gets a turn after item use
+    executeEnemyTurn();
     state = BattleState::MENU;
 }
 
@@ -461,6 +498,8 @@ void Battle::processPokemonAction(int pokemonIndex) {
     player1->switchPokemon(pokemonIndex);
     std::cout << "Go! " << player1->getActivePokemon()->getName() << "!\n";
     displayBattleStatus();
+    // Enemy gets a turn after switching Pokemon
+    executeEnemyTurn();
     state = BattleState::MENU;
 }
 
@@ -468,6 +507,8 @@ void Battle::processRunAction() {
     if (attemptRun()) {
         state = BattleState::BATTLE_END;
     } else {
+        // Enemy gets a turn after failed run attempt
+        executeEnemyTurn();
         state = BattleState::MENU;
     }
 }

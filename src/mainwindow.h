@@ -105,6 +105,8 @@ private:
 
     int battleMenuIndex = 0;
     bool inBattleMenu = false;
+    bool inBagMenu = false;
+    bool inPokemonMenu = false;
     QGraphicsTextItem *battleCursor = nullptr;
 
     void updateBattleCursor();
@@ -135,6 +137,9 @@ private:
 
     QGraphicsRectItem *enemyHpMask = nullptr;
     QGraphicsRectItem *playerHpMask = nullptr;
+
+    QGraphicsTextItem *enemyPokemonNameText = nullptr;
+    QGraphicsTextItem *playerPokemonNameText = nullptr;
 
     void setHpColor(QGraphicsRectItem *hpBar, float hpPercent);
 
@@ -167,8 +172,40 @@ private:
     void playerChoseMove(int moveIndex);
     void enemyTurn();
     void closeBattleReturnToMap();
+    void showBagMenu();
+    void showPokemonMenu();
+    void playerSelectedBagItem(int index);
+    void playerSelectedPokemon(int index);
 
     QGraphicsScene* overworldScene = nullptr;
+
+    // ============================================================
+    // OVERWORLD MENU SYSTEM
+    // ============================================================
+    
+    bool inOverworldMenu = false;
+    int overworldMenuIndex = 0;
+    QGraphicsRectItem *overworldMenuRect = nullptr;
+    QVector<QGraphicsTextItem*> overworldMenuOptions;
+    QGraphicsPixmapItem *overworldCursorSprite = nullptr;
+    
+    void showOverworldMenu();
+    void hideOverworldMenu();
+    void handleOverworldMenuKey(QKeyEvent *event);
+    void overworldMenuSelected(int index);
+    void showOverworldBagMenu();
+    void showOverworldPokemonMenu();
+    void hideOverworldSubMenu();
+    void updateOverworldMenuCursor();
+    QString capitalizeFirst(const QString& str);
+    
+    // Overworld submenus
+    bool inOverworldBagMenu = false;
+    bool inOverworldPokemonMenu = false;
+    QGraphicsRectItem *overworldBagMenuRect = nullptr;
+    QGraphicsRectItem *overworldPokemonMenuRect = nullptr;
+    QVector<QGraphicsTextItem*> overworldBagMenuOptions;
+    QVector<QGraphicsTextItem*> overworldPokemonMenuOptions;
 
     // Gamepad support
     GamepadThread *gamepadThread;
