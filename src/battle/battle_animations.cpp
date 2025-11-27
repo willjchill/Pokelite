@@ -44,7 +44,7 @@ void MainWindow::battleZoomReveal()
 
 void MainWindow::animateBattleEntrances()
 {
-    if (!battleTrainerItem || !battleEnemyItem) return;
+    if (!battleEnemyItem) return;
 
     QGraphicsPathItem *mask=new QGraphicsPathItem();
     mask->setBrush(Qt::black);
@@ -78,21 +78,32 @@ void MainWindow::animateBattleEntrances()
 
     circle->start(QAbstractAnimation::DeleteWhenStopped);
 
-    QPointF playerFinal=battleTrainerItem->pos();
+    QPointF playerFinal = battlePlayerPokemonItem ? battlePlayerPokemonItem->pos() : 
+                          (battleTrainerItem ? battleTrainerItem->pos() : QPointF(40, 150));
     QPointF enemyFinal=battleEnemyItem->pos();
 
-    battleTrainerItem->setX(playerFinal.x()-500);
+    if (battlePlayerPokemonItem) {
+        battlePlayerPokemonItem->setX(playerFinal.x()-500);
+    } else if (battleTrainerItem) {
+        battleTrainerItem->setX(playerFinal.x()-500);
+    }
     battleEnemyItem->setX(enemyFinal.x()+500);
 
     QVariantAnimation *playerSlide=new QVariantAnimation(this);
     playerSlide->setDuration(750);
-    playerSlide->setStartValue(battleTrainerItem->x());
+    qreal playerStartX = battlePlayerPokemonItem ? battlePlayerPokemonItem->x() : 
+                        (battleTrainerItem ? battleTrainerItem->x() : playerFinal.x() - 500);
+    playerSlide->setStartValue(playerStartX);
     playerSlide->setEndValue(playerFinal.x());
     playerSlide->setEasingCurve(QEasingCurve::OutBack);
 
     connect(playerSlide,&QVariantAnimation::valueChanged,this,
-            [&](const QVariant &v){
-                battleTrainerItem->setX(v.toReal());
+            [=](const QVariant &v){
+                if (battlePlayerPokemonItem) {
+                    battlePlayerPokemonItem->setX(v.toReal());
+                } else if (battleTrainerItem) {
+                    battleTrainerItem->setX(v.toReal());
+                }
             });
 
     QVariantAnimation *enemySlide=new QVariantAnimation(this);

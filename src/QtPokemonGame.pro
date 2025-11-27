@@ -4,25 +4,44 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
+INCLUDEPATH += game_logic/json
+
 SOURCES += \
     battle/battle_system.cpp \
-    battle/battle_animations.cpp\
+    battle/battle_animations.cpp \
+    game_logic/Attack.cpp \
+    game_logic/Bag.cpp \
+    game_logic/Battle.cpp \
+    game_logic/Item.cpp \
+    game_logic/Player.cpp \
+    game_logic/Pokemon.cpp \
+    game_logic/PokemonData.cpp \
+    game_logic/Type.cpp \
+    game_logic/jsoncpp.cpp \
     introscreen.cpp \
     main.cpp \
     mainwindow.cpp \
     map/map_loader.cpp \
-
     gamepadthread.cpp
 
 HEADERS += \
     battle/battle_system.h \
+    game_logic/Attack.h \
+    game_logic/Bag.h \
+    game_logic/Battle.h \
+    game_logic/Item.h \
+    game_logic/Player.h \
+    game_logic/Pokemon.h \
+    game_logic/PokemonData.h \
+    game_logic/Type.h \
     introscreen.h \
     mainwindow.h \
-    map/map_loader.h
+    map/map_loader.h \
     gamepadthread.h
 
-FORMS += \
-    mainwindow.ui
+# FORMS removed - not using Qt Designer UI files
+# FORMS += \
+#     mainwindow.ui
 
 RESOURCES += assets.qrc
 

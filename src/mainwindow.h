@@ -26,6 +26,9 @@
 
 // NEW
 #include "map/map_loader.h"
+#include "battle/battle_system.h"
+#include "game_logic/Player.h"
+#include "game_logic/Pokemon.h"
 
 class MainWindow : public QMainWindow
 {
@@ -91,9 +94,13 @@ private:
     // ============================================================
 
     bool inBattle = false;
+    BattleSystem* battleSystem = nullptr;  // Real battle logic
+    Player* gamePlayer = nullptr;  // Game logic player instance
+    Player* enemyPlayer = nullptr;  // Enemy/NPC player instance
 
     QGraphicsScene *battleScene      = nullptr;
     QGraphicsPixmapItem *battleTrainerItem = nullptr;
+    QGraphicsPixmapItem *battlePlayerPokemonItem = nullptr;  // Player's Pokemon sprite
     QGraphicsPixmapItem *battleEnemyItem   = nullptr;
 
     int battleMenuIndex = 0;
@@ -152,6 +159,7 @@ private:
 
     void tryWildEncounter();
     void setupBattleUI();
+    void updateBattleUI();  // Update UI from battle state
     void animateBattleEntrances();
 
     // ======== BATTLE LOGIC FUNCTIONS ========

@@ -17,7 +17,7 @@ CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
+INCPATH       = -I. -Igame_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
 QMAKE         = /usr/lib/qt5/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -52,14 +52,34 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = introscreen.cpp \
+SOURCES       = battle/battle_system.cpp \
+		game_logic/Attack.cpp \
+		game_logic/Bag.cpp \
+		game_logic/Battle.cpp \
+		game_logic/Item.cpp \
+		game_logic/Player.cpp \
+		game_logic/Pokemon.cpp \
+		game_logic/PokemonData.cpp \
+		game_logic/Type.cpp \
+		game_logic/jsoncpp.cpp \
+		introscreen.cpp \
 		main.cpp \
 		mainwindow.cpp \
 		gamepadthread.cpp qrc_assets.cpp \
 		moc_introscreen.cpp \
 		moc_mainwindow.cpp \
 		moc_gamepadthread.cpp
-OBJECTS       = introscreen.o \
+OBJECTS       = battle_system.o \
+		Attack.o \
+		Bag.o \
+		Battle.o \
+		Item.o \
+		Player.o \
+		Pokemon.o \
+		PokemonData.o \
+		Type.o \
+		jsoncpp.o \
+		introscreen.o \
 		main.o \
 		mainwindow.o \
 		gamepadthread.o \
@@ -181,9 +201,29 @@ DIST          = assets/back1.png \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
-		QtPokemonGame.pro introscreen.h \
+		QtPokemonGame.pro battle/battle_system.h \
+		game_logic/Attack.h \
+		game_logic/Bag.h \
+		game_logic/Battle.h \
+		game_logic/Item.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/PokemonData.h \
+		game_logic/Type.h \
+		introscreen.h \
 		mainwindow.h \
-		gamepadthread.h introscreen.cpp \
+		map/map_loader.h \
+		gamepadthread.h battle/battle_system.cpp \
+		game_logic/Attack.cpp \
+		game_logic/Bag.cpp \
+		game_logic/Battle.cpp \
+		game_logic/Item.cpp \
+		game_logic/Player.cpp \
+		game_logic/Pokemon.cpp \
+		game_logic/PokemonData.cpp \
+		game_logic/Type.cpp \
+		game_logic/jsoncpp.cpp \
+		introscreen.cpp \
 		main.cpp \
 		mainwindow.cpp \
 		gamepadthread.cpp
@@ -195,7 +235,7 @@ TARGET        = QtPokemonGame
 first: all
 ####### Build rules
 
-QtPokemonGame: ui_mainwindow.h $(OBJECTS)  
+QtPokemonGame:  $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 Makefile: QtPokemonGame.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -373,9 +413,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents assets.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents introscreen.h mainwindow.h gamepadthread.h $(DISTDIR)/
-	$(COPY_FILE) --parents introscreen.cpp main.cpp mainwindow.cpp gamepadthread.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.ui $(DISTDIR)/
+	$(COPY_FILE) --parents battle/battle_system.h game_logic/Attack.h game_logic/Bag.h game_logic/Battle.h game_logic/Item.h game_logic/Player.h game_logic/Pokemon.h game_logic/PokemonData.h game_logic/Type.h introscreen.h mainwindow.h map/map_loader.h gamepadthread.h $(DISTDIR)/
+	$(COPY_FILE) --parents battle/battle_system.cpp game_logic/Attack.cpp game_logic/Bag.cpp game_logic/Battle.cpp game_logic/Item.cpp game_logic/Player.cpp game_logic/Pokemon.cpp game_logic/PokemonData.cpp game_logic/Type.cpp game_logic/jsoncpp.cpp introscreen.cpp main.cpp mainwindow.cpp gamepadthread.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -404,21 +443,21 @@ compiler_rcc_clean:
 	-$(DEL_FILE) qrc_assets.cpp
 qrc_assets.cpp: assets.qrc \
 		/usr/lib/qt5/bin/rcc \
-		assets/front2.png \
-		assets/tallgrass.png \
-		assets/right3.png \
-		assets/left3.png \
-		assets/back1.png \
-		assets/front1.png \
 		assets/background.png \
-		assets/right2.png \
 		assets/collision.png \
-		assets/left2.png \
+		assets/front1.png \
 		assets/right1.png \
 		assets/left1.png \
-		assets/back3.png \
+		assets/front2.png \
+		assets/right2.png \
+		assets/left2.png \
+		assets/right3.png \
+		assets/left3.png \
 		assets/front3.png \
+		assets/tallgrass.png \
+		assets/back1.png \
 		assets/back2.png \
+		assets/back3.png \
 		assets/battle/trainer.png \
 		assets/battle/charizard.png \
 		assets/battle/battle_bg.png \
@@ -427,6 +466,18 @@ qrc_assets.cpp: assets.qrc \
 		assets/battle/ui/command_box.png \
 		assets/battle/ui/hp_box_enemy.png \
 		assets/battle/ui/hp_box_player.png \
+		assets/overworld/player/front2.png \
+		assets/overworld/player/right3.png \
+		assets/overworld/player/back1.png \
+		assets/overworld/player/left3.png \
+		assets/overworld/player/front1.png \
+		assets/overworld/player/right2.png \
+		assets/overworld/player/left2.png \
+		assets/overworld/player/right1.png \
+		assets/overworld/player/left1.png \
+		assets/overworld/player/back3.png \
+		assets/overworld/player/front3.png \
+		assets/overworld/player/back2.png \
 		assets/intro/press/press_off.png \
 		assets/intro/press/press_on.png \
 		assets/intro/grass/grass_02.png \
@@ -449,7 +500,312 @@ qrc_assets.cpp: assets.qrc \
 		assets/intro/title/title_02.png \
 		assets/intro/title/title_01.png \
 		assets/intro/title/title_04.png \
-		assets/intro/title/title_03.png
+		assets/intro/title/title_03.png \
+		assets/maps/route1/tallgrass.png \
+		assets/maps/route1/background.png \
+		assets/maps/route1/collision.png \
+		game_logic/sprites/063_abra/front.png \
+		game_logic/sprites/063_abra/back.png \
+		game_logic/sprites/057_primeape/front.png \
+		game_logic/sprites/057_primeape/back.png \
+		game_logic/sprites/020_raticate/front.png \
+		game_logic/sprites/020_raticate/back.png \
+		game_logic/sprites/122_mr-mime/front.png \
+		game_logic/sprites/122_mr-mime/back.png \
+		game_logic/sprites/087_dewgong/front.png \
+		game_logic/sprites/087_dewgong/back.png \
+		game_logic/sprites/091_cloyster/front.png \
+		game_logic/sprites/091_cloyster/back.png \
+		game_logic/sprites/126_magmar/front.png \
+		game_logic/sprites/126_magmar/back.png \
+		game_logic/sprites/099_kingler/front.png \
+		game_logic/sprites/099_kingler/back.png \
+		game_logic/sprites/059_arcanine/front.png \
+		game_logic/sprites/059_arcanine/back.png \
+		game_logic/sprites/048_venonat/front.png \
+		game_logic/sprites/048_venonat/back.png \
+		game_logic/sprites/042_golbat/front.png \
+		game_logic/sprites/042_golbat/back.png \
+		game_logic/sprites/076_golem/front.png \
+		game_logic/sprites/076_golem/back.png \
+		game_logic/sprites/038_ninetales/front.png \
+		game_logic/sprites/038_ninetales/back.png \
+		game_logic/sprites/148_dragonair/front.png \
+		game_logic/sprites/148_dragonair/back.png \
+		game_logic/sprites/143_snorlax/front.png \
+		game_logic/sprites/143_snorlax/back.png \
+		game_logic/sprites/052_meowth/front.png \
+		game_logic/sprites/052_meowth/back.png \
+		game_logic/sprites/096_drowzee/front.png \
+		game_logic/sprites/096_drowzee/back.png \
+		game_logic/sprites/068_machamp/front.png \
+		game_logic/sprites/068_machamp/back.png \
+		game_logic/sprites/077_ponyta/front.png \
+		game_logic/sprites/077_ponyta/back.png \
+		game_logic/sprites/142_aerodactyl/front.png \
+		game_logic/sprites/142_aerodactyl/back.png \
+		game_logic/sprites/089_muk/front.png \
+		game_logic/sprites/089_muk/back.png \
+		game_logic/sprites/128_tauros/front.png \
+		game_logic/sprites/128_tauros/back.png \
+		game_logic/sprites/049_venomoth/front.png \
+		game_logic/sprites/049_venomoth/back.png \
+		game_logic/sprites/131_lapras/front.png \
+		game_logic/sprites/131_lapras/back.png \
+		game_logic/sprites/082_magneton/front.png \
+		game_logic/sprites/082_magneton/back.png \
+		game_logic/sprites/004_charmander/front.png \
+		game_logic/sprites/004_charmander/back.png \
+		game_logic/sprites/078_rapidash/front.png \
+		game_logic/sprites/078_rapidash/back.png \
+		game_logic/sprites/095_onix/front.png \
+		game_logic/sprites/095_onix/back.png \
+		game_logic/sprites/116_horsea/front.png \
+		game_logic/sprites/116_horsea/back.png \
+		game_logic/sprites/071_victreebel/front.png \
+		game_logic/sprites/071_victreebel/back.png \
+		game_logic/sprites/065_alakazam/front.png \
+		game_logic/sprites/065_alakazam/back.png \
+		game_logic/sprites/021_spearow/front.png \
+		game_logic/sprites/021_spearow/back.png \
+		game_logic/sprites/145_zapdos/front.png \
+		game_logic/sprites/145_zapdos/back.png \
+		game_logic/sprites/037_vulpix/front.png \
+		game_logic/sprites/037_vulpix/back.png \
+		game_logic/sprites/092_gastly/front.png \
+		game_logic/sprites/092_gastly/back.png \
+		game_logic/sprites/064_kadabra/front.png \
+		game_logic/sprites/064_kadabra/back.png \
+		game_logic/sprites/120_staryu/front.png \
+		game_logic/sprites/120_staryu/back.png \
+		game_logic/sprites/046_paras/front.png \
+		game_logic/sprites/046_paras/back.png \
+		game_logic/sprites/010_caterpie/front.png \
+		game_logic/sprites/010_caterpie/back.png \
+		game_logic/sprites/090_shellder/front.png \
+		game_logic/sprites/090_shellder/back.png \
+		game_logic/sprites/002_ivysaur/front.png \
+		game_logic/sprites/002_ivysaur/back.png \
+		game_logic/sprites/043_oddish/front.png \
+		game_logic/sprites/043_oddish/back.png \
+		game_logic/sprites/001_bulbasaur/front.png \
+		game_logic/sprites/001_bulbasaur/back.png \
+		game_logic/sprites/031_nidoqueen/front.png \
+		game_logic/sprites/031_nidoqueen/back.png \
+		game_logic/sprites/011_metapod/front.png \
+		game_logic/sprites/011_metapod/back.png \
+		game_logic/sprites/147_dratini/front.png \
+		game_logic/sprites/147_dratini/back.png \
+		game_logic/sprites/022_fearow/front.png \
+		game_logic/sprites/022_fearow/back.png \
+		game_logic/sprites/067_machoke/front.png \
+		game_logic/sprites/067_machoke/back.png \
+		game_logic/sprites/101_electrode/front.png \
+		game_logic/sprites/101_electrode/back.png \
+		game_logic/sprites/054_psyduck/front.png \
+		game_logic/sprites/054_psyduck/back.png \
+		game_logic/sprites/097_hypno/front.png \
+		game_logic/sprites/097_hypno/back.png \
+		game_logic/sprites/008_wartortle/front.png \
+		game_logic/sprites/008_wartortle/back.png \
+		game_logic/sprites/061_poliwhirl/front.png \
+		game_logic/sprites/061_poliwhirl/back.png \
+		game_logic/sprites/123_scyther/front.png \
+		game_logic/sprites/123_scyther/back.png \
+		game_logic/sprites/044_gloom/front.png \
+		game_logic/sprites/044_gloom/back.png \
+		game_logic/sprites/017_pidgeotto/front.png \
+		game_logic/sprites/017_pidgeotto/back.png \
+		game_logic/sprites/039_jigglypuff/front.png \
+		game_logic/sprites/039_jigglypuff/back.png \
+		game_logic/sprites/124_jynx/front.png \
+		game_logic/sprites/124_jynx/back.png \
+		game_logic/sprites/110_weezing/front.png \
+		game_logic/sprites/110_weezing/back.png \
+		game_logic/sprites/045_vileplume/front.png \
+		game_logic/sprites/045_vileplume/back.png \
+		game_logic/sprites/105_marowak/front.png \
+		game_logic/sprites/105_marowak/back.png \
+		game_logic/sprites/033_nidorino/front.png \
+		game_logic/sprites/033_nidorino/back.png \
+		game_logic/sprites/072_tentacool/front.png \
+		game_logic/sprites/072_tentacool/back.png \
+		game_logic/sprites/026_raichu/front.png \
+		game_logic/sprites/026_raichu/back.png \
+		game_logic/sprites/133_eevee/front.png \
+		game_logic/sprites/133_eevee/back.png \
+		game_logic/sprites/129_magikarp/front.png \
+		game_logic/sprites/129_magikarp/back.png \
+		game_logic/sprites/125_electabuzz/front.png \
+		game_logic/sprites/125_electabuzz/back.png \
+		game_logic/sprites/098_krabby/front.png \
+		game_logic/sprites/098_krabby/back.png \
+		game_logic/sprites/013_weedle/front.png \
+		game_logic/sprites/013_weedle/back.png \
+		game_logic/sprites/151_mew/front.png \
+		game_logic/sprites/151_mew/back.png \
+		game_logic/sprites/055_golduck/front.png \
+		game_logic/sprites/055_golduck/back.png \
+		game_logic/sprites/030_nidorina/front.png \
+		game_logic/sprites/030_nidorina/back.png \
+		game_logic/sprites/018_pidgeot/front.png \
+		game_logic/sprites/018_pidgeot/back.png \
+		game_logic/sprites/062_poliwrath/front.png \
+		game_logic/sprites/062_poliwrath/back.png \
+		game_logic/sprites/050_diglett/front.png \
+		game_logic/sprites/050_diglett/back.png \
+		game_logic/sprites/134_vaporeon/front.png \
+		game_logic/sprites/134_vaporeon/back.png \
+		game_logic/sprites/144_articuno/front.png \
+		game_logic/sprites/144_articuno/back.png \
+		game_logic/sprites/141_kabutops/front.png \
+		game_logic/sprites/141_kabutops/back.png \
+		game_logic/sprites/102_exeggcute/front.png \
+		game_logic/sprites/102_exeggcute/back.png \
+		game_logic/sprites/060_poliwag/front.png \
+		game_logic/sprites/060_poliwag/back.png \
+		game_logic/sprites/069_bellsprout/front.png \
+		game_logic/sprites/069_bellsprout/back.png \
+		game_logic/sprites/058_growlithe/front.png \
+		game_logic/sprites/058_growlithe/back.png \
+		game_logic/sprites/111_rhyhorn/front.png \
+		game_logic/sprites/111_rhyhorn/back.png \
+		game_logic/sprites/081_magnemite/front.png \
+		game_logic/sprites/081_magnemite/back.png \
+		game_logic/sprites/014_kakuna/front.png \
+		game_logic/sprites/014_kakuna/back.png \
+		game_logic/sprites/085_dodrio/front.png \
+		game_logic/sprites/085_dodrio/back.png \
+		game_logic/sprites/149_dragonite/front.png \
+		game_logic/sprites/149_dragonite/back.png \
+		game_logic/sprites/138_omanyte/front.png \
+		game_logic/sprites/138_omanyte/back.png \
+		game_logic/sprites/132_ditto/front.png \
+		game_logic/sprites/132_ditto/back.png \
+		game_logic/sprites/119_seaking/front.png \
+		game_logic/sprites/119_seaking/back.png \
+		game_logic/sprites/003_venusaur/front.png \
+		game_logic/sprites/003_venusaur/back.png \
+		game_logic/sprites/047_parasect/front.png \
+		game_logic/sprites/047_parasect/back.png \
+		game_logic/sprites/075_graveler/front.png \
+		game_logic/sprites/075_graveler/back.png \
+		game_logic/sprites/094_gengar/front.png \
+		game_logic/sprites/094_gengar/back.png \
+		game_logic/sprites/024_arbok/front.png \
+		game_logic/sprites/024_arbok/back.png \
+		game_logic/sprites/019_rattata/front.png \
+		game_logic/sprites/019_rattata/back.png \
+		game_logic/sprites/117_seadra/front.png \
+		game_logic/sprites/117_seadra/back.png \
+		game_logic/sprites/139_omastar/front.png \
+		game_logic/sprites/139_omastar/back.png \
+		game_logic/sprites/041_zubat/front.png \
+		game_logic/sprites/041_zubat/back.png \
+		game_logic/sprites/073_tentacruel/front.png \
+		game_logic/sprites/073_tentacruel/back.png \
+		game_logic/sprites/136_flareon/front.png \
+		game_logic/sprites/136_flareon/back.png \
+		game_logic/sprites/135_jolteon/front.png \
+		game_logic/sprites/135_jolteon/back.png \
+		game_logic/sprites/079_slowpoke/front.png \
+		game_logic/sprites/079_slowpoke/back.png \
+		game_logic/sprites/100_voltorb/front.png \
+		game_logic/sprites/100_voltorb/back.png \
+		game_logic/sprites/121_starmie/front.png \
+		game_logic/sprites/121_starmie/back.png \
+		game_logic/sprites/023_ekans/front.png \
+		game_logic/sprites/023_ekans/back.png \
+		game_logic/sprites/084_doduo/front.png \
+		game_logic/sprites/084_doduo/back.png \
+		game_logic/sprites/066_machop/front.png \
+		game_logic/sprites/066_machop/back.png \
+		game_logic/sprites/108_lickitung/front.png \
+		game_logic/sprites/108_lickitung/back.png \
+		game_logic/sprites/007_squirtle/front.png \
+		game_logic/sprites/007_squirtle/back.png \
+		game_logic/sprites/088_grimer/front.png \
+		game_logic/sprites/088_grimer/back.png \
+		game_logic/sprites/029_nidoran-f/front.png \
+		game_logic/sprites/029_nidoran-f/back.png \
+		game_logic/sprites/109_koffing/front.png \
+		game_logic/sprites/109_koffing/back.png \
+		game_logic/sprites/025_pikachu/front.png \
+		game_logic/sprites/025_pikachu/back.png \
+		game_logic/sprites/112_rhydon/front.png \
+		game_logic/sprites/112_rhydon/back.png \
+		game_logic/sprites/012_butterfree/front.png \
+		game_logic/sprites/012_butterfree/back.png \
+		game_logic/sprites/146_moltres/front.png \
+		game_logic/sprites/146_moltres/back.png \
+		game_logic/sprites/053_persian/front.png \
+		game_logic/sprites/053_persian/back.png \
+		game_logic/sprites/034_nidoking/front.png \
+		game_logic/sprites/034_nidoking/back.png \
+		game_logic/sprites/005_charmeleon/front.png \
+		game_logic/sprites/005_charmeleon/back.png \
+		game_logic/sprites/056_mankey/front.png \
+		game_logic/sprites/056_mankey/back.png \
+		game_logic/sprites/106_hitmonlee/front.png \
+		game_logic/sprites/106_hitmonlee/back.png \
+		game_logic/sprites/114_tangela/front.png \
+		game_logic/sprites/114_tangela/back.png \
+		game_logic/sprites/016_pidgey/front.png \
+		game_logic/sprites/016_pidgey/back.png \
+		game_logic/sprites/107_hitmonchan/front.png \
+		game_logic/sprites/107_hitmonchan/back.png \
+		game_logic/sprites/036_clefable/front.png \
+		game_logic/sprites/036_clefable/back.png \
+		game_logic/sprites/009_blastoise/front.png \
+		game_logic/sprites/009_blastoise/back.png \
+		game_logic/sprites/028_sandslash/front.png \
+		game_logic/sprites/028_sandslash/back.png \
+		game_logic/sprites/115_kangaskhan/front.png \
+		game_logic/sprites/115_kangaskhan/back.png \
+		game_logic/sprites/103_exeggutor/front.png \
+		game_logic/sprites/103_exeggutor/back.png \
+		game_logic/sprites/035_clefairy/front.png \
+		game_logic/sprites/035_clefairy/back.png \
+		game_logic/sprites/015_beedrill/front.png \
+		game_logic/sprites/015_beedrill/back.png \
+		game_logic/sprites/127_pinsir/front.png \
+		game_logic/sprites/127_pinsir/back.png \
+		game_logic/sprites/140_kabuto/front.png \
+		game_logic/sprites/140_kabuto/back.png \
+		game_logic/sprites/070_weepinbell/front.png \
+		game_logic/sprites/070_weepinbell/back.png \
+		game_logic/sprites/104_cubone/front.png \
+		game_logic/sprites/104_cubone/back.png \
+		game_logic/sprites/051_dugtrio/front.png \
+		game_logic/sprites/051_dugtrio/back.png \
+		game_logic/sprites/150_mewtwo/front.png \
+		game_logic/sprites/150_mewtwo/back.png \
+		game_logic/sprites/006_charizard/front.png \
+		game_logic/sprites/006_charizard/back.png \
+		game_logic/sprites/032_nidoran-m/front.png \
+		game_logic/sprites/032_nidoran-m/back.png \
+		game_logic/sprites/080_slowbro/front.png \
+		game_logic/sprites/080_slowbro/back.png \
+		game_logic/sprites/118_goldeen/front.png \
+		game_logic/sprites/118_goldeen/back.png \
+		game_logic/sprites/086_seel/front.png \
+		game_logic/sprites/086_seel/back.png \
+		game_logic/sprites/093_haunter/front.png \
+		game_logic/sprites/093_haunter/back.png \
+		game_logic/sprites/074_geodude/front.png \
+		game_logic/sprites/074_geodude/back.png \
+		game_logic/sprites/130_gyarados/front.png \
+		game_logic/sprites/130_gyarados/back.png \
+		game_logic/sprites/137_porygon/front.png \
+		game_logic/sprites/137_porygon/back.png \
+		game_logic/sprites/040_wigglytuff/front.png \
+		game_logic/sprites/040_wigglytuff/back.png \
+		game_logic/sprites/027_sandshrew/front.png \
+		game_logic/sprites/027_sandshrew/back.png \
+		game_logic/sprites/083_farfetchd/front.png \
+		game_logic/sprites/083_farfetchd/back.png \
+		game_logic/sprites/113_chansey/front.png \
+		game_logic/sprites/113_chansey/back.png
 	/usr/lib/qt5/bin/rcc -name assets assets.qrc -o qrc_assets.cpp
 
 compiler_moc_predefs_make_all: moc_predefs.h
@@ -465,39 +821,103 @@ moc_introscreen.cpp: introscreen.h \
 		gamepadthread.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include introscreen.h -o moc_introscreen.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include introscreen.h -o moc_introscreen.cpp
 
 moc_mainwindow.cpp: mainwindow.h \
 		gamepadthread.h \
+		map/map_loader.h \
+		battle/battle_system.h \
+		game_logic/Battle.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
 moc_gamepadthread.cpp: gamepadthread.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include gamepadthread.h -o moc_gamepadthread.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include gamepadthread.h -o moc_gamepadthread.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
-compiler_uic_make_all: ui_mainwindow.h
+compiler_uic_make_all:
 compiler_uic_clean:
-	-$(DEL_FILE) ui_mainwindow.h
-ui_mainwindow.h: mainwindow.ui \
-		/usr/lib/qt5/bin/uic
-	/usr/lib/qt5/bin/uic mainwindow.ui -o ui_mainwindow.h
-
 compiler_yacc_decl_make_all:
 compiler_yacc_decl_clean:
 compiler_yacc_impl_make_all:
 compiler_yacc_impl_clean:
 compiler_lex_make_all:
 compiler_lex_clean:
-compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_header_clean compiler_uic_clean 
+compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_header_clean 
 
 ####### Compile
+
+battle_system.o: battle/battle_system.cpp battle/battle_system.h \
+		game_logic/Battle.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_system.o battle/battle_system.cpp
+
+Attack.o: game_logic/Attack.cpp game_logic/Attack.h \
+		game_logic/Type.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Attack.o game_logic/Attack.cpp
+
+Bag.o: game_logic/Bag.cpp game_logic/Bag.h \
+		game_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Bag.o game_logic/Bag.cpp
+
+Battle.o: game_logic/Battle.cpp game_logic/Battle.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Battle.o game_logic/Battle.cpp
+
+Item.o: game_logic/Item.cpp game_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Item.o game_logic/Item.cpp
+
+Player.o: game_logic/Player.cpp game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Player.o game_logic/Player.cpp
+
+Pokemon.o: game_logic/Pokemon.cpp game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Pokemon.o game_logic/Pokemon.cpp
+
+PokemonData.o: game_logic/PokemonData.cpp game_logic/PokemonData.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/json/json.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o PokemonData.o game_logic/PokemonData.cpp
+
+Type.o: game_logic/Type.cpp game_logic/Type.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Type.o game_logic/Type.cpp
+
+jsoncpp.o: game_logic/jsoncpp.cpp game_logic/json/json.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o jsoncpp.o game_logic/jsoncpp.cpp
 
 introscreen.o: introscreen.cpp introscreen.h \
 		gamepadthread.h
@@ -505,11 +925,34 @@ introscreen.o: introscreen.cpp introscreen.h \
 
 main.o: main.cpp introscreen.h \
 		gamepadthread.h \
-		mainwindow.h
+		mainwindow.h \
+		map/map_loader.h \
+		battle/battle_system.h \
+		game_logic/Battle.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mainwindow.o: mainwindow.cpp mainwindow.h \
-		gamepadthread.h
+		gamepadthread.h \
+		map/map_loader.h \
+		battle/battle_system.h \
+		game_logic/Battle.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h \
+		battle/battle_ui_integration.cpp \
+		battle/battle_animations.cpp \
+		map/map_loader.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 gamepadthread.o: gamepadthread.cpp gamepadthread.h
