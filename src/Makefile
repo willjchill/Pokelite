@@ -53,6 +53,8 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = battle/battle_system.cpp \
+		battle_sequence.cpp \
+		overworld.cpp \
 		game_logic/Attack.cpp \
 		game_logic/Bag.cpp \
 		game_logic/Battle.cpp \
@@ -65,11 +67,16 @@ SOURCES       = battle/battle_system.cpp \
 		introscreen.cpp \
 		main.cpp \
 		mainwindow.cpp \
+		map/map_loader.cpp \
 		gamepadthread.cpp qrc_assets.cpp \
+		moc_battle_sequence.cpp \
+		moc_overworld.cpp \
 		moc_introscreen.cpp \
 		moc_mainwindow.cpp \
 		moc_gamepadthread.cpp
 OBJECTS       = battle_system.o \
+		battle_sequence.o \
+		overworld.o \
 		Attack.o \
 		Bag.o \
 		Battle.o \
@@ -82,8 +89,11 @@ OBJECTS       = battle_system.o \
 		introscreen.o \
 		main.o \
 		mainwindow.o \
+		map_loader.o \
 		gamepadthread.o \
 		qrc_assets.o \
+		moc_battle_sequence.o \
+		moc_overworld.o \
 		moc_introscreen.o \
 		moc_mainwindow.o \
 		moc_gamepadthread.o
@@ -202,6 +212,8 @@ DIST          = assets/back1.png \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		QtPokemonGame.pro battle/battle_system.h \
+		battle_sequence.h \
+		overworld.h \
 		game_logic/Attack.h \
 		game_logic/Bag.h \
 		game_logic/Battle.h \
@@ -214,6 +226,8 @@ DIST          = assets/back1.png \
 		mainwindow.h \
 		map/map_loader.h \
 		gamepadthread.h battle/battle_system.cpp \
+		battle_sequence.cpp \
+		overworld.cpp \
 		game_logic/Attack.cpp \
 		game_logic/Bag.cpp \
 		game_logic/Battle.cpp \
@@ -226,6 +240,7 @@ DIST          = assets/back1.png \
 		introscreen.cpp \
 		main.cpp \
 		mainwindow.cpp \
+		map/map_loader.cpp \
 		gamepadthread.cpp
 QMAKE_TARGET  = QtPokemonGame
 DESTDIR       = 
@@ -413,8 +428,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents assets.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents battle/battle_system.h game_logic/Attack.h game_logic/Bag.h game_logic/Battle.h game_logic/Item.h game_logic/Player.h game_logic/Pokemon.h game_logic/PokemonData.h game_logic/Type.h introscreen.h mainwindow.h map/map_loader.h gamepadthread.h $(DISTDIR)/
-	$(COPY_FILE) --parents battle/battle_system.cpp game_logic/Attack.cpp game_logic/Bag.cpp game_logic/Battle.cpp game_logic/Item.cpp game_logic/Player.cpp game_logic/Pokemon.cpp game_logic/PokemonData.cpp game_logic/Type.cpp game_logic/jsoncpp.cpp introscreen.cpp main.cpp mainwindow.cpp gamepadthread.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents battle/battle_system.h battle_sequence.h overworld.h game_logic/Attack.h game_logic/Bag.h game_logic/Battle.h game_logic/Item.h game_logic/Player.h game_logic/Pokemon.h game_logic/PokemonData.h game_logic/Type.h introscreen.h mainwindow.h map/map_loader.h gamepadthread.h $(DISTDIR)/
+	$(COPY_FILE) --parents battle/battle_system.cpp battle_sequence.cpp overworld.cpp game_logic/Attack.cpp game_logic/Bag.cpp game_logic/Battle.cpp game_logic/Item.cpp game_logic/Player.cpp game_logic/Pokemon.cpp game_logic/PokemonData.cpp game_logic/Type.cpp game_logic/jsoncpp.cpp introscreen.cpp main.cpp mainwindow.cpp map/map_loader.cpp gamepadthread.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -814,9 +829,36 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
+compiler_moc_header_make_all: moc_battle_sequence.cpp moc_overworld.cpp moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
+	-$(DEL_FILE) moc_battle_sequence.cpp moc_overworld.cpp moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
+moc_battle_sequence.cpp: battle_sequence.h \
+		battle/battle_system.h \
+		game_logic/Battle.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include battle_sequence.h -o moc_battle_sequence.cpp
+
+moc_overworld.cpp: overworld.h \
+		map/map_loader.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include overworld.h -o moc_overworld.cpp
+
 moc_introscreen.cpp: introscreen.h \
 		gamepadthread.h \
 		moc_predefs.h \
@@ -825,7 +867,6 @@ moc_introscreen.cpp: introscreen.h \
 
 moc_mainwindow.cpp: mainwindow.h \
 		gamepadthread.h \
-		map/map_loader.h \
 		battle/battle_system.h \
 		game_logic/Battle.h \
 		game_logic/Player.h \
@@ -870,6 +911,29 @@ battle_system.o: battle/battle_system.cpp battle/battle_system.h \
 		game_logic/Bag.h \
 		game_logic/Item.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_system.o battle/battle_system.cpp
+
+battle_sequence.o: battle_sequence.cpp battle_sequence.h \
+		battle/battle_system.h \
+		game_logic/Battle.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_sequence.o battle_sequence.cpp
+
+overworld.o: overworld.cpp overworld.h \
+		map/map_loader.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o overworld.o overworld.cpp
 
 Attack.o: game_logic/Attack.cpp game_logic/Attack.h \
 		game_logic/Type.h
@@ -926,7 +990,6 @@ introscreen.o: introscreen.cpp introscreen.h \
 main.o: main.cpp introscreen.h \
 		gamepadthread.h \
 		mainwindow.h \
-		map/map_loader.h \
 		battle/battle_system.h \
 		game_logic/Battle.h \
 		game_logic/Player.h \
@@ -940,7 +1003,6 @@ main.o: main.cpp introscreen.h \
 
 mainwindow.o: mainwindow.cpp mainwindow.h \
 		gamepadthread.h \
-		map/map_loader.h \
 		battle/battle_system.h \
 		game_logic/Battle.h \
 		game_logic/Player.h \
@@ -950,16 +1012,25 @@ mainwindow.o: mainwindow.cpp mainwindow.h \
 		game_logic/PokemonData.h \
 		game_logic/Bag.h \
 		game_logic/Item.h \
-		battle/battle_ui_integration.cpp \
-		battle/battle_animations.cpp \
-		map/map_loader.cpp
+		overworld.h \
+		map/map_loader.h \
+		battle_sequence.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
+
+map_loader.o: map/map_loader.cpp map/map_loader.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_loader.o map/map_loader.cpp
 
 gamepadthread.o: gamepadthread.cpp gamepadthread.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gamepadthread.o gamepadthread.cpp
 
 qrc_assets.o: qrc_assets.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_assets.o qrc_assets.cpp
+
+moc_battle_sequence.o: moc_battle_sequence.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_battle_sequence.o moc_battle_sequence.cpp
+
+moc_overworld.o: moc_overworld.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_overworld.o moc_overworld.cpp
 
 moc_introscreen.o: moc_introscreen.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_introscreen.o moc_introscreen.cpp

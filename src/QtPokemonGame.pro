@@ -8,7 +8,8 @@ INCLUDEPATH += game_logic/json
 
 SOURCES += \
     battle/battle_system.cpp \
-    battle/battle_animations.cpp \
+    battle_sequence.cpp \
+    overworld.cpp \
     game_logic/Attack.cpp \
     game_logic/Bag.cpp \
     game_logic/Battle.cpp \
@@ -26,6 +27,8 @@ SOURCES += \
 
 HEADERS += \
     battle/battle_system.h \
+    battle_sequence.h \
+    overworld.h \
     game_logic/Attack.h \
     game_logic/Bag.h \
     game_logic/Battle.h \

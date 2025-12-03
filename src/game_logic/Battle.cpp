@@ -306,6 +306,7 @@ void Battle::executeTurn(int player1MoveIndex, int player2MoveIndex) {
         // Player 2 moves second
         if (player2MoveIndex >= 0 && player2MoveIndex < static_cast<int>(p2Pokemon->getMoves().size())) {
             Attack& move = p2Pokemon->getMoves()[player2MoveIndex];
+            lastEnemyMoveName = move.getName(); // Store enemy move name
             if (move.canUse() && checkAccuracy(move)) {
                 int damage = calculateDamage(*p2Pokemon, *p1Pokemon, move);
                 p1Pokemon->takeDamage(damage);
@@ -322,6 +323,7 @@ void Battle::executeTurn(int player1MoveIndex, int player2MoveIndex) {
         // Player 2 moves first
         if (player2MoveIndex >= 0 && player2MoveIndex < static_cast<int>(p2Pokemon->getMoves().size())) {
             Attack& move = p2Pokemon->getMoves()[player2MoveIndex];
+            lastEnemyMoveName = move.getName(); // Store enemy move name
             if (move.canUse() && checkAccuracy(move)) {
                 int damage = calculateDamage(*p2Pokemon, *p1Pokemon, move);
                 p1Pokemon->takeDamage(damage);
@@ -387,6 +389,7 @@ void Battle::executeEnemyTurn() {
     // Execute enemy's move
     if (enemyMoveIndex >= 0 && enemyMoveIndex < static_cast<int>(p2Pokemon->getMoves().size())) {
         Attack& move = p2Pokemon->getMoves()[enemyMoveIndex];
+        lastEnemyMoveName = move.getName(); // Store enemy move name
         if (move.canUse() && checkAccuracy(move)) {
             int damage = calculateDamage(*p2Pokemon, *p1Pokemon, move);
             p1Pokemon->takeDamage(damage);
@@ -468,6 +471,10 @@ void Battle::processBagAction(int itemIndex) {
             item.use();
             std::cout << "Used " << item.getName() << "! " << active->getName() << " was revived!\n";
             break;
+        case ItemType::POKE_BALL:
+            // Pokeball usage is handled separately in BattleSequence
+            std::cout << "Can't use Poke Ball here!\n";
+            return;
         default:
             std::cout << "Item not implemented yet!\n";
             break;

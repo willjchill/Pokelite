@@ -63,6 +63,9 @@ public:
     QString getLastMessage() const { return lastMessage; }
     void clearLastMessage() { lastMessage.clear(); }
     
+    // Get enemy's last move name
+    QString getEnemyLastMoveName() const;
+    
     // Check if waiting for player input
     bool isWaitingForPlayerMove() const;
     bool isWaitingForEnemyTurn() const;
@@ -77,6 +80,7 @@ public:
 private:
     std::unique_ptr<Battle> battle;
     QString lastMessage;
+    QString enemyLastMoveName; // Store last enemy move name
     
     // Helper to convert std::string to QString
     QString toQString(const std::string& str) const;

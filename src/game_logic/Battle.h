@@ -32,6 +32,7 @@ private:
     bool isWildBattle;  // true if player2 is a wild Pokemon (NPC)
     int escapeAttempts;
     BattleState state;
+    std::string lastEnemyMoveName;  // Store last enemy move name for UI display
     
     // Random number generation
     std::random_device rd;
@@ -81,6 +82,7 @@ public:
     Player* getPlayer1() const { return player1; }
     Player* getPlayer2() const { return player2; }
     bool getIsWildBattle() const { return isWildBattle; }
+    std::string getLastEnemyMoveName() const { return lastEnemyMoveName; }
 };
 
 #endif // BATTLE_H

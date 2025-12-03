@@ -27,6 +27,15 @@ void BattleSystem::processAction(BattleAction action) {
 
 void BattleSystem::processFightAction(int moveIndex) {
     if (battle) {
+        // Capture enemy move name before processing (enemy turn happens during processFightAction)
+        if (battle->getPlayer2() && battle->getPlayer2()->getActivePokemon()) {
+            const Pokemon* enemy = battle->getPlayer2()->getActivePokemon();
+            const auto& moves = enemy->getMoves();
+            if (!moves.empty()) {
+                // Enemy will use a random move, we'll update this after the turn
+                // For now, we'll get it from the battle's last message or track it separately
+            }
+        }
         battle->processFightAction(moveIndex);
         updateLastMessage();
     }
@@ -335,6 +344,13 @@ QString BattleSystem::toQString(const std::string& str) const {
 QString BattleSystem::capitalizeFirst(const QString& str) const {
     if (str.isEmpty()) return str;
     return str[0].toUpper() + str.mid(1).toLower();
+}
+
+QString BattleSystem::getEnemyLastMoveName() const {
+    if (battle) {
+        return toQString(battle->getLastEnemyMoveName());
+    }
+    return "";
 }
 
 void BattleSystem::updateLastMessage() {

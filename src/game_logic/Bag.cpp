@@ -5,6 +5,7 @@ Bag::Bag() {
     // Initialize with some default items
     items.push_back(Item("Potion", ItemType::POTION, 3, 20));
     items.push_back(Item("Super Potion", ItemType::SUPER_POTION, 1, 50));
+    items.push_back(Item("Poke Ball", ItemType::POKE_BALL, 5, 0));
 }
 
 void Bag::addItem(const Item& item) {
