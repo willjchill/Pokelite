@@ -813,8 +813,13 @@ qrc_assets.cpp: assets.qrc \
 		assets/back2.png \
 		assets/back3.png \
 		assets/battle/trainer.png \
+		assets/battle/battle_player3.png \
 		assets/battle/charizard.png \
+		assets/battle/battle_player2.png \
+		assets/battle/battle_player1.png \
+		assets/battle/battle_player5.png \
 		assets/battle/battle_bg.png \
+		assets/battle/battle_player4.png \
 		assets/battle/ui/dialogue_box.png \
 		assets/battle/ui/arrow_cursor.png \
 		assets/battle/ui/command_box.png \

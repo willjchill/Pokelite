@@ -118,6 +118,10 @@ void BattleSequence::startBattle(Player* player, Player* enemy, BattleSystem* bs
             battlePlayerPokemonItem->setPos(100, 272 - h - 50);
             battlePlayerPokemonItem->setZValue(2);
         }
+        // Hide player's Pokémon until throw animation finishes
+        if (battlePlayerPokemonItem)
+            battlePlayerPokemonItem->setVisible(false);
+
     }
 
     // Enemy Pokémon sprite
@@ -164,9 +168,104 @@ void BattleSequence::startBattle(Player* player, Player* enemy, BattleSystem* bs
     updateBattleUI();
 
     // Animations
+<<<<<<< HEAD:src/Battle/GUI_BT.cpp
     animations.battleZoomReveal(this);
     animations.animateBattleEntrances(this);
     animations.slideInCommandMenu(this);
+=======
+    battleZoomReveal();
+
+// 1. First do entrance slide-in
+animations.animateBattleEntrances(this);
+
+// 2. After entrance finishes (≈ 900 + 750 ms)
+QTimer::singleShot(1700, [=]() {
+
+    // 2a. Show enemy introduction text
+    QString enemyName = battleSystem->getEnemyPokemonName();
+    if (enemyName.isEmpty()) enemyName = "POKEMON";
+
+    setBattleText("Wild " + capitalizeFirst(enemyName) + " appeared!");
+    startTextAnimation();
+
+    // Wait for text to finish revealing (~ 1–2 sec)
+    QTimer::singleShot(1500, [=]() {
+
+        // 3. THEN play the trainer throwing animation
+        animations.playTrainerThrowFrames(this, [=]() {
+
+            // After throwing finishes…
+            // 4. Bring out the player's Pokémon
+            if (battlePlayerPokemonItem)
+                battlePlayerPokemonItem->setVisible(true);
+
+            //--------------------------------------------------------
+            // 1. FLASH BURST EFFECT
+            //--------------------------------------------------------
+            QGraphicsEllipseItem* flash = new QGraphicsEllipseItem();
+            flash->setRect(
+                battlePlayerPokemonItem->x() - 40,
+                battlePlayerPokemonItem->y() - 40,
+                80, 80
+                );
+            flash->setBrush(Qt::white);
+            flash->setPen(Qt::NoPen);
+            flash->setOpacity(0.0);
+            flash->setZValue(999);
+            battleScene->addItem(flash);
+
+            QVariantAnimation* burst = new QVariantAnimation();
+            burst->setDuration(260);
+            burst->setStartValue(0.0);
+            burst->setKeyValueAt(0.3, 1.0);
+            burst->setEndValue(0.0);
+
+            connect(burst, &QVariantAnimation::valueChanged,
+                    [=](const QVariant &v){
+                        flash->setOpacity(v.toReal());
+                    });
+
+            connect(burst, &QVariantAnimation::finished, [=](){
+                battleScene->removeItem(flash);
+                delete flash;
+            });
+
+            // start flash
+            burst->start(QAbstractAnimation::DeleteWhenStopped);
+
+
+            //--------------------------------------------------------
+            // 2. POKEMON SHAKE ENTRANCE
+            //--------------------------------------------------------
+            QVariantAnimation* shake = new QVariantAnimation();
+            shake->setDuration(350);
+            shake->setStartValue(0);
+            shake->setKeyValueAt(0.25, -6);
+            shake->setKeyValueAt(0.50,  6);
+            shake->setKeyValueAt(0.75, -3);
+            shake->setEndValue(0);
+
+            qreal originalX = battlePlayerPokemonItem->x();
+            connect(shake, &QVariantAnimation::valueChanged,
+                    [=](const QVariant &v)
+                    {
+                        battlePlayerPokemonItem->setX(originalX + v.toInt());
+                    });
+
+            shake->start(QAbstractAnimation::DeleteWhenStopped);
+
+
+            // Show command menu
+            slideInCommandMenu();
+
+            setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
+            startTextAnimation();
+
+        });
+    });
+});
+
+>>>>>>> 364dc93 (Modified the battle sequence + added throwing pokemon animation as well as making the graphic smoother):src/battle_sequence.cpp
 }
 
 void BattleSequence::closeBattle()
@@ -269,10 +368,10 @@ void BattleSequence::setupBattleUI()
     battleTextItem->setZValue(3);
     battleScene->addItem(battleTextItem);
 
-    fullBattleText = "What will " + (battleSystem ? battleSystem->getPlayerPokemonName() : "BULBASAUR") + " do?";
-    battleTextIndex = 0;
-    battleTextItem->setPlainText("");
-    battleTextTimer.start(30);
+    // fullBattleText = "What will " + (battleSystem ? battleSystem->getPlayerPokemonName() : "BULBASAUR") + " do?";
+    // battleTextIndex = 0;
+    // battleTextItem->setPlainText("");
+    // battleTextTimer.start(30);
 
     // Command box
     QPixmap cmdBox(":/assets/battle/ui/command_box.png");

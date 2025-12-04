@@ -12,6 +12,7 @@
 #include <QPropertyAnimation>
 #include <QVariantAnimation>
 #include <QKeyEvent>
+#include <QPainterPath>
 #include <QTimer>
 #include <QVector>
 #include <functional>
@@ -57,6 +58,12 @@ public:
     void slideOutCommandMenu(std::function<void()> onFinished = nullptr);
     void fadeInBattleScreen();
     void fadeOutBattleScreen(std::function<void()> onFinished = nullptr);
+<<<<<<< HEAD:src/Battle/GUI_BT.h
+=======
+    BattleAnimations animations;
+    void screenFlash(int duration);
+    void screenShake(int strength, int duration);
+>>>>>>> 364dc93 (Modified the battle sequence + added throwing pokemon animation as well as making the graphic smoother):src/battle_sequence.h
 
     // Getters
     bool isInBattle() const { return inBattle; }

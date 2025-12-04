@@ -21,6 +21,8 @@ public:
     void slideInCommandMenu(BattleSequence *b);
     void slideOutCommandMenu(BattleSequence *b, std::function<void()> finished = nullptr);
     void animateMenuSelection(BattleSequence *b, int index);
+    void playTrainerThrowFrames(BattleSequence* b, std::function<void()> onFinished);
+
 };
 
 #endif // ANIMATIONS_BT_H
