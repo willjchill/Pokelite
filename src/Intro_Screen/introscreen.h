@@ -7,6 +7,7 @@
 #include <QPixmap>
 #include <QVector>
 #include "../General/gamepad.h"
+#include "Overworld/labmap.h"
 
 class IntroScreen : public QWidget
 {

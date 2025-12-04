@@ -57,11 +57,13 @@ SOURCES       = General/main.cpp \
 		General/gamepad.cpp \
 		General/uart_comm.cpp \
 		Intro_Screen/introscreen.cpp \
+		Intro_Screen/lorescreen.cpp \
 		Overworld/Overworld.cpp \
 		Overworld/Player_OW.cpp \
 		Overworld/Camera_OW.cpp \
 		Overworld/Map_OW.cpp \
 		Overworld/Menu_OW.cpp \
+		Overworld/labmap.cpp \
 		Overworld/map_loader.cpp \
 		Battle/GUI_BT.cpp \
 		Battle/BattleState_BT.cpp \
@@ -79,10 +81,12 @@ SOURCES       = General/main.cpp \
 		moc_gamepad.cpp \
 		moc_uart_comm.cpp \
 		moc_introscreen.cpp \
+		moc_lorescreen.cpp \
 		moc_Overworld.cpp \
 		moc_Player_OW.cpp \
 		moc_Map_OW.cpp \
 		moc_Menu_OW.cpp \
+		moc_labmap.cpp \
 		moc_GUI_BT.cpp \
 		moc_Animations_BT.cpp
 OBJECTS       = main.o \
@@ -90,11 +94,13 @@ OBJECTS       = main.o \
 		gamepad.o \
 		uart_comm.o \
 		introscreen.o \
+		lorescreen.o \
 		Overworld.o \
 		Player_OW.o \
 		Camera_OW.o \
 		Map_OW.o \
 		Menu_OW.o \
+		labmap.o \
 		map_loader.o \
 		GUI_BT.o \
 		BattleState_BT.o \
@@ -113,10 +119,12 @@ OBJECTS       = main.o \
 		moc_gamepad.o \
 		moc_uart_comm.o \
 		moc_introscreen.o \
+		moc_lorescreen.o \
 		moc_Overworld.o \
 		moc_Player_OW.o \
 		moc_Map_OW.o \
 		moc_Menu_OW.o \
+		moc_labmap.o \
 		moc_GUI_BT.o \
 		moc_Animations_BT.o
 DIST          = assets/back1.png \
@@ -146,6 +154,7 @@ DIST          = assets/back1.png \
 		assets/intro/grass/grass_06.png \
 		assets/intro/press/press_off.png \
 		assets/intro/press/press_on.png \
+		assets/intro/title/IntroBG.png \
 		assets/intro/title/title_01.png \
 		assets/intro/title/title_02.png \
 		assets/intro/title/title_03.png \
@@ -243,11 +252,13 @@ DIST          = assets/back1.png \
 		General/gamepad.h \
 		General/uart_comm.h \
 		Intro_Screen/introscreen.h \
+		Intro_Screen/lorescreen.h \
 		Overworld/Overworld.h \
 		Overworld/Player_OW.h \
 		Overworld/Camera_OW.h \
 		Overworld/Map_OW.h \
 		Overworld/Menu_OW.h \
+		Overworld/labmap.h \
 		Overworld/map_loader.h \
 		Battle/GUI_BT.h \
 		Battle/BattleState_BT.h \
@@ -264,11 +275,13 @@ DIST          = assets/back1.png \
 		General/gamepad.cpp \
 		General/uart_comm.cpp \
 		Intro_Screen/introscreen.cpp \
+		Intro_Screen/lorescreen.cpp \
 		Overworld/Overworld.cpp \
 		Overworld/Player_OW.cpp \
 		Overworld/Camera_OW.cpp \
 		Overworld/Map_OW.cpp \
 		Overworld/Menu_OW.cpp \
+		Overworld/labmap.cpp \
 		Overworld/map_loader.cpp \
 		Battle/GUI_BT.cpp \
 		Battle/BattleState_BT.cpp \
@@ -480,8 +493,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents assets.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents General/window.h General/gamepad.h General/uart_comm.h Intro_Screen/introscreen.h Overworld/Overworld.h Overworld/Player_OW.h Overworld/Camera_OW.h Overworld/Map_OW.h Overworld/Menu_OW.h Overworld/map_loader.h Battle/GUI_BT.h Battle/BattleState_BT.h Battle/Animations_BT.h Battle/Battle_logic/Attack.h Battle/Battle_logic/Bag.h Battle/Battle_logic/Battle.h Battle/Battle_logic/Item.h Battle/Battle_logic/Player.h Battle/Battle_logic/Pokemon.h Battle/Battle_logic/PokemonData.h Battle/Battle_logic/Type.h $(DISTDIR)/
-	$(COPY_FILE) --parents General/main.cpp General/window.cpp General/gamepad.cpp General/uart_comm.cpp Intro_Screen/introscreen.cpp Overworld/Overworld.cpp Overworld/Player_OW.cpp Overworld/Camera_OW.cpp Overworld/Map_OW.cpp Overworld/Menu_OW.cpp Overworld/map_loader.cpp Battle/GUI_BT.cpp Battle/BattleState_BT.cpp Battle/Animations_BT.cpp Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Bag.cpp Battle/Battle_logic/Battle.cpp Battle/Battle_logic/Item.cpp Battle/Battle_logic/Player.cpp Battle/Battle_logic/Pokemon.cpp Battle/Battle_logic/PokemonData.cpp Battle/Battle_logic/Type.cpp Battle/Battle_logic/jsoncpp.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents General/window.h General/gamepad.h General/uart_comm.h Intro_Screen/introscreen.h Intro_Screen/lorescreen.h Overworld/Overworld.h Overworld/Player_OW.h Overworld/Camera_OW.h Overworld/Map_OW.h Overworld/Menu_OW.h Overworld/labmap.h Overworld/map_loader.h Battle/GUI_BT.h Battle/BattleState_BT.h Battle/Animations_BT.h Battle/Battle_logic/Attack.h Battle/Battle_logic/Bag.h Battle/Battle_logic/Battle.h Battle/Battle_logic/Item.h Battle/Battle_logic/Player.h Battle/Battle_logic/Pokemon.h Battle/Battle_logic/PokemonData.h Battle/Battle_logic/Type.h $(DISTDIR)/
+	$(COPY_FILE) --parents General/main.cpp General/window.cpp General/gamepad.cpp General/uart_comm.cpp Intro_Screen/introscreen.cpp Intro_Screen/lorescreen.cpp Overworld/Overworld.cpp Overworld/Player_OW.cpp Overworld/Camera_OW.cpp Overworld/Map_OW.cpp Overworld/Menu_OW.cpp Overworld/labmap.cpp Overworld/map_loader.cpp Battle/GUI_BT.cpp Battle/BattleState_BT.cpp Battle/Animations_BT.cpp Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Bag.cpp Battle/Battle_logic/Battle.cpp Battle/Battle_logic/Item.cpp Battle/Battle_logic/Player.cpp Battle/Battle_logic/Pokemon.cpp Battle/Battle_logic/PokemonData.cpp Battle/Battle_logic/Type.cpp Battle/Battle_logic/jsoncpp.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -874,6 +887,8 @@ qrc_assets.cpp: assets.qrc \
 		assets/intro/title/title_02.png \
 		assets/intro/title/title_01.png \
 		assets/intro/title/title_04.png \
+		assets/intro/title/IntroBG.png \
+		assets/intro/title/labBG.png \
 		assets/intro/title/title_03.png \
 		assets/maps/route6/tallgrass.png \
 		assets/maps/route6/background.png \
@@ -889,9 +904,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_window.cpp moc_gamepad.cpp moc_uart_comm.cpp moc_introscreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_GUI_BT.cpp moc_Animations_BT.cpp
+compiler_moc_header_make_all: moc_window.cpp moc_gamepad.cpp moc_uart_comm.cpp moc_introscreen.cpp moc_lorescreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_labmap.cpp moc_GUI_BT.cpp moc_Animations_BT.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_window.cpp moc_gamepad.cpp moc_uart_comm.cpp moc_introscreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_GUI_BT.cpp moc_Animations_BT.cpp
+	-$(DEL_FILE) moc_window.cpp moc_gamepad.cpp moc_uart_comm.cpp moc_introscreen.cpp moc_lorescreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_labmap.cpp moc_GUI_BT.cpp moc_Animations_BT.cpp
 moc_window.cpp: General/window.h \
 		General/gamepad.h \
 		General/uart_comm.h \
@@ -923,6 +938,11 @@ moc_introscreen.cpp: Intro_Screen/introscreen.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Intro_Screen/introscreen.h -o moc_introscreen.cpp
+
+moc_lorescreen.cpp: Intro_Screen/lorescreen.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Intro_Screen/lorescreen.h -o moc_lorescreen.cpp
 
 moc_Overworld.cpp: Overworld/Overworld.h \
 		Overworld/Player_OW.h \
@@ -964,6 +984,11 @@ moc_Menu_OW.cpp: Overworld/Menu_OW.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Menu_OW.h -o moc_Menu_OW.cpp
 
+moc_labmap.cpp: Overworld/labmap.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/labmap.h -o moc_labmap.cpp
+
 moc_GUI_BT.cpp: Battle/GUI_BT.h \
 		Battle/BattleState_BT.h \
 		Battle/Battle_logic/Battle.h \
@@ -1003,6 +1028,7 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 
 main.o: General/main.cpp Intro_Screen/introscreen.h \
 		General/gamepad.h \
+		Intro_Screen/lorescreen.h \
 		General/window.h \
 		General/uart_comm.h \
 		Battle/BattleState_BT.h \
@@ -1048,6 +1074,9 @@ introscreen.o: Intro_Screen/introscreen.cpp Intro_Screen/introscreen.h \
 		General/gamepad.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o introscreen.o Intro_Screen/introscreen.cpp
 
+lorescreen.o: Intro_Screen/lorescreen.cpp Intro_Screen/lorescreen.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o lorescreen.o Intro_Screen/lorescreen.cpp
+
 Overworld.o: Overworld/Overworld.cpp Overworld/Overworld.h \
 		Overworld/Player_OW.h \
 		Overworld/Camera_OW.h \
@@ -1082,6 +1111,9 @@ Menu_OW.o: Overworld/Menu_OW.cpp Overworld/Menu_OW.h \
 		Battle/Battle_logic/Bag.h \
 		Battle/Battle_logic/Item.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Menu_OW.o Overworld/Menu_OW.cpp
+
+labmap.o: Overworld/labmap.cpp Overworld/labmap.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o labmap.o Overworld/labmap.cpp
 
 map_loader.o: Overworld/map_loader.cpp Overworld/map_loader.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_loader.o Overworld/map_loader.cpp
@@ -1188,6 +1220,9 @@ moc_uart_comm.o: moc_uart_comm.cpp
 moc_introscreen.o: moc_introscreen.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_introscreen.o moc_introscreen.cpp
 
+moc_lorescreen.o: moc_lorescreen.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_lorescreen.o moc_lorescreen.cpp
+
 moc_Overworld.o: moc_Overworld.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Overworld.o moc_Overworld.cpp
 
@@ -1199,6 +1234,9 @@ moc_Map_OW.o: moc_Map_OW.cpp
 
 moc_Menu_OW.o: moc_Menu_OW.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Menu_OW.o moc_Menu_OW.cpp
+
+moc_labmap.o: moc_labmap.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_labmap.o moc_labmap.cpp
 
 moc_GUI_BT.o: moc_GUI_BT.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_GUI_BT.o moc_GUI_BT.cpp

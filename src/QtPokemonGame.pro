@@ -12,11 +12,13 @@ SOURCES += \
     General/gamepad.cpp \
     General/uart_comm.cpp \
     Intro_Screen/introscreen.cpp \
+    Intro_Screen/lorescreen.cpp \
     Overworld/Overworld.cpp \
     Overworld/Player_OW.cpp \
     Overworld/Camera_OW.cpp \
     Overworld/Map_OW.cpp \
     Overworld/Menu_OW.cpp \
+    Overworld/labmap.cpp \
     Overworld/map_loader.cpp \
     Battle/GUI_BT.cpp \
     Battle/BattleState_BT.cpp \
@@ -36,11 +38,13 @@ HEADERS += \
     General/gamepad.h \
     General/uart_comm.h \
     Intro_Screen/introscreen.h \
+    Intro_Screen/lorescreen.h \
     Overworld/Overworld.h \
     Overworld/Player_OW.h \
     Overworld/Camera_OW.h \
     Overworld/Map_OW.h \
     Overworld/Menu_OW.h \
+    Overworld/labmap.h \
     Overworld/map_loader.h \
     Battle/GUI_BT.h \
     Battle/BattleState_BT.h \
@@ -91,6 +95,7 @@ DISTFILES += \
     assets/intro/grass/grass_06.png \
     assets/intro/press/press_off.png \
     assets/intro/press/press_on.png \
+    assets/intro/title/IntroBG.png \
     assets/intro/title/title_01.png \
     assets/intro/title/title_02.png \
     assets/intro/title/title_03.png \
