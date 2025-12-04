@@ -117,6 +117,9 @@ void BattleSequence::startBattle(Player* player, Player* enemy, BattleSystem* bs
             qreal h = playerPx.height() * scale;
             battlePlayerPokemonItem->setPos(100, 272 - h - 50);
             battlePlayerPokemonItem->setZValue(2);
+
+            // 🔥 Hide until throw animation finishes
+            battlePlayerPokemonItem->setVisible(false);
         }
     }
 
@@ -153,20 +156,114 @@ void BattleSequence::startBattle(Player* player, Player* enemy, BattleSystem* bs
     // Setup UI
     setupBattleUI();
 
+    // 👉 Override the auto "What will X do?" text from setupBattleUI
+    battleTextTimer.stop();
+    if (battleTextItem) {
+        battleTextItem->setPlainText("");
+    }
+    fullBattleText.clear();
+    battleTextIndex = 0;
+
     // Switch to battle scene
     view->setScene(battleScene);
     view->setFixedSize(480, 272);
 
-    // Start the battle
+    // Start the battle logic
     battleSystem->startBattle();
-    
+
     // Update UI with initial state
     updateBattleUI();
 
-    // Animations
+    // =====================================================
+    // INTRO SEQUENCE:
+    // 1) Circular zoom + slide entrances
+    // 2) "Wild X appeared!"
+    // 3) Trainer 5-frame throw
+    // 4) Flash + shake + show Pokémon
+    // 5) "What will X do?" + command menu slide in
+    // =====================================================
+
+    // 1. Circular zoom + entrances (existing)
     animations.battleZoomReveal(this);
     animations.animateBattleEntrances(this);
-    animations.slideInCommandMenu(this);
+
+    // 2. After entrances are basically done
+    QTimer::singleShot(1700, [=]() {
+        if (!battleSystem) return;
+
+        QString enemyName = battleSystem->getEnemyPokemonName();
+        if (enemyName.isEmpty()) enemyName = "POKEMON";
+
+        setBattleText("Wild " + capitalizeFirst(enemyName) + " appeared!");
+        startTextAnimation();
+
+        // 3. After text finishes revealing, play trainer throw
+        QTimer::singleShot(1600, [=]() {
+
+            animations.animateTrainerThrow(this, [=]() {
+
+                // 4. After throw → reveal player's Pokémon with flash + shake
+                if (battlePlayerPokemonItem && battleScene) {
+                    battlePlayerPokemonItem->setVisible(true);
+
+                    // FLASH BURST
+                    QGraphicsEllipseItem *flash = new QGraphicsEllipseItem();
+                    flash->setRect(
+                        battlePlayerPokemonItem->x() - 40,
+                        battlePlayerPokemonItem->y() - 40,
+                        80, 80
+                        );
+                    flash->setBrush(Qt::white);
+                    flash->setPen(Qt::NoPen);
+                    flash->setOpacity(0.0);
+                    flash->setZValue(999);
+                    battleScene->addItem(flash);
+
+                    auto *burst = new QVariantAnimation(this);
+                    burst->setDuration(260);
+                    burst->setStartValue(0.0);
+                    burst->setKeyValueAt(0.3, 1.0);
+                    burst->setEndValue(0.0);
+
+                    QObject::connect(burst, &QVariantAnimation::valueChanged,
+                                     [=](const QVariant &v) {
+                                         flash->setOpacity(v.toReal());
+                                     });
+
+                    QObject::connect(burst, &QVariantAnimation::finished,
+                                     [=]() {
+                                         battleScene->removeItem(flash);
+                                         delete flash;
+                                     });
+
+                    burst->start(QAbstractAnimation::DeleteWhenStopped);
+
+                    // SHAKE
+                    auto *shake = new QVariantAnimation(this);
+                    shake->setDuration(350);
+                    shake->setStartValue(0);
+                    shake->setKeyValueAt(0.25, -6);
+                    shake->setKeyValueAt(0.50,  6);
+                    shake->setKeyValueAt(0.75, -3);
+                    shake->setEndValue(0);
+
+                    qreal originalX = battlePlayerPokemonItem->x();
+                    QObject::connect(shake, &QVariantAnimation::valueChanged,
+                                     [=](const QVariant &v) {
+                                         battlePlayerPokemonItem->setX(originalX + v.toInt());
+                                     });
+
+                    shake->start(QAbstractAnimation::DeleteWhenStopped);
+                }
+
+                // 5. Finally show command menu + "What will X do?"
+                setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
+                startTextAnimation();
+
+                animations.slideInCommandMenu(this);
+            });
+        });
+    });
 }
 
 void BattleSequence::closeBattle()
@@ -1035,27 +1132,27 @@ void BattleSequence::showPokemonMenu()
 void BattleSequence::playerSelectedBagItem(int index)
 {
     if (!battleSystem) return;
-    
+
     // Check if BACK was selected
     if (index >= bagMenuItemIndices.size() || bagMenuItemIndices[index] == -1) {
-        destroyBagMenu();
-        
+        destroyBagMenu(); // Destroy the bag menu when "BACK" is selected
+
         battleSystem->returnToMainMenu();
-        
+
         inBagMenu = false;
         inBattleMenu = true;
         battleMenuIndex = 0;
-        
+
         setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
         startTextAnimation();
-        
+
         updateBattleCursor();
         return;
     }
-    
+
     // Get the actual bag item index from the mapping
     int actualItemIndex = bagMenuItemIndices[index];
-    
+
     // Check if it's a Pokeball
     if (battleSystem->getBattle() && battleSystem->getBattle()->getPlayer1()) {
         const auto& items = battleSystem->getBattle()->getPlayer1()->getBag().getItems();
@@ -1064,28 +1161,30 @@ void BattleSequence::playerSelectedBagItem(int index)
             if (item.getType() == ItemType::POKE_BALL) {
                 // Handle catching Pokemon
                 attemptCatchPokemon(actualItemIndex);
+                destroyBagMenu();  // Destroy the bag menu after item selection
                 return;
             }
         }
     }
-    
+
     // Use regular item (potion, etc.)
     battleSystem->processBagAction(actualItemIndex);
-    destroyBagMenu();
-    
+    destroyBagMenu();  // Destroy the bag menu after item selection
+
     inBagMenu = false;
     inBattleMenu = false;
     battleMenuIndex = 0;
-    
+
     setBattleText(battleSystem->getLastMessage().isEmpty() ? "Used item!" : battleSystem->getLastMessage());
     startTextAnimation();
-    
+
     updateBattleUI();
-    
+
     QTimer::singleShot(1000, [=]() {
         enemyTurn();
     });
 }
+
 
 void BattleSequence::playerSelectedPokemon(int index)
 {
@@ -1279,7 +1378,7 @@ void BattleSequence::fadeOutBattleScreen(std::function<void()> onFinished)
 void BattleSequence::attemptCatchPokemon(int itemIndex)
 {
     if (!battleSystem || !battleSystem->getBattle() || !gamePlayer) return;
-    
+
     // Only allow catching in wild battles
     if (!battleSystem->getBattle()->getIsWildBattle()) {
         setBattleText("You can't catch another trainer's Pokemon!");
@@ -1293,75 +1392,123 @@ void BattleSequence::attemptCatchPokemon(int itemIndex)
         });
         return;
     }
-    
+
     const auto& items = gamePlayer->getBag().getItems();
     if (itemIndex < 0 || itemIndex >= static_cast<int>(items.size())) return;
-    
+
+    // Remove const qualifier from Item object using const_cast
     Item& pokeball = const_cast<Item&>(items[itemIndex]);
+
     if (pokeball.getQuantity() <= 0) return;
-    
-    // Use the Pokeball
-    pokeball.use();
-    
-    // Get enemy Pokemon
-    const Pokemon* enemyPokemon = enemyPlayer ? enemyPlayer->getActivePokemon() : nullptr;
-    if (!enemyPokemon) return;
-    
-    // Calculate catch rate (simplified Gen 1 formula)
-    // Base catch rate depends on Pokemon species (simplified to use HP)
-    int enemyHP = enemyPokemon->getCurrentHP();
-    int enemyMaxHP = enemyPokemon->getMaxHP();
-    float hpPercent = static_cast<float>(enemyHP) / static_cast<float>(enemyMaxHP);
-    
-    // Catch rate formula (simplified): lower HP = easier to catch
-    // Base catch rate: 255 (max), modified by HP percentage
-    int catchRate = 255;
-    if (hpPercent > 0.5f) {
-        catchRate = static_cast<int>(255 * (1.0f - hpPercent));
+
+    // Trigger the throwing animation directly inside this function
+    QGraphicsScene* scene = getScene();  // Assuming battleSystem has a scene, or use an appropriate method
+
+    // Load 5 throw frames: :/assets/battle/battle_player_1.png ... _5.png
+    QVector<QPixmap> frames;
+    for (int i = 1; i <= 5; ++i) {
+        QString path = QString(":/assets/battle/battle_player%1.png").arg(i);
+        QPixmap px(path);
+        if (!px.isNull())
+            frames.push_back(px);
     }
-    
-    // Roll for catch (0-255, need to be <= catchRate)
-    int roll = QRandomGenerator::global()->bounded(256);
-    bool caught = (roll <= catchRate);
-    
-    if (caught) {
-        // Successfully caught!
-        Pokemon caughtPokemon(enemyPokemon->getDexNumber(), enemyPokemon->getLevel());
-        // Pokemon is created with full HP by default, so no need to heal
-        
-        // Add to team if there's space, otherwise to PC (for now, just add if space)
-        if (gamePlayer->getTeam().size() < 6) {
-            gamePlayer->addPokemon(caughtPokemon);
-            setBattleText("Gotcha! " + QString::fromStdString(caughtPokemon.getName()) + " was caught!");
-        } else {
-            setBattleText("Gotcha! " + QString::fromStdString(caughtPokemon.getName()) + " was caught!\n(Team full - sent to PC)");
-        }
-        
-        startTextAnimation();
-        destroyBagMenu();
-        inBagMenu = false;
-        inBattleMenu = false;
-        
-        // End battle
-        QTimer::singleShot(2000, [=]() {
-            fadeOutBattleScreen([=]() {
-                closeBattle();
-            });
-        });
-    } else {
-        // Failed to catch
-        setBattleText("The wild " + QString::fromStdString(enemyPokemon->getName()) + " broke free!");
-        startTextAnimation();
-        destroyBagMenu();
-        inBagMenu = false;
-        inBattleMenu = false;
-        battleMenuIndex = 0;
-        
-        // Enemy gets a turn
-        QTimer::singleShot(1500, [=]() {
-            enemyTurn();
-        });
+
+    if (frames.isEmpty()) {
+        // If sprites missing, just continue flow
+        return;
     }
+
+    // Temp sprite for animation
+    QGraphicsPixmapItem* throwSprite = scene->addPixmap(frames[0]);
+    throwSprite->setScale(battleTrainerItem->scale());
+    throwSprite->setZValue(battleTrainerItem->zValue() + 1);
+    throwSprite->setPos(battleTrainerItem->pos());
+
+    // Hide idle trainer during throw
+    battleTrainerItem->setVisible(false);
+
+    int frameIndex = 0;
+    QTimer* timer = new QTimer(this);
+    timer->setInterval(100); // 100 ms per frame
+
+    QObject::connect(timer, &QTimer::timeout, this,
+                     [=]() mutable
+                     {
+                         ++frameIndex;
+
+                         if (frameIndex >= frames.size()) {
+                             timer->stop();
+
+                             scene->removeItem(throwSprite);
+                             delete throwSprite;
+
+                             // Continue with the catch logic after animation finishes
+                             pokeball.use();  // Use the Pokeball here after animation
+
+                             // Get enemy Pokemon
+                             const Pokemon* enemyPokemon = enemyPlayer ? enemyPlayer->getActivePokemon() : nullptr;
+                             if (!enemyPokemon) return;
+
+                             // Calculate catch rate (simplified Gen 1 formula)
+                             int enemyHP = enemyPokemon->getCurrentHP();
+                             int enemyMaxHP = enemyPokemon->getMaxHP();
+                             float hpPercent = static_cast<float>(enemyHP) / static_cast<float>(enemyMaxHP);
+
+                             int catchRate = 255;
+                             if (hpPercent > 0.5f) {
+                                 catchRate = static_cast<int>(255 * (1.0f - hpPercent));
+                             }
+
+                             // Roll for catch (0-255, need to be <= catchRate)
+                             int roll = QRandomGenerator::global()->bounded(256);
+                             bool caught = (roll <= catchRate);
+
+                             if (caught) {
+                                 // Successfully caught!
+                                 Pokemon caughtPokemon(enemyPokemon->getDexNumber(), enemyPokemon->getLevel());
+
+                                 // Add to team if there's space, otherwise to PC
+                                 if (gamePlayer->getTeam().size() < 6) {
+                                     gamePlayer->addPokemon(caughtPokemon);
+                                     setBattleText("Gotcha! " + QString::fromStdString(caughtPokemon.getName()) + " was caught!");
+                                 } else {
+                                     setBattleText("Gotcha! " + QString::fromStdString(caughtPokemon.getName()) + " was caught!\n(Team full - sent to PC)");
+                                 }
+
+                                 startTextAnimation();
+                                 destroyBagMenu();
+                                 inBagMenu = false;
+                                 inBattleMenu = false;
+
+                                 // End battle
+                                 QTimer::singleShot(2000, [=]() {
+                                     fadeOutBattleScreen([=]() {
+                                         closeBattle();
+                                     });
+                                 });
+                             } else {
+                                 // Failed to catch
+                                 setBattleText("The wild " + QString::fromStdString(enemyPokemon->getName()) + " broke free!");
+                                 startTextAnimation();
+                                 destroyBagMenu();
+                                 inBagMenu = false;
+                                 inBattleMenu = false;
+                                 battleMenuIndex = 0;
+
+                                 // Enemy gets a turn
+                                 QTimer::singleShot(1500, [=]() {
+                                     enemyTurn();
+                                 });
+                             }
+
+                             timer->deleteLater(); // Delete the timer after animation finishes
+                             return;
+                         }
+
+                         throwSprite->setPixmap(frames[frameIndex]);
+                     });
+
+    timer->start(); // Start the animation timer
 }
 
 void BattleSequence::onOpponentTurnComplete(int opponentMoveIndex)

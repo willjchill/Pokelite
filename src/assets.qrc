@@ -366,5 +366,10 @@
         <file>Battle/assets/pokemon_sprites/150_mewtwo/front.png</file>
         <file>Battle/assets/pokemon_sprites/151_mew/back.png</file>
         <file>Battle/assets/pokemon_sprites/151_mew/front.png</file>
+        <file>assets/battle/battle_player5.png</file>
+        <file>assets/battle/battle_player4.png</file>
+        <file>assets/battle/battle_player3.png</file>
+        <file>assets/battle/battle_player2.png</file>
+        <file>assets/battle/battle_player1.png</file>
     </qresource>
 </RCC>

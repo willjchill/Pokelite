@@ -1,17 +1,86 @@
 #include "Animations_BT.h"
 #include "GUI_BT.h"
+
 #include <QPainterPath>
 #include <QVariantAnimation>
 #include <QTimer>
+#include <QGraphicsPathItem>
+#include <QGraphicsScene>
+#include <QGraphicsPixmapItem>
+#include <QPixmap>
+#include <QVector>
 
 Animations_BT::Animations_BT(QObject *parent)
     : QObject(parent)
 {
 }
 
+// ================================================
+// 0. TRAINER THROW ANIMATION (5 frames)
+// ================================================
+void Animations_BT::animateTrainerThrow(BattleSequence* b, std::function<void()> onFinished)
+{
+    if (!b || !b->battleTrainerItem || !b->getScene()) {
+        if (onFinished) onFinished();
+        return;
+    }
+
+    QGraphicsScene *scene = b->getScene();
+
+    // Load 5 throw frames: :/assets/battle/battle_player_1.png ... _5.png
+    QVector<QPixmap> frames;
+    for (int i = 1; i <= 5; ++i) {
+        QString path = QString(":/assets/battle/battle_player%1.png").arg(i);
+        QPixmap px(path);
+        if (!px.isNull())
+            frames.push_back(px);
+    }
+
+    if (frames.isEmpty()) {
+        // If sprites missing, just continue flow
+        if (onFinished) onFinished();
+        return;
+    }
+
+    // Temp sprite for animation
+    QGraphicsPixmapItem *throwSprite = scene->addPixmap(frames[0]);
+    throwSprite->setScale(b->battleTrainerItem->scale());
+    throwSprite->setZValue(b->battleTrainerItem->zValue() + 1);
+    throwSprite->setPos(b->battleTrainerItem->pos());
+
+    // Hide idle trainer during throw
+    b->battleTrainerItem->setVisible(false);
+
+    int frameIndex = 0;
+    QTimer *timer = new QTimer(this);
+    timer->setInterval(100); // 100 ms per frame
+
+    QObject::connect(timer, &QTimer::timeout, this,
+                     [=]() mutable
+                     {
+                         ++frameIndex;
+
+                         if (frameIndex >= frames.size()) {
+                             timer->stop();
+
+                             scene->removeItem(throwSprite);
+                             delete throwSprite;
+
+                             // We keep trainer hidden; Pokémon will appear instead
+                             if (onFinished) onFinished();
+
+                             timer->deleteLater();
+                             return;
+                         }
+
+                         throwSprite->setPixmap(frames[frameIndex]);
+                     });
+
+    timer->start();
+}
 
 // ================================================
-// 1. BATTLE ZOOM REVEAL
+// 1. BATTLE ZOOM REVEAL (circular)
 // ================================================
 void Animations_BT::battleZoomReveal(BattleSequence *b)
 {
@@ -55,7 +124,7 @@ void Animations_BT::battleZoomReveal(BattleSequence *b)
 }
 
 // ================================================
-// 2. ENTRANCE ANIMATION
+// 2. ENTRANCE ANIMATION (slide-in both sides)
 // ================================================
 void Animations_BT::animateBattleEntrances(BattleSequence *b)
 {
@@ -63,6 +132,9 @@ void Animations_BT::animateBattleEntrances(BattleSequence *b)
 
     QGraphicsScene *scene = b->getScene();
 
+    // -----------------------------
+    // CIRCLE REVEAL MASK (same as before)
+    // -----------------------------
     QGraphicsPathItem *mask = new QGraphicsPathItem();
     mask->setBrush(Qt::black);
     mask->setPen(Qt::NoPen);
@@ -97,39 +169,39 @@ void Animations_BT::animateBattleEntrances(BattleSequence *b)
 
     circle->start(QAbstractAnimation::DeleteWhenStopped);
 
-    // Slide-ins
-    QPointF playerFinal =
-        b->battlePlayerPokemonItem ? b->battlePlayerPokemonItem->pos() :
-            (b->battleTrainerItem ? b->battleTrainerItem->pos() : QPointF(40, 150));
+    // -----------------------------
+    // SLIDE-IN: PLAYER (TRAINER) + ENEMY
+    // -----------------------------
+
+    // 👉 ALWAYS prefer the trainer sprite on the player side
+    QGraphicsPixmapItem *playerSprite =
+        (b->battleTrainerItem) ? b->battleTrainerItem
+                               : b->battlePlayerPokemonItem;
+
+    QPointF playerFinal = playerSprite
+                              ? playerSprite->pos()
+                              : QPointF(40, 150);
 
     QPointF enemyFinal = b->battleEnemyItem->pos();
 
-    // Move start positions
-    if (b->battlePlayerPokemonItem)
-        b->battlePlayerPokemonItem->setX(playerFinal.x() - 500);
-    else if (b->battleTrainerItem)
-        b->battleTrainerItem->setX(playerFinal.x() - 500);
+    // Start off-screen
+    if (playerSprite)
+        playerSprite->setX(playerFinal.x() - 500);
 
     b->battleEnemyItem->setX(enemyFinal.x() + 500);
 
     // Player slide
     QVariantAnimation *playerSlide = new QVariantAnimation();
     playerSlide->setDuration(750);
-    qreal playerStartX =
-        b->battlePlayerPokemonItem ? b->battlePlayerPokemonItem->x() :
-            (b->battleTrainerItem ? b->battleTrainerItem->x() : playerFinal.x() - 500);
-
-    playerSlide->setStartValue(playerStartX);
+    playerSlide->setStartValue(playerFinal.x() - 500);
     playerSlide->setEndValue(playerFinal.x());
     playerSlide->setEasingCurve(QEasingCurve::OutBack);
 
     QObject::connect(playerSlide, &QVariantAnimation::valueChanged,
                      [=](const QVariant &v)
                      {
-                         if (b->battlePlayerPokemonItem)
-                             b->battlePlayerPokemonItem->setX(v.toReal());
-                         else if (b->battleTrainerItem)
-                             b->battleTrainerItem->setX(v.toReal());
+                         if (playerSprite)
+                             playerSprite->setX(v.toReal());
                      });
 
     // Enemy slide
@@ -145,6 +217,7 @@ void Animations_BT::animateBattleEntrances(BattleSequence *b)
                          b->battleEnemyItem->setX(v.toReal());
                      });
 
+    // Start both after a tiny delay (feels nicer)
     QTimer::singleShot(100, [=]()
                        {
                            playerSlide->start(QAbstractAnimation::DeleteWhenStopped);
@@ -251,4 +324,3 @@ void Animations_BT::animateMenuSelection(BattleSequence *b, int index)
 
     anim->start(QAbstractAnimation::DeleteWhenStopped);
 }
-

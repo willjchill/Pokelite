@@ -52,12 +52,12 @@ void BattleSystem::processBagAction(int itemIndex) {
         if (itemIndex >= 0 && itemIndex < static_cast<int>(items.size()) && items[itemIndex].getQuantity() > 0) {
             itemName = capitalizeFirst(toQString(items[itemIndex].getName()));
         }
-        
+
         battle->processBagAction(itemIndex);
-        
+
         // Set message about item use
         lastMessage = "You used " + itemName + "!";
-        
+
         // Don't call updateLastMessage() as it would overwrite our custom message
     }
 }

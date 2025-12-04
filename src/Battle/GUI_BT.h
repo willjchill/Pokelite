@@ -57,6 +57,7 @@ public:
     void slideOutCommandMenu(std::function<void()> onFinished = nullptr);
     void fadeInBattleScreen();
     void fadeOutBattleScreen(std::function<void()> onFinished = nullptr);
+    static void animateTrainerThrow(BattleSequence* b, std::function<void()> onFinished);
 
     // Getters
     bool isInBattle() const { return inBattle; }
