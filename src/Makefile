@@ -17,7 +17,7 @@ CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -Igame_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
+INCPATH       = -I. -IBattle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
 QMAKE         = /usr/lib/qt5/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = QtPokemonGame1.0.0
-DISTDIR = /home/linux/Project/RPG_Embedded/src/.tmp/QtPokemonGame1.0.0
+DISTDIR = /home/william/Homework_ECE535/RPG_Embedded/src/.tmp/QtPokemonGame1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lGL -lpthread   
@@ -52,34 +52,57 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = battle/battle_system.cpp \
-		battle/battle_animations.cpp \
-		battle_sequence.cpp \
-		overworld.cpp \
-		game_logic/Attack.cpp \
-		game_logic/Bag.cpp \
-		game_logic/Battle.cpp \
-		game_logic/Item.cpp \
-		game_logic/Player.cpp \
-		game_logic/Pokemon.cpp \
-		game_logic/PokemonData.cpp \
-		game_logic/Type.cpp \
-		game_logic/jsoncpp.cpp \
-		introscreen.cpp \
-		main.cpp \
-		mainwindow.cpp \
-		map/map_loader.cpp \
-		gamepadthread.cpp qrc_assets.cpp \
-		moc_battle_animations.cpp \
-		moc_battle_sequence.cpp \
-		moc_overworld.cpp \
+SOURCES       = General/main.cpp \
+		General/window.cpp \
+		General/gamepad.cpp \
+		Intro_Screen/introscreen.cpp \
+		Overworld/Overworld.cpp \
+		Overworld/Player_OW.cpp \
+		Overworld/Camera_OW.cpp \
+		Overworld/Map_OW.cpp \
+		Overworld/Menu_OW.cpp \
+		Overworld/map_loader.cpp \
+		Battle/battle_sequence.cpp \
+		Battle/battle_system.cpp \
+		Battle/battle_animations.cpp \
+		Battle/Player_BT.cpp \
+		Battle/Pokemon_BT.cpp \
+		Battle/Menu_BT.cpp \
+		Battle/Battle_logic/Attack.cpp \
+		Battle/Battle_logic/Bag.cpp \
+		Battle/Battle_logic/Battle.cpp \
+		Battle/Battle_logic/Item.cpp \
+		Battle/Battle_logic/Player.cpp \
+		Battle/Battle_logic/Pokemon.cpp \
+		Battle/Battle_logic/PokemonData.cpp \
+		Battle/Battle_logic/Type.cpp \
+		Battle/Battle_logic/jsoncpp.cpp qrc_assets.cpp \
+		moc_window.cpp \
+		moc_gamepad.cpp \
 		moc_introscreen.cpp \
-		moc_mainwindow.cpp \
-		moc_gamepadthread.cpp
-OBJECTS       = battle_system.o \
-		battle_animations.o \
+		moc_Overworld.cpp \
+		moc_Player_OW.cpp \
+		moc_Map_OW.cpp \
+		moc_Menu_OW.cpp \
+		moc_battle_sequence.cpp \
+		moc_battle_animations.cpp \
+		moc_Menu_BT.cpp
+OBJECTS       = main.o \
+		window.o \
+		gamepad.o \
+		introscreen.o \
+		Overworld.o \
+		Player_OW.o \
+		Camera_OW.o \
+		Map_OW.o \
+		Menu_OW.o \
+		map_loader.o \
 		battle_sequence.o \
-		overworld.o \
+		battle_system.o \
+		battle_animations.o \
+		Player_BT.o \
+		Pokemon_BT.o \
+		Menu_BT.o \
 		Attack.o \
 		Bag.o \
 		Battle.o \
@@ -89,18 +112,17 @@ OBJECTS       = battle_system.o \
 		PokemonData.o \
 		Type.o \
 		jsoncpp.o \
-		introscreen.o \
-		main.o \
-		mainwindow.o \
-		map_loader.o \
-		gamepadthread.o \
 		qrc_assets.o \
-		moc_battle_animations.o \
-		moc_battle_sequence.o \
-		moc_overworld.o \
+		moc_window.o \
+		moc_gamepad.o \
 		moc_introscreen.o \
-		moc_mainwindow.o \
-		moc_gamepadthread.o
+		moc_Overworld.o \
+		moc_Player_OW.o \
+		moc_Map_OW.o \
+		moc_Menu_OW.o \
+		moc_battle_sequence.o \
+		moc_battle_animations.o \
+		moc_Menu_BT.o
 DIST          = assets/back1.png \
 		assets/back2.png \
 		assets/back3.png \
@@ -178,12 +200,7 @@ DIST          = assets/back1.png \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_platformcompositor_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport_private.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qml.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlmodels.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmltest.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlworkerscript.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quick.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quickwidgets.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_serialport.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_service_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql_private.pri \
@@ -221,40 +238,53 @@ DIST          = assets/back1.png \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
-		QtPokemonGame.pro battle/battle_animations.h \
-		battle/battle_system.h \
-		battle/battle_animations.h \
-		battle_sequence.h \
-		overworld.h \
-		game_logic/Attack.h \
-		game_logic/Bag.h \
-		game_logic/Battle.h \
-		game_logic/Item.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/PokemonData.h \
-		game_logic/Type.h \
-		introscreen.h \
-		mainwindow.h \
-		map/map_loader.h \
-		gamepadthread.h battle/battle_system.cpp \
-		battle/battle_animations.cpp \
-		battle_sequence.cpp \
-		overworld.cpp \
-		game_logic/Attack.cpp \
-		game_logic/Bag.cpp \
-		game_logic/Battle.cpp \
-		game_logic/Item.cpp \
-		game_logic/Player.cpp \
-		game_logic/Pokemon.cpp \
-		game_logic/PokemonData.cpp \
-		game_logic/Type.cpp \
-		game_logic/jsoncpp.cpp \
-		introscreen.cpp \
-		main.cpp \
-		mainwindow.cpp \
-		map/map_loader.cpp \
-		gamepadthread.cpp
+		QtPokemonGame.pro General/window.h \
+		General/gamepad.h \
+		Intro_Screen/introscreen.h \
+		Overworld/Overworld.h \
+		Overworld/Player_OW.h \
+		Overworld/Camera_OW.h \
+		Overworld/Map_OW.h \
+		Overworld/Menu_OW.h \
+		Overworld/map_loader.h \
+		Battle/battle_sequence.h \
+		Battle/battle_system.h \
+		Battle/battle_animations.h \
+		Battle/Player_BT.h \
+		Battle/Pokemon_BT.h \
+		Battle/Menu_BT.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Battle.h \
+		Battle/Battle_logic/Item.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Type.h General/main.cpp \
+		General/window.cpp \
+		General/gamepad.cpp \
+		Intro_Screen/introscreen.cpp \
+		Overworld/Overworld.cpp \
+		Overworld/Player_OW.cpp \
+		Overworld/Camera_OW.cpp \
+		Overworld/Map_OW.cpp \
+		Overworld/Menu_OW.cpp \
+		Overworld/map_loader.cpp \
+		Battle/battle_sequence.cpp \
+		Battle/battle_system.cpp \
+		Battle/battle_animations.cpp \
+		Battle/Player_BT.cpp \
+		Battle/Pokemon_BT.cpp \
+		Battle/Menu_BT.cpp \
+		Battle/Battle_logic/Attack.cpp \
+		Battle/Battle_logic/Bag.cpp \
+		Battle/Battle_logic/Battle.cpp \
+		Battle/Battle_logic/Item.cpp \
+		Battle/Battle_logic/Player.cpp \
+		Battle/Battle_logic/Pokemon.cpp \
+		Battle/Battle_logic/PokemonData.cpp \
+		Battle/Battle_logic/Type.cpp \
+		Battle/Battle_logic/jsoncpp.cpp
 QMAKE_TARGET  = QtPokemonGame
 DESTDIR       = 
 TARGET        = QtPokemonGame
@@ -306,12 +336,7 @@ Makefile: QtPokemonGame.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmak
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_platformcompositor_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport_private.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qml.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlmodels.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmltest.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlworkerscript.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quick.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quickwidgets.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_serialport.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_service_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql_private.pri \
@@ -392,12 +417,7 @@ Makefile: QtPokemonGame.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmak
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_platformcompositor_support_private.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport_private.pri:
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qml.pri:
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlmodels.pri:
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmltest.pri:
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlworkerscript.pri:
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quick.pri:
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quickwidgets.pri:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_serialport.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_service_support_private.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql_private.pri:
@@ -453,8 +473,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents assets.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents battle/battle_animations.h battle/battle_system.h battle/battle_animations.h battle_sequence.h overworld.h game_logic/Attack.h game_logic/Bag.h game_logic/Battle.h game_logic/Item.h game_logic/Player.h game_logic/Pokemon.h game_logic/PokemonData.h game_logic/Type.h introscreen.h mainwindow.h map/map_loader.h gamepadthread.h $(DISTDIR)/
-	$(COPY_FILE) --parents battle/battle_system.cpp battle/battle_animations.cpp battle_sequence.cpp overworld.cpp game_logic/Attack.cpp game_logic/Bag.cpp game_logic/Battle.cpp game_logic/Item.cpp game_logic/Player.cpp game_logic/Pokemon.cpp game_logic/PokemonData.cpp game_logic/Type.cpp game_logic/jsoncpp.cpp introscreen.cpp main.cpp mainwindow.cpp map/map_loader.cpp gamepadthread.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents General/window.h General/gamepad.h Intro_Screen/introscreen.h Overworld/Overworld.h Overworld/Player_OW.h Overworld/Camera_OW.h Overworld/Map_OW.h Overworld/Menu_OW.h Overworld/map_loader.h Battle/battle_sequence.h Battle/battle_system.h Battle/battle_animations.h Battle/Player_BT.h Battle/Pokemon_BT.h Battle/Menu_BT.h Battle/Battle_logic/Attack.h Battle/Battle_logic/Bag.h Battle/Battle_logic/Battle.h Battle/Battle_logic/Item.h Battle/Battle_logic/Player.h Battle/Battle_logic/Pokemon.h Battle/Battle_logic/PokemonData.h Battle/Battle_logic/Type.h $(DISTDIR)/
+	$(COPY_FILE) --parents General/main.cpp General/window.cpp General/gamepad.cpp Intro_Screen/introscreen.cpp Overworld/Overworld.cpp Overworld/Player_OW.cpp Overworld/Camera_OW.cpp Overworld/Map_OW.cpp Overworld/Menu_OW.cpp Overworld/map_loader.cpp Battle/battle_sequence.cpp Battle/battle_system.cpp Battle/battle_animations.cpp Battle/Player_BT.cpp Battle/Pokemon_BT.cpp Battle/Menu_BT.cpp Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Bag.cpp Battle/Battle_logic/Battle.cpp Battle/Battle_logic/Item.cpp Battle/Battle_logic/Player.cpp Battle/Battle_logic/Pokemon.cpp Battle/Battle_logic/PokemonData.cpp Battle/Battle_logic/Type.cpp Battle/Battle_logic/jsoncpp.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -483,6 +503,308 @@ compiler_rcc_clean:
 	-$(DEL_FILE) qrc_assets.cpp
 qrc_assets.cpp: assets.qrc \
 		/usr/lib/qt5/bin/rcc \
+		Battle/assets/pokemon_sprites/063_abra/front.png \
+		Battle/assets/pokemon_sprites/063_abra/back.png \
+		Battle/assets/pokemon_sprites/057_primeape/front.png \
+		Battle/assets/pokemon_sprites/057_primeape/back.png \
+		Battle/assets/pokemon_sprites/020_raticate/front.png \
+		Battle/assets/pokemon_sprites/020_raticate/back.png \
+		Battle/assets/pokemon_sprites/122_mr-mime/front.png \
+		Battle/assets/pokemon_sprites/122_mr-mime/back.png \
+		Battle/assets/pokemon_sprites/087_dewgong/front.png \
+		Battle/assets/pokemon_sprites/087_dewgong/back.png \
+		Battle/assets/pokemon_sprites/091_cloyster/front.png \
+		Battle/assets/pokemon_sprites/091_cloyster/back.png \
+		Battle/assets/pokemon_sprites/126_magmar/front.png \
+		Battle/assets/pokemon_sprites/126_magmar/back.png \
+		Battle/assets/pokemon_sprites/099_kingler/front.png \
+		Battle/assets/pokemon_sprites/099_kingler/back.png \
+		Battle/assets/pokemon_sprites/059_arcanine/front.png \
+		Battle/assets/pokemon_sprites/059_arcanine/back.png \
+		Battle/assets/pokemon_sprites/048_venonat/front.png \
+		Battle/assets/pokemon_sprites/048_venonat/back.png \
+		Battle/assets/pokemon_sprites/042_golbat/front.png \
+		Battle/assets/pokemon_sprites/042_golbat/back.png \
+		Battle/assets/pokemon_sprites/076_golem/front.png \
+		Battle/assets/pokemon_sprites/076_golem/back.png \
+		Battle/assets/pokemon_sprites/038_ninetales/front.png \
+		Battle/assets/pokemon_sprites/038_ninetales/back.png \
+		Battle/assets/pokemon_sprites/148_dragonair/front.png \
+		Battle/assets/pokemon_sprites/148_dragonair/back.png \
+		Battle/assets/pokemon_sprites/143_snorlax/front.png \
+		Battle/assets/pokemon_sprites/143_snorlax/back.png \
+		Battle/assets/pokemon_sprites/052_meowth/front.png \
+		Battle/assets/pokemon_sprites/052_meowth/back.png \
+		Battle/assets/pokemon_sprites/096_drowzee/front.png \
+		Battle/assets/pokemon_sprites/096_drowzee/back.png \
+		Battle/assets/pokemon_sprites/068_machamp/front.png \
+		Battle/assets/pokemon_sprites/068_machamp/back.png \
+		Battle/assets/pokemon_sprites/077_ponyta/front.png \
+		Battle/assets/pokemon_sprites/077_ponyta/back.png \
+		Battle/assets/pokemon_sprites/142_aerodactyl/front.png \
+		Battle/assets/pokemon_sprites/142_aerodactyl/back.png \
+		Battle/assets/pokemon_sprites/089_muk/front.png \
+		Battle/assets/pokemon_sprites/089_muk/back.png \
+		Battle/assets/pokemon_sprites/128_tauros/front.png \
+		Battle/assets/pokemon_sprites/128_tauros/back.png \
+		Battle/assets/pokemon_sprites/049_venomoth/front.png \
+		Battle/assets/pokemon_sprites/049_venomoth/back.png \
+		Battle/assets/pokemon_sprites/131_lapras/front.png \
+		Battle/assets/pokemon_sprites/131_lapras/back.png \
+		Battle/assets/pokemon_sprites/082_magneton/front.png \
+		Battle/assets/pokemon_sprites/082_magneton/back.png \
+		Battle/assets/pokemon_sprites/004_charmander/front.png \
+		Battle/assets/pokemon_sprites/004_charmander/back.png \
+		Battle/assets/pokemon_sprites/078_rapidash/front.png \
+		Battle/assets/pokemon_sprites/078_rapidash/back.png \
+		Battle/assets/pokemon_sprites/095_onix/front.png \
+		Battle/assets/pokemon_sprites/095_onix/back.png \
+		Battle/assets/pokemon_sprites/116_horsea/front.png \
+		Battle/assets/pokemon_sprites/116_horsea/back.png \
+		Battle/assets/pokemon_sprites/071_victreebel/front.png \
+		Battle/assets/pokemon_sprites/071_victreebel/back.png \
+		Battle/assets/pokemon_sprites/065_alakazam/front.png \
+		Battle/assets/pokemon_sprites/065_alakazam/back.png \
+		Battle/assets/pokemon_sprites/021_spearow/front.png \
+		Battle/assets/pokemon_sprites/021_spearow/back.png \
+		Battle/assets/pokemon_sprites/145_zapdos/front.png \
+		Battle/assets/pokemon_sprites/145_zapdos/back.png \
+		Battle/assets/pokemon_sprites/037_vulpix/front.png \
+		Battle/assets/pokemon_sprites/037_vulpix/back.png \
+		Battle/assets/pokemon_sprites/092_gastly/front.png \
+		Battle/assets/pokemon_sprites/092_gastly/back.png \
+		Battle/assets/pokemon_sprites/064_kadabra/front.png \
+		Battle/assets/pokemon_sprites/064_kadabra/back.png \
+		Battle/assets/pokemon_sprites/120_staryu/front.png \
+		Battle/assets/pokemon_sprites/120_staryu/back.png \
+		Battle/assets/pokemon_sprites/046_paras/front.png \
+		Battle/assets/pokemon_sprites/046_paras/back.png \
+		Battle/assets/pokemon_sprites/010_caterpie/front.png \
+		Battle/assets/pokemon_sprites/010_caterpie/back.png \
+		Battle/assets/pokemon_sprites/090_shellder/front.png \
+		Battle/assets/pokemon_sprites/090_shellder/back.png \
+		Battle/assets/pokemon_sprites/002_ivysaur/front.png \
+		Battle/assets/pokemon_sprites/002_ivysaur/back.png \
+		Battle/assets/pokemon_sprites/043_oddish/front.png \
+		Battle/assets/pokemon_sprites/043_oddish/back.png \
+		Battle/assets/pokemon_sprites/001_bulbasaur/front.png \
+		Battle/assets/pokemon_sprites/001_bulbasaur/back.png \
+		Battle/assets/pokemon_sprites/031_nidoqueen/front.png \
+		Battle/assets/pokemon_sprites/031_nidoqueen/back.png \
+		Battle/assets/pokemon_sprites/011_metapod/front.png \
+		Battle/assets/pokemon_sprites/011_metapod/back.png \
+		Battle/assets/pokemon_sprites/147_dratini/front.png \
+		Battle/assets/pokemon_sprites/147_dratini/back.png \
+		Battle/assets/pokemon_sprites/022_fearow/front.png \
+		Battle/assets/pokemon_sprites/022_fearow/back.png \
+		Battle/assets/pokemon_sprites/067_machoke/front.png \
+		Battle/assets/pokemon_sprites/067_machoke/back.png \
+		Battle/assets/pokemon_sprites/101_electrode/front.png \
+		Battle/assets/pokemon_sprites/101_electrode/back.png \
+		Battle/assets/pokemon_sprites/054_psyduck/front.png \
+		Battle/assets/pokemon_sprites/054_psyduck/back.png \
+		Battle/assets/pokemon_sprites/097_hypno/front.png \
+		Battle/assets/pokemon_sprites/097_hypno/back.png \
+		Battle/assets/pokemon_sprites/008_wartortle/front.png \
+		Battle/assets/pokemon_sprites/008_wartortle/back.png \
+		Battle/assets/pokemon_sprites/061_poliwhirl/front.png \
+		Battle/assets/pokemon_sprites/061_poliwhirl/back.png \
+		Battle/assets/pokemon_sprites/123_scyther/front.png \
+		Battle/assets/pokemon_sprites/123_scyther/back.png \
+		Battle/assets/pokemon_sprites/044_gloom/front.png \
+		Battle/assets/pokemon_sprites/044_gloom/back.png \
+		Battle/assets/pokemon_sprites/017_pidgeotto/front.png \
+		Battle/assets/pokemon_sprites/017_pidgeotto/back.png \
+		Battle/assets/pokemon_sprites/039_jigglypuff/front.png \
+		Battle/assets/pokemon_sprites/039_jigglypuff/back.png \
+		Battle/assets/pokemon_sprites/124_jynx/front.png \
+		Battle/assets/pokemon_sprites/124_jynx/back.png \
+		Battle/assets/pokemon_sprites/110_weezing/front.png \
+		Battle/assets/pokemon_sprites/110_weezing/back.png \
+		Battle/assets/pokemon_sprites/045_vileplume/front.png \
+		Battle/assets/pokemon_sprites/045_vileplume/back.png \
+		Battle/assets/pokemon_sprites/105_marowak/front.png \
+		Battle/assets/pokemon_sprites/105_marowak/back.png \
+		Battle/assets/pokemon_sprites/033_nidorino/front.png \
+		Battle/assets/pokemon_sprites/033_nidorino/back.png \
+		Battle/assets/pokemon_sprites/072_tentacool/front.png \
+		Battle/assets/pokemon_sprites/072_tentacool/back.png \
+		Battle/assets/pokemon_sprites/026_raichu/front.png \
+		Battle/assets/pokemon_sprites/026_raichu/back.png \
+		Battle/assets/pokemon_sprites/133_eevee/front.png \
+		Battle/assets/pokemon_sprites/133_eevee/back.png \
+		Battle/assets/pokemon_sprites/129_magikarp/front.png \
+		Battle/assets/pokemon_sprites/129_magikarp/back.png \
+		Battle/assets/pokemon_sprites/125_electabuzz/front.png \
+		Battle/assets/pokemon_sprites/125_electabuzz/back.png \
+		Battle/assets/pokemon_sprites/098_krabby/front.png \
+		Battle/assets/pokemon_sprites/098_krabby/back.png \
+		Battle/assets/pokemon_sprites/013_weedle/front.png \
+		Battle/assets/pokemon_sprites/013_weedle/back.png \
+		Battle/assets/pokemon_sprites/151_mew/front.png \
+		Battle/assets/pokemon_sprites/151_mew/back.png \
+		Battle/assets/pokemon_sprites/055_golduck/front.png \
+		Battle/assets/pokemon_sprites/055_golduck/back.png \
+		Battle/assets/pokemon_sprites/030_nidorina/front.png \
+		Battle/assets/pokemon_sprites/030_nidorina/back.png \
+		Battle/assets/pokemon_sprites/018_pidgeot/front.png \
+		Battle/assets/pokemon_sprites/018_pidgeot/back.png \
+		Battle/assets/pokemon_sprites/062_poliwrath/front.png \
+		Battle/assets/pokemon_sprites/062_poliwrath/back.png \
+		Battle/assets/pokemon_sprites/050_diglett/front.png \
+		Battle/assets/pokemon_sprites/050_diglett/back.png \
+		Battle/assets/pokemon_sprites/134_vaporeon/front.png \
+		Battle/assets/pokemon_sprites/134_vaporeon/back.png \
+		Battle/assets/pokemon_sprites/144_articuno/front.png \
+		Battle/assets/pokemon_sprites/144_articuno/back.png \
+		Battle/assets/pokemon_sprites/141_kabutops/front.png \
+		Battle/assets/pokemon_sprites/141_kabutops/back.png \
+		Battle/assets/pokemon_sprites/102_exeggcute/front.png \
+		Battle/assets/pokemon_sprites/102_exeggcute/back.png \
+		Battle/assets/pokemon_sprites/060_poliwag/front.png \
+		Battle/assets/pokemon_sprites/060_poliwag/back.png \
+		Battle/assets/pokemon_sprites/069_bellsprout/front.png \
+		Battle/assets/pokemon_sprites/069_bellsprout/back.png \
+		Battle/assets/pokemon_sprites/058_growlithe/front.png \
+		Battle/assets/pokemon_sprites/058_growlithe/back.png \
+		Battle/assets/pokemon_sprites/111_rhyhorn/front.png \
+		Battle/assets/pokemon_sprites/111_rhyhorn/back.png \
+		Battle/assets/pokemon_sprites/081_magnemite/front.png \
+		Battle/assets/pokemon_sprites/081_magnemite/back.png \
+		Battle/assets/pokemon_sprites/014_kakuna/front.png \
+		Battle/assets/pokemon_sprites/014_kakuna/back.png \
+		Battle/assets/pokemon_sprites/085_dodrio/front.png \
+		Battle/assets/pokemon_sprites/085_dodrio/back.png \
+		Battle/assets/pokemon_sprites/149_dragonite/front.png \
+		Battle/assets/pokemon_sprites/149_dragonite/back.png \
+		Battle/assets/pokemon_sprites/138_omanyte/front.png \
+		Battle/assets/pokemon_sprites/138_omanyte/back.png \
+		Battle/assets/pokemon_sprites/132_ditto/front.png \
+		Battle/assets/pokemon_sprites/132_ditto/back.png \
+		Battle/assets/pokemon_sprites/119_seaking/front.png \
+		Battle/assets/pokemon_sprites/119_seaking/back.png \
+		Battle/assets/pokemon_sprites/003_venusaur/front.png \
+		Battle/assets/pokemon_sprites/003_venusaur/back.png \
+		Battle/assets/pokemon_sprites/047_parasect/front.png \
+		Battle/assets/pokemon_sprites/047_parasect/back.png \
+		Battle/assets/pokemon_sprites/075_graveler/front.png \
+		Battle/assets/pokemon_sprites/075_graveler/back.png \
+		Battle/assets/pokemon_sprites/094_gengar/front.png \
+		Battle/assets/pokemon_sprites/094_gengar/back.png \
+		Battle/assets/pokemon_sprites/024_arbok/front.png \
+		Battle/assets/pokemon_sprites/024_arbok/back.png \
+		Battle/assets/pokemon_sprites/019_rattata/front.png \
+		Battle/assets/pokemon_sprites/019_rattata/back.png \
+		Battle/assets/pokemon_sprites/117_seadra/front.png \
+		Battle/assets/pokemon_sprites/117_seadra/back.png \
+		Battle/assets/pokemon_sprites/139_omastar/front.png \
+		Battle/assets/pokemon_sprites/139_omastar/back.png \
+		Battle/assets/pokemon_sprites/041_zubat/front.png \
+		Battle/assets/pokemon_sprites/041_zubat/back.png \
+		Battle/assets/pokemon_sprites/073_tentacruel/front.png \
+		Battle/assets/pokemon_sprites/073_tentacruel/back.png \
+		Battle/assets/pokemon_sprites/136_flareon/front.png \
+		Battle/assets/pokemon_sprites/136_flareon/back.png \
+		Battle/assets/pokemon_sprites/135_jolteon/front.png \
+		Battle/assets/pokemon_sprites/135_jolteon/back.png \
+		Battle/assets/pokemon_sprites/079_slowpoke/front.png \
+		Battle/assets/pokemon_sprites/079_slowpoke/back.png \
+		Battle/assets/pokemon_sprites/100_voltorb/front.png \
+		Battle/assets/pokemon_sprites/100_voltorb/back.png \
+		Battle/assets/pokemon_sprites/121_starmie/front.png \
+		Battle/assets/pokemon_sprites/121_starmie/back.png \
+		Battle/assets/pokemon_sprites/023_ekans/front.png \
+		Battle/assets/pokemon_sprites/023_ekans/back.png \
+		Battle/assets/pokemon_sprites/084_doduo/front.png \
+		Battle/assets/pokemon_sprites/084_doduo/back.png \
+		Battle/assets/pokemon_sprites/066_machop/front.png \
+		Battle/assets/pokemon_sprites/066_machop/back.png \
+		Battle/assets/pokemon_sprites/108_lickitung/front.png \
+		Battle/assets/pokemon_sprites/108_lickitung/back.png \
+		Battle/assets/pokemon_sprites/007_squirtle/front.png \
+		Battle/assets/pokemon_sprites/007_squirtle/back.png \
+		Battle/assets/pokemon_sprites/088_grimer/front.png \
+		Battle/assets/pokemon_sprites/088_grimer/back.png \
+		Battle/assets/pokemon_sprites/029_nidoran-f/front.png \
+		Battle/assets/pokemon_sprites/029_nidoran-f/back.png \
+		Battle/assets/pokemon_sprites/109_koffing/front.png \
+		Battle/assets/pokemon_sprites/109_koffing/back.png \
+		Battle/assets/pokemon_sprites/025_pikachu/front.png \
+		Battle/assets/pokemon_sprites/025_pikachu/back.png \
+		Battle/assets/pokemon_sprites/112_rhydon/front.png \
+		Battle/assets/pokemon_sprites/112_rhydon/back.png \
+		Battle/assets/pokemon_sprites/012_butterfree/front.png \
+		Battle/assets/pokemon_sprites/012_butterfree/back.png \
+		Battle/assets/pokemon_sprites/146_moltres/front.png \
+		Battle/assets/pokemon_sprites/146_moltres/back.png \
+		Battle/assets/pokemon_sprites/053_persian/front.png \
+		Battle/assets/pokemon_sprites/053_persian/back.png \
+		Battle/assets/pokemon_sprites/034_nidoking/front.png \
+		Battle/assets/pokemon_sprites/034_nidoking/back.png \
+		Battle/assets/pokemon_sprites/005_charmeleon/front.png \
+		Battle/assets/pokemon_sprites/005_charmeleon/back.png \
+		Battle/assets/pokemon_sprites/056_mankey/front.png \
+		Battle/assets/pokemon_sprites/056_mankey/back.png \
+		Battle/assets/pokemon_sprites/106_hitmonlee/front.png \
+		Battle/assets/pokemon_sprites/106_hitmonlee/back.png \
+		Battle/assets/pokemon_sprites/114_tangela/front.png \
+		Battle/assets/pokemon_sprites/114_tangela/back.png \
+		Battle/assets/pokemon_sprites/016_pidgey/front.png \
+		Battle/assets/pokemon_sprites/016_pidgey/back.png \
+		Battle/assets/pokemon_sprites/107_hitmonchan/front.png \
+		Battle/assets/pokemon_sprites/107_hitmonchan/back.png \
+		Battle/assets/pokemon_sprites/036_clefable/front.png \
+		Battle/assets/pokemon_sprites/036_clefable/back.png \
+		Battle/assets/pokemon_sprites/009_blastoise/front.png \
+		Battle/assets/pokemon_sprites/009_blastoise/back.png \
+		Battle/assets/pokemon_sprites/028_sandslash/front.png \
+		Battle/assets/pokemon_sprites/028_sandslash/back.png \
+		Battle/assets/pokemon_sprites/115_kangaskhan/front.png \
+		Battle/assets/pokemon_sprites/115_kangaskhan/back.png \
+		Battle/assets/pokemon_sprites/103_exeggutor/front.png \
+		Battle/assets/pokemon_sprites/103_exeggutor/back.png \
+		Battle/assets/pokemon_sprites/035_clefairy/front.png \
+		Battle/assets/pokemon_sprites/035_clefairy/back.png \
+		Battle/assets/pokemon_sprites/015_beedrill/front.png \
+		Battle/assets/pokemon_sprites/015_beedrill/back.png \
+		Battle/assets/pokemon_sprites/127_pinsir/front.png \
+		Battle/assets/pokemon_sprites/127_pinsir/back.png \
+		Battle/assets/pokemon_sprites/140_kabuto/front.png \
+		Battle/assets/pokemon_sprites/140_kabuto/back.png \
+		Battle/assets/pokemon_sprites/070_weepinbell/front.png \
+		Battle/assets/pokemon_sprites/070_weepinbell/back.png \
+		Battle/assets/pokemon_sprites/104_cubone/front.png \
+		Battle/assets/pokemon_sprites/104_cubone/back.png \
+		Battle/assets/pokemon_sprites/051_dugtrio/front.png \
+		Battle/assets/pokemon_sprites/051_dugtrio/back.png \
+		Battle/assets/pokemon_sprites/150_mewtwo/front.png \
+		Battle/assets/pokemon_sprites/150_mewtwo/back.png \
+		Battle/assets/pokemon_sprites/006_charizard/front.png \
+		Battle/assets/pokemon_sprites/006_charizard/back.png \
+		Battle/assets/pokemon_sprites/032_nidoran-m/front.png \
+		Battle/assets/pokemon_sprites/032_nidoran-m/back.png \
+		Battle/assets/pokemon_sprites/080_slowbro/front.png \
+		Battle/assets/pokemon_sprites/080_slowbro/back.png \
+		Battle/assets/pokemon_sprites/118_goldeen/front.png \
+		Battle/assets/pokemon_sprites/118_goldeen/back.png \
+		Battle/assets/pokemon_sprites/086_seel/front.png \
+		Battle/assets/pokemon_sprites/086_seel/back.png \
+		Battle/assets/pokemon_sprites/093_haunter/front.png \
+		Battle/assets/pokemon_sprites/093_haunter/back.png \
+		Battle/assets/pokemon_sprites/074_geodude/front.png \
+		Battle/assets/pokemon_sprites/074_geodude/back.png \
+		Battle/assets/pokemon_sprites/130_gyarados/front.png \
+		Battle/assets/pokemon_sprites/130_gyarados/back.png \
+		Battle/assets/pokemon_sprites/137_porygon/front.png \
+		Battle/assets/pokemon_sprites/137_porygon/back.png \
+		Battle/assets/pokemon_sprites/040_wigglytuff/front.png \
+		Battle/assets/pokemon_sprites/040_wigglytuff/back.png \
+		Battle/assets/pokemon_sprites/027_sandshrew/front.png \
+		Battle/assets/pokemon_sprites/027_sandshrew/back.png \
+		Battle/assets/pokemon_sprites/083_farfetchd/front.png \
+		Battle/assets/pokemon_sprites/083_farfetchd/back.png \
+		Battle/assets/pokemon_sprites/113_chansey/front.png \
+		Battle/assets/pokemon_sprites/113_chansey/back.png \
 		assets/background.png \
 		assets/collision.png \
 		assets/front1.png \
@@ -541,311 +863,12 @@ qrc_assets.cpp: assets.qrc \
 		assets/intro/title/title_01.png \
 		assets/intro/title/title_04.png \
 		assets/intro/title/title_03.png \
+		assets/maps/route6/tallgrass.png \
+		assets/maps/route6/background.png \
+		assets/maps/route6/collision.png \
 		assets/maps/route1/tallgrass.png \
 		assets/maps/route1/background.png \
-		assets/maps/route1/collision.png \
-		game_logic/sprites/063_abra/front.png \
-		game_logic/sprites/063_abra/back.png \
-		game_logic/sprites/057_primeape/front.png \
-		game_logic/sprites/057_primeape/back.png \
-		game_logic/sprites/020_raticate/front.png \
-		game_logic/sprites/020_raticate/back.png \
-		game_logic/sprites/122_mr-mime/front.png \
-		game_logic/sprites/122_mr-mime/back.png \
-		game_logic/sprites/087_dewgong/front.png \
-		game_logic/sprites/087_dewgong/back.png \
-		game_logic/sprites/091_cloyster/front.png \
-		game_logic/sprites/091_cloyster/back.png \
-		game_logic/sprites/126_magmar/front.png \
-		game_logic/sprites/126_magmar/back.png \
-		game_logic/sprites/099_kingler/front.png \
-		game_logic/sprites/099_kingler/back.png \
-		game_logic/sprites/059_arcanine/front.png \
-		game_logic/sprites/059_arcanine/back.png \
-		game_logic/sprites/048_venonat/front.png \
-		game_logic/sprites/048_venonat/back.png \
-		game_logic/sprites/042_golbat/front.png \
-		game_logic/sprites/042_golbat/back.png \
-		game_logic/sprites/076_golem/front.png \
-		game_logic/sprites/076_golem/back.png \
-		game_logic/sprites/038_ninetales/front.png \
-		game_logic/sprites/038_ninetales/back.png \
-		game_logic/sprites/148_dragonair/front.png \
-		game_logic/sprites/148_dragonair/back.png \
-		game_logic/sprites/143_snorlax/front.png \
-		game_logic/sprites/143_snorlax/back.png \
-		game_logic/sprites/052_meowth/front.png \
-		game_logic/sprites/052_meowth/back.png \
-		game_logic/sprites/096_drowzee/front.png \
-		game_logic/sprites/096_drowzee/back.png \
-		game_logic/sprites/068_machamp/front.png \
-		game_logic/sprites/068_machamp/back.png \
-		game_logic/sprites/077_ponyta/front.png \
-		game_logic/sprites/077_ponyta/back.png \
-		game_logic/sprites/142_aerodactyl/front.png \
-		game_logic/sprites/142_aerodactyl/back.png \
-		game_logic/sprites/089_muk/front.png \
-		game_logic/sprites/089_muk/back.png \
-		game_logic/sprites/128_tauros/front.png \
-		game_logic/sprites/128_tauros/back.png \
-		game_logic/sprites/049_venomoth/front.png \
-		game_logic/sprites/049_venomoth/back.png \
-		game_logic/sprites/131_lapras/front.png \
-		game_logic/sprites/131_lapras/back.png \
-		game_logic/sprites/082_magneton/front.png \
-		game_logic/sprites/082_magneton/back.png \
-		game_logic/sprites/004_charmander/front.png \
-		game_logic/sprites/004_charmander/back.png \
-		game_logic/sprites/078_rapidash/front.png \
-		game_logic/sprites/078_rapidash/back.png \
-		game_logic/sprites/095_onix/front.png \
-		game_logic/sprites/095_onix/back.png \
-		game_logic/sprites/116_horsea/front.png \
-		game_logic/sprites/116_horsea/back.png \
-		game_logic/sprites/071_victreebel/front.png \
-		game_logic/sprites/071_victreebel/back.png \
-		game_logic/sprites/065_alakazam/front.png \
-		game_logic/sprites/065_alakazam/back.png \
-		game_logic/sprites/021_spearow/front.png \
-		game_logic/sprites/021_spearow/back.png \
-		game_logic/sprites/145_zapdos/front.png \
-		game_logic/sprites/145_zapdos/back.png \
-		game_logic/sprites/037_vulpix/front.png \
-		game_logic/sprites/037_vulpix/back.png \
-		game_logic/sprites/092_gastly/front.png \
-		game_logic/sprites/092_gastly/back.png \
-		game_logic/sprites/064_kadabra/front.png \
-		game_logic/sprites/064_kadabra/back.png \
-		game_logic/sprites/120_staryu/front.png \
-		game_logic/sprites/120_staryu/back.png \
-		game_logic/sprites/046_paras/front.png \
-		game_logic/sprites/046_paras/back.png \
-		game_logic/sprites/010_caterpie/front.png \
-		game_logic/sprites/010_caterpie/back.png \
-		game_logic/sprites/090_shellder/front.png \
-		game_logic/sprites/090_shellder/back.png \
-		game_logic/sprites/002_ivysaur/front.png \
-		game_logic/sprites/002_ivysaur/back.png \
-		game_logic/sprites/043_oddish/front.png \
-		game_logic/sprites/043_oddish/back.png \
-		game_logic/sprites/001_bulbasaur/front.png \
-		game_logic/sprites/001_bulbasaur/back.png \
-		game_logic/sprites/031_nidoqueen/front.png \
-		game_logic/sprites/031_nidoqueen/back.png \
-		game_logic/sprites/011_metapod/front.png \
-		game_logic/sprites/011_metapod/back.png \
-		game_logic/sprites/147_dratini/front.png \
-		game_logic/sprites/147_dratini/back.png \
-		game_logic/sprites/022_fearow/front.png \
-		game_logic/sprites/022_fearow/back.png \
-		game_logic/sprites/067_machoke/front.png \
-		game_logic/sprites/067_machoke/back.png \
-		game_logic/sprites/101_electrode/front.png \
-		game_logic/sprites/101_electrode/back.png \
-		game_logic/sprites/054_psyduck/front.png \
-		game_logic/sprites/054_psyduck/back.png \
-		game_logic/sprites/097_hypno/front.png \
-		game_logic/sprites/097_hypno/back.png \
-		game_logic/sprites/008_wartortle/front.png \
-		game_logic/sprites/008_wartortle/back.png \
-		game_logic/sprites/061_poliwhirl/front.png \
-		game_logic/sprites/061_poliwhirl/back.png \
-		game_logic/sprites/123_scyther/front.png \
-		game_logic/sprites/123_scyther/back.png \
-		game_logic/sprites/044_gloom/front.png \
-		game_logic/sprites/044_gloom/back.png \
-		game_logic/sprites/017_pidgeotto/front.png \
-		game_logic/sprites/017_pidgeotto/back.png \
-		game_logic/sprites/039_jigglypuff/front.png \
-		game_logic/sprites/039_jigglypuff/back.png \
-		game_logic/sprites/124_jynx/front.png \
-		game_logic/sprites/124_jynx/back.png \
-		game_logic/sprites/110_weezing/front.png \
-		game_logic/sprites/110_weezing/back.png \
-		game_logic/sprites/045_vileplume/front.png \
-		game_logic/sprites/045_vileplume/back.png \
-		game_logic/sprites/105_marowak/front.png \
-		game_logic/sprites/105_marowak/back.png \
-		game_logic/sprites/033_nidorino/front.png \
-		game_logic/sprites/033_nidorino/back.png \
-		game_logic/sprites/072_tentacool/front.png \
-		game_logic/sprites/072_tentacool/back.png \
-		game_logic/sprites/026_raichu/front.png \
-		game_logic/sprites/026_raichu/back.png \
-		game_logic/sprites/133_eevee/front.png \
-		game_logic/sprites/133_eevee/back.png \
-		game_logic/sprites/129_magikarp/front.png \
-		game_logic/sprites/129_magikarp/back.png \
-		game_logic/sprites/125_electabuzz/front.png \
-		game_logic/sprites/125_electabuzz/back.png \
-		game_logic/sprites/098_krabby/front.png \
-		game_logic/sprites/098_krabby/back.png \
-		game_logic/sprites/013_weedle/front.png \
-		game_logic/sprites/013_weedle/back.png \
-		game_logic/sprites/151_mew/front.png \
-		game_logic/sprites/151_mew/back.png \
-		game_logic/sprites/055_golduck/front.png \
-		game_logic/sprites/055_golduck/back.png \
-		game_logic/sprites/030_nidorina/front.png \
-		game_logic/sprites/030_nidorina/back.png \
-		game_logic/sprites/018_pidgeot/front.png \
-		game_logic/sprites/018_pidgeot/back.png \
-		game_logic/sprites/062_poliwrath/front.png \
-		game_logic/sprites/062_poliwrath/back.png \
-		game_logic/sprites/050_diglett/front.png \
-		game_logic/sprites/050_diglett/back.png \
-		game_logic/sprites/134_vaporeon/front.png \
-		game_logic/sprites/134_vaporeon/back.png \
-		game_logic/sprites/144_articuno/front.png \
-		game_logic/sprites/144_articuno/back.png \
-		game_logic/sprites/141_kabutops/front.png \
-		game_logic/sprites/141_kabutops/back.png \
-		game_logic/sprites/102_exeggcute/front.png \
-		game_logic/sprites/102_exeggcute/back.png \
-		game_logic/sprites/060_poliwag/front.png \
-		game_logic/sprites/060_poliwag/back.png \
-		game_logic/sprites/069_bellsprout/front.png \
-		game_logic/sprites/069_bellsprout/back.png \
-		game_logic/sprites/058_growlithe/front.png \
-		game_logic/sprites/058_growlithe/back.png \
-		game_logic/sprites/111_rhyhorn/front.png \
-		game_logic/sprites/111_rhyhorn/back.png \
-		game_logic/sprites/081_magnemite/front.png \
-		game_logic/sprites/081_magnemite/back.png \
-		game_logic/sprites/014_kakuna/front.png \
-		game_logic/sprites/014_kakuna/back.png \
-		game_logic/sprites/085_dodrio/front.png \
-		game_logic/sprites/085_dodrio/back.png \
-		game_logic/sprites/149_dragonite/front.png \
-		game_logic/sprites/149_dragonite/back.png \
-		game_logic/sprites/138_omanyte/front.png \
-		game_logic/sprites/138_omanyte/back.png \
-		game_logic/sprites/132_ditto/front.png \
-		game_logic/sprites/132_ditto/back.png \
-		game_logic/sprites/119_seaking/front.png \
-		game_logic/sprites/119_seaking/back.png \
-		game_logic/sprites/003_venusaur/front.png \
-		game_logic/sprites/003_venusaur/back.png \
-		game_logic/sprites/047_parasect/front.png \
-		game_logic/sprites/047_parasect/back.png \
-		game_logic/sprites/075_graveler/front.png \
-		game_logic/sprites/075_graveler/back.png \
-		game_logic/sprites/094_gengar/front.png \
-		game_logic/sprites/094_gengar/back.png \
-		game_logic/sprites/024_arbok/front.png \
-		game_logic/sprites/024_arbok/back.png \
-		game_logic/sprites/019_rattata/front.png \
-		game_logic/sprites/019_rattata/back.png \
-		game_logic/sprites/117_seadra/front.png \
-		game_logic/sprites/117_seadra/back.png \
-		game_logic/sprites/139_omastar/front.png \
-		game_logic/sprites/139_omastar/back.png \
-		game_logic/sprites/041_zubat/front.png \
-		game_logic/sprites/041_zubat/back.png \
-		game_logic/sprites/073_tentacruel/front.png \
-		game_logic/sprites/073_tentacruel/back.png \
-		game_logic/sprites/136_flareon/front.png \
-		game_logic/sprites/136_flareon/back.png \
-		game_logic/sprites/135_jolteon/front.png \
-		game_logic/sprites/135_jolteon/back.png \
-		game_logic/sprites/079_slowpoke/front.png \
-		game_logic/sprites/079_slowpoke/back.png \
-		game_logic/sprites/100_voltorb/front.png \
-		game_logic/sprites/100_voltorb/back.png \
-		game_logic/sprites/121_starmie/front.png \
-		game_logic/sprites/121_starmie/back.png \
-		game_logic/sprites/023_ekans/front.png \
-		game_logic/sprites/023_ekans/back.png \
-		game_logic/sprites/084_doduo/front.png \
-		game_logic/sprites/084_doduo/back.png \
-		game_logic/sprites/066_machop/front.png \
-		game_logic/sprites/066_machop/back.png \
-		game_logic/sprites/108_lickitung/front.png \
-		game_logic/sprites/108_lickitung/back.png \
-		game_logic/sprites/007_squirtle/front.png \
-		game_logic/sprites/007_squirtle/back.png \
-		game_logic/sprites/088_grimer/front.png \
-		game_logic/sprites/088_grimer/back.png \
-		game_logic/sprites/029_nidoran-f/front.png \
-		game_logic/sprites/029_nidoran-f/back.png \
-		game_logic/sprites/109_koffing/front.png \
-		game_logic/sprites/109_koffing/back.png \
-		game_logic/sprites/025_pikachu/front.png \
-		game_logic/sprites/025_pikachu/back.png \
-		game_logic/sprites/112_rhydon/front.png \
-		game_logic/sprites/112_rhydon/back.png \
-		game_logic/sprites/012_butterfree/front.png \
-		game_logic/sprites/012_butterfree/back.png \
-		game_logic/sprites/146_moltres/front.png \
-		game_logic/sprites/146_moltres/back.png \
-		game_logic/sprites/053_persian/front.png \
-		game_logic/sprites/053_persian/back.png \
-		game_logic/sprites/034_nidoking/front.png \
-		game_logic/sprites/034_nidoking/back.png \
-		game_logic/sprites/005_charmeleon/front.png \
-		game_logic/sprites/005_charmeleon/back.png \
-		game_logic/sprites/056_mankey/front.png \
-		game_logic/sprites/056_mankey/back.png \
-		game_logic/sprites/106_hitmonlee/front.png \
-		game_logic/sprites/106_hitmonlee/back.png \
-		game_logic/sprites/114_tangela/front.png \
-		game_logic/sprites/114_tangela/back.png \
-		game_logic/sprites/016_pidgey/front.png \
-		game_logic/sprites/016_pidgey/back.png \
-		game_logic/sprites/107_hitmonchan/front.png \
-		game_logic/sprites/107_hitmonchan/back.png \
-		game_logic/sprites/036_clefable/front.png \
-		game_logic/sprites/036_clefable/back.png \
-		game_logic/sprites/009_blastoise/front.png \
-		game_logic/sprites/009_blastoise/back.png \
-		game_logic/sprites/028_sandslash/front.png \
-		game_logic/sprites/028_sandslash/back.png \
-		game_logic/sprites/115_kangaskhan/front.png \
-		game_logic/sprites/115_kangaskhan/back.png \
-		game_logic/sprites/103_exeggutor/front.png \
-		game_logic/sprites/103_exeggutor/back.png \
-		game_logic/sprites/035_clefairy/front.png \
-		game_logic/sprites/035_clefairy/back.png \
-		game_logic/sprites/015_beedrill/front.png \
-		game_logic/sprites/015_beedrill/back.png \
-		game_logic/sprites/127_pinsir/front.png \
-		game_logic/sprites/127_pinsir/back.png \
-		game_logic/sprites/140_kabuto/front.png \
-		game_logic/sprites/140_kabuto/back.png \
-		game_logic/sprites/070_weepinbell/front.png \
-		game_logic/sprites/070_weepinbell/back.png \
-		game_logic/sprites/104_cubone/front.png \
-		game_logic/sprites/104_cubone/back.png \
-		game_logic/sprites/051_dugtrio/front.png \
-		game_logic/sprites/051_dugtrio/back.png \
-		game_logic/sprites/150_mewtwo/front.png \
-		game_logic/sprites/150_mewtwo/back.png \
-		game_logic/sprites/006_charizard/front.png \
-		game_logic/sprites/006_charizard/back.png \
-		game_logic/sprites/032_nidoran-m/front.png \
-		game_logic/sprites/032_nidoran-m/back.png \
-		game_logic/sprites/080_slowbro/front.png \
-		game_logic/sprites/080_slowbro/back.png \
-		game_logic/sprites/118_goldeen/front.png \
-		game_logic/sprites/118_goldeen/back.png \
-		game_logic/sprites/086_seel/front.png \
-		game_logic/sprites/086_seel/back.png \
-		game_logic/sprites/093_haunter/front.png \
-		game_logic/sprites/093_haunter/back.png \
-		game_logic/sprites/074_geodude/front.png \
-		game_logic/sprites/074_geodude/back.png \
-		game_logic/sprites/130_gyarados/front.png \
-		game_logic/sprites/130_gyarados/back.png \
-		game_logic/sprites/137_porygon/front.png \
-		game_logic/sprites/137_porygon/back.png \
-		game_logic/sprites/040_wigglytuff/front.png \
-		game_logic/sprites/040_wigglytuff/back.png \
-		game_logic/sprites/027_sandshrew/front.png \
-		game_logic/sprites/027_sandshrew/back.png \
-		game_logic/sprites/083_farfetchd/front.png \
-		game_logic/sprites/083_farfetchd/back.png \
-		game_logic/sprites/113_chansey/front.png \
-		game_logic/sprites/113_chansey/back.png
+		assets/maps/route1/collision.png
 	/usr/lib/qt5/bin/rcc -name assets assets.qrc -o qrc_assets.cpp
 
 compiler_moc_predefs_make_all: moc_predefs.h
@@ -854,72 +877,99 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_battle_animations.cpp moc_battle_animations.cpp moc_battle_sequence.cpp moc_overworld.cpp moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
+compiler_moc_header_make_all: moc_window.cpp moc_gamepad.cpp moc_introscreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_battle_sequence.cpp moc_battle_animations.cpp moc_Menu_BT.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_battle_animations.cpp moc_battle_animations.cpp moc_battle_sequence.cpp moc_overworld.cpp moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
-moc_battle_animations.cpp: battle/battle_animations.h \
+	-$(DEL_FILE) moc_window.cpp moc_gamepad.cpp moc_introscreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_battle_sequence.cpp moc_battle_animations.cpp moc_Menu_BT.cpp
+moc_window.cpp: General/window.h \
+		General/gamepad.h \
+		Battle/battle_system.h \
+		Battle/Battle_logic/Battle.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include battle/battle_animations.h -o moc_battle_animations.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include General/window.h -o moc_window.cpp
 
-moc_battle_animations.cpp: battle/battle_animations.h \
+moc_gamepad.cpp: General/gamepad.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include battle/battle_animations.h -o moc_battle_animations.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include General/gamepad.h -o moc_gamepad.cpp
 
-moc_battle_sequence.cpp: battle_sequence.h \
-		battle/battle_system.h \
-		game_logic/Battle.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h \
-		battle/battle_animations.h \
+moc_introscreen.cpp: Intro_Screen/introscreen.h \
+		General/gamepad.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include battle_sequence.h -o moc_battle_sequence.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Intro_Screen/introscreen.h -o moc_introscreen.cpp
 
-moc_overworld.cpp: overworld.h \
-		map/map_loader.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h \
+moc_Overworld.cpp: Overworld/Overworld.h \
+		Overworld/Player_OW.h \
+		Overworld/Camera_OW.h \
+		Overworld/Map_OW.h \
+		Overworld/map_loader.h \
+		Overworld/Menu_OW.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include overworld.h -o moc_overworld.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Overworld.h -o moc_Overworld.cpp
 
-moc_introscreen.cpp: introscreen.h \
-		gamepadthread.h \
+moc_Player_OW.cpp: Overworld/Player_OW.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include introscreen.h -o moc_introscreen.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Player_OW.h -o moc_Player_OW.cpp
 
-moc_mainwindow.cpp: mainwindow.h \
-		gamepadthread.h \
-		battle/battle_system.h \
-		game_logic/Battle.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h \
+moc_Map_OW.cpp: Overworld/Map_OW.h \
+		Overworld/map_loader.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Map_OW.h -o moc_Map_OW.cpp
 
-moc_gamepadthread.cpp: gamepadthread.h \
+moc_Menu_OW.cpp: Overworld/Menu_OW.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include gamepadthread.h -o moc_gamepadthread.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Menu_OW.h -o moc_Menu_OW.cpp
+
+moc_battle_sequence.cpp: Battle/battle_sequence.h \
+		Battle/battle_system.h \
+		Battle/Battle_logic/Battle.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h \
+		Battle/battle_animations.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Battle/battle_sequence.h -o moc_battle_sequence.cpp
+
+moc_battle_animations.cpp: Battle/battle_animations.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Battle/battle_animations.h -o moc_battle_animations.cpp
+
+moc_Menu_BT.cpp: Battle/Menu_BT.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Battle/Menu_BT.h -o moc_Menu_BT.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -937,163 +987,212 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 
 ####### Compile
 
-battle_system.o: battle/battle_system.cpp battle/battle_system.h \
-		game_logic/Battle.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_system.o battle/battle_system.cpp
+main.o: General/main.cpp Intro_Screen/introscreen.h \
+		General/gamepad.h \
+		General/window.h \
+		Battle/battle_system.h \
+		Battle/Battle_logic/Battle.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o General/main.cpp
 
-battle_animations.o: battle/battle_animations.cpp battle/battle_animations.h \
-		battle_sequence.h \
-		battle/battle_system.h \
-		game_logic/Battle.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_animations.o battle/battle_animations.cpp
+window.o: General/window.cpp General/window.h \
+		General/gamepad.h \
+		Battle/battle_system.h \
+		Battle/Battle_logic/Battle.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h \
+		Overworld/Overworld.h \
+		Overworld/Player_OW.h \
+		Overworld/Camera_OW.h \
+		Overworld/Map_OW.h \
+		Overworld/map_loader.h \
+		Overworld/Menu_OW.h \
+		Battle/battle_sequence.h \
+		Battle/battle_animations.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o window.o General/window.cpp
 
-battle_sequence.o: battle_sequence.cpp battle_sequence.h \
-		battle/battle_system.h \
-		game_logic/Battle.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h \
-		battle/battle_animations.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_sequence.o battle_sequence.cpp
+gamepad.o: General/gamepad.cpp General/gamepad.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gamepad.o General/gamepad.cpp
 
-overworld.o: overworld.cpp overworld.h \
-		map/map_loader.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o overworld.o overworld.cpp
+introscreen.o: Intro_Screen/introscreen.cpp Intro_Screen/introscreen.h \
+		General/gamepad.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o introscreen.o Intro_Screen/introscreen.cpp
 
-Attack.o: game_logic/Attack.cpp game_logic/Attack.h \
-		game_logic/Type.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Attack.o game_logic/Attack.cpp
+Overworld.o: Overworld/Overworld.cpp Overworld/Overworld.h \
+		Overworld/Player_OW.h \
+		Overworld/Camera_OW.h \
+		Overworld/Map_OW.h \
+		Overworld/map_loader.h \
+		Overworld/Menu_OW.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Overworld.o Overworld/Overworld.cpp
 
-Bag.o: game_logic/Bag.cpp game_logic/Bag.h \
-		game_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Bag.o game_logic/Bag.cpp
+Player_OW.o: Overworld/Player_OW.cpp Overworld/Player_OW.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Player_OW.o Overworld/Player_OW.cpp
 
-Battle.o: game_logic/Battle.cpp game_logic/Battle.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Battle.o game_logic/Battle.cpp
+Camera_OW.o: Overworld/Camera_OW.cpp Overworld/Camera_OW.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Camera_OW.o Overworld/Camera_OW.cpp
 
-Item.o: game_logic/Item.cpp game_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Item.o game_logic/Item.cpp
+Map_OW.o: Overworld/Map_OW.cpp Overworld/Map_OW.h \
+		Overworld/map_loader.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Map_OW.o Overworld/Map_OW.cpp
 
-Player.o: game_logic/Player.cpp game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Player.o game_logic/Player.cpp
+Menu_OW.o: Overworld/Menu_OW.cpp Overworld/Menu_OW.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Menu_OW.o Overworld/Menu_OW.cpp
 
-Pokemon.o: game_logic/Pokemon.cpp game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Pokemon.o game_logic/Pokemon.cpp
+map_loader.o: Overworld/map_loader.cpp Overworld/map_loader.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_loader.o Overworld/map_loader.cpp
 
-PokemonData.o: game_logic/PokemonData.cpp game_logic/PokemonData.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/json/json.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o PokemonData.o game_logic/PokemonData.cpp
+battle_sequence.o: Battle/battle_sequence.cpp Battle/battle_sequence.h \
+		Battle/battle_system.h \
+		Battle/Battle_logic/Battle.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h \
+		Battle/battle_animations.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_sequence.o Battle/battle_sequence.cpp
 
-Type.o: game_logic/Type.cpp game_logic/Type.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Type.o game_logic/Type.cpp
+battle_system.o: Battle/battle_system.cpp Battle/battle_system.h \
+		Battle/Battle_logic/Battle.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_system.o Battle/battle_system.cpp
 
-jsoncpp.o: game_logic/jsoncpp.cpp game_logic/json/json.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o jsoncpp.o game_logic/jsoncpp.cpp
+battle_animations.o: Battle/battle_animations.cpp Battle/battle_animations.h \
+		Battle/battle_sequence.h \
+		Battle/battle_system.h \
+		Battle/Battle_logic/Battle.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_animations.o Battle/battle_animations.cpp
 
-introscreen.o: introscreen.cpp introscreen.h \
-		gamepadthread.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o introscreen.o introscreen.cpp
+Player_BT.o: Battle/Player_BT.cpp Battle/Player_BT.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Player_BT.o Battle/Player_BT.cpp
 
-main.o: main.cpp introscreen.h \
-		gamepadthread.h \
-		mainwindow.h \
-		battle/battle_system.h \
-		game_logic/Battle.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
+Pokemon_BT.o: Battle/Pokemon_BT.cpp Battle/Pokemon_BT.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Pokemon_BT.o Battle/Pokemon_BT.cpp
 
-mainwindow.o: mainwindow.cpp mainwindow.h \
-		gamepadthread.h \
-		battle/battle_system.h \
-		game_logic/Battle.h \
-		game_logic/Player.h \
-		game_logic/Pokemon.h \
-		game_logic/Type.h \
-		game_logic/Attack.h \
-		game_logic/PokemonData.h \
-		game_logic/Bag.h \
-		game_logic/Item.h \
-		overworld.h \
-		map/map_loader.h \
-		battle_sequence.h \
-		battle/battle_animations.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
+Menu_BT.o: Battle/Menu_BT.cpp Battle/Menu_BT.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Menu_BT.o Battle/Menu_BT.cpp
 
-map_loader.o: map/map_loader.cpp map/map_loader.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_loader.o map/map_loader.cpp
+Attack.o: Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/Type.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Attack.o Battle/Battle_logic/Attack.cpp
 
-gamepadthread.o: gamepadthread.cpp gamepadthread.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gamepadthread.o gamepadthread.cpp
+Bag.o: Battle/Battle_logic/Bag.cpp Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Bag.o Battle/Battle_logic/Bag.cpp
+
+Battle.o: Battle/Battle_logic/Battle.cpp Battle/Battle_logic/Battle.h \
+		Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Battle.o Battle/Battle_logic/Battle.cpp
+
+Item.o: Battle/Battle_logic/Item.cpp Battle/Battle_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Item.o Battle/Battle_logic/Item.cpp
+
+Player.o: Battle/Battle_logic/Player.cpp Battle/Battle_logic/Player.h \
+		Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Bag.h \
+		Battle/Battle_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Player.o Battle/Battle_logic/Player.cpp
+
+Pokemon.o: Battle/Battle_logic/Pokemon.cpp Battle/Battle_logic/Pokemon.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/PokemonData.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Pokemon.o Battle/Battle_logic/Pokemon.cpp
+
+PokemonData.o: Battle/Battle_logic/PokemonData.cpp Battle/Battle_logic/PokemonData.h \
+		Battle/Battle_logic/Type.h \
+		Battle/Battle_logic/Attack.h \
+		Battle/Battle_logic/json/json.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o PokemonData.o Battle/Battle_logic/PokemonData.cpp
+
+Type.o: Battle/Battle_logic/Type.cpp Battle/Battle_logic/Type.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Type.o Battle/Battle_logic/Type.cpp
+
+jsoncpp.o: Battle/Battle_logic/jsoncpp.cpp Battle/Battle_logic/json/json.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o jsoncpp.o Battle/Battle_logic/jsoncpp.cpp
 
 qrc_assets.o: qrc_assets.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_assets.o qrc_assets.cpp
 
-moc_battle_animations.o: moc_battle_animations.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_battle_animations.o moc_battle_animations.cpp
+moc_window.o: moc_window.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_window.o moc_window.cpp
 
-moc_battle_sequence.o: moc_battle_sequence.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_battle_sequence.o moc_battle_sequence.cpp
-
-moc_overworld.o: moc_overworld.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_overworld.o moc_overworld.cpp
+moc_gamepad.o: moc_gamepad.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_gamepad.o moc_gamepad.cpp
 
 moc_introscreen.o: moc_introscreen.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_introscreen.o moc_introscreen.cpp
 
-moc_mainwindow.o: moc_mainwindow.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
+moc_Overworld.o: moc_Overworld.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Overworld.o moc_Overworld.cpp
 
-moc_gamepadthread.o: moc_gamepadthread.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_gamepadthread.o moc_gamepadthread.cpp
+moc_Player_OW.o: moc_Player_OW.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Player_OW.o moc_Player_OW.cpp
+
+moc_Map_OW.o: moc_Map_OW.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Map_OW.o moc_Map_OW.cpp
+
+moc_Menu_OW.o: moc_Menu_OW.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Menu_OW.o moc_Menu_OW.cpp
+
+moc_battle_sequence.o: moc_battle_sequence.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_battle_sequence.o moc_battle_sequence.cpp
+
+moc_battle_animations.o: moc_battle_animations.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_battle_animations.o moc_battle_animations.cpp
+
+moc_Menu_BT.o: moc_Menu_BT.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Menu_BT.o moc_Menu_BT.cpp
 
 ####### Install
 

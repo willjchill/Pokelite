@@ -4,46 +4,59 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
-INCLUDEPATH += game_logic/json
+INCLUDEPATH += Battle/Battle_logic/json
 
 SOURCES += \
-    battle/battle_system.cpp \
-    battle/battle_animations.cpp\
-    battle_sequence.cpp \
-    overworld.cpp \
-    game_logic/Attack.cpp \
-    game_logic/Bag.cpp \
-    game_logic/Battle.cpp \
-    game_logic/Item.cpp \
-    game_logic/Player.cpp \
-    game_logic/Pokemon.cpp \
-    game_logic/PokemonData.cpp \
-    game_logic/Type.cpp \
-    game_logic/jsoncpp.cpp \
-    introscreen.cpp \
-    main.cpp \
-    mainwindow.cpp \
-    map/map_loader.cpp \
-    gamepadthread.cpp
+    General/main.cpp \
+    General/window.cpp \
+    General/gamepad.cpp \
+    Intro_Screen/introscreen.cpp \
+    Overworld/Overworld.cpp \
+    Overworld/Player_OW.cpp \
+    Overworld/Camera_OW.cpp \
+    Overworld/Map_OW.cpp \
+    Overworld/Menu_OW.cpp \
+    Overworld/map_loader.cpp \
+    Battle/battle_sequence.cpp \
+    Battle/battle_system.cpp \
+    Battle/battle_animations.cpp \
+    Battle/Player_BT.cpp \
+    Battle/Pokemon_BT.cpp \
+    Battle/Menu_BT.cpp \
+    Battle/Battle_logic/Attack.cpp \
+    Battle/Battle_logic/Bag.cpp \
+    Battle/Battle_logic/Battle.cpp \
+    Battle/Battle_logic/Item.cpp \
+    Battle/Battle_logic/Player.cpp \
+    Battle/Battle_logic/Pokemon.cpp \
+    Battle/Battle_logic/PokemonData.cpp \
+    Battle/Battle_logic/Type.cpp \
+    Battle/Battle_logic/jsoncpp.cpp
 
 HEADERS += \
-    battle/battle_animations.h \
-    battle/battle_system.h \
-    battle/battle_animations.h\
-    battle_sequence.h \
-    overworld.h \
-    game_logic/Attack.h \
-    game_logic/Bag.h \
-    game_logic/Battle.h \
-    game_logic/Item.h \
-    game_logic/Player.h \
-    game_logic/Pokemon.h \
-    game_logic/PokemonData.h \
-    game_logic/Type.h \
-    introscreen.h \
-    mainwindow.h \
-    map/map_loader.h \
-    gamepadthread.h
+    General/window.h \
+    General/gamepad.h \
+    Intro_Screen/introscreen.h \
+    Overworld/Overworld.h \
+    Overworld/Player_OW.h \
+    Overworld/Camera_OW.h \
+    Overworld/Map_OW.h \
+    Overworld/Menu_OW.h \
+    Overworld/map_loader.h \
+    Battle/battle_sequence.h \
+    Battle/battle_system.h \
+    Battle/battle_animations.h \
+    Battle/Player_BT.h \
+    Battle/Pokemon_BT.h \
+    Battle/Menu_BT.h \
+    Battle/Battle_logic/Attack.h \
+    Battle/Battle_logic/Bag.h \
+    Battle/Battle_logic/Battle.h \
+    Battle/Battle_logic/Item.h \
+    Battle/Battle_logic/Player.h \
+    Battle/Battle_logic/Pokemon.h \
+    Battle/Battle_logic/PokemonData.h \
+    Battle/Battle_logic/Type.h
 
 # FORMS removed - not using Qt Designer UI files
 # FORMS += \
