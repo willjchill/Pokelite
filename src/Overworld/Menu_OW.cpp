@@ -22,14 +22,14 @@ void Menu_OW::showMenu()
     
     hideSubMenu();
     
-    QFont font("Pokemon Fire Red", 10, QFont::Bold);
+    QFont font("Pokemon Fire Red", 7, QFont::Bold);
     
     // Get view center in scene coordinates (accounting for zoom)
     QRectF viewRect = view->mapToScene(view->viewport()->rect()).boundingRect();
     qreal centerX = viewRect.center().x();
     qreal centerY = viewRect.center().y();
     
-    const qreal boxW = 150, boxH = 60;
+    const qreal boxW = 160, boxH = 70;
     qreal boxX = centerX - boxW / 2;
     qreal boxY = centerY - boxH / 2;
     
@@ -45,7 +45,7 @@ void Menu_OW::showMenu()
         QGraphicsTextItem *t = new QGraphicsTextItem(options[i]);
         t->setFont(font);
         t->setDefaultTextColor(Qt::black);
-        t->setPos(boxX + 15, boxY + 10 + i * 20);
+        t->setPos(boxX + 15, boxY + 12 + i * 18);
         t->setZValue(11);
         scene->addItem(t);
         menuOptions.push_back(t);
@@ -194,8 +194,7 @@ void Menu_OW::menuSelected(int index)
     if (index == 0) {
         showPokemonMenu();
     } else if (index == 1) {
-        // PvP Battle option
-        hideMenu();
+        // PvP Battle option - don't hide menu yet, let Window handle the popup
         emit pvpBattleRequested();
     } else if (index == 2) {
         hideMenu();

@@ -21,8 +21,6 @@ SOURCES += \
     Battle/GUI_BT.cpp \
     Battle/BattleState_BT.cpp \
     Battle/Animations_BT.cpp \
-    Battle/Player_BT.cpp \
-    Battle/Pokemon_BT.cpp \
     Battle/Battle_logic/Attack.cpp \
     Battle/Battle_logic/Bag.cpp \
     Battle/Battle_logic/Battle.cpp \
@@ -47,8 +45,6 @@ HEADERS += \
     Battle/GUI_BT.h \
     Battle/BattleState_BT.h \
     Battle/Animations_BT.h \
-    Battle/Player_BT.h \
-    Battle/Pokemon_BT.h \
     Battle/Battle_logic/Attack.h \
     Battle/Battle_logic/Bag.h \
     Battle/Battle_logic/Battle.h \
@@ -59,8 +55,6 @@ HEADERS += \
     Battle/Battle_logic/Type.h
 
 # FORMS removed - not using Qt Designer UI files
-# FORMS += \
-#     mainwindow.ui
 
 RESOURCES += assets.qrc
 

@@ -66,8 +66,6 @@ SOURCES       = General/main.cpp \
 		Battle/GUI_BT.cpp \
 		Battle/BattleState_BT.cpp \
 		Battle/Animations_BT.cpp \
-		Battle/Player_BT.cpp \
-		Battle/Pokemon_BT.cpp \
 		Battle/Battle_logic/Attack.cpp \
 		Battle/Battle_logic/Bag.cpp \
 		Battle/Battle_logic/Battle.cpp \
@@ -101,8 +99,6 @@ OBJECTS       = main.o \
 		GUI_BT.o \
 		BattleState_BT.o \
 		Animations_BT.o \
-		Player_BT.o \
-		Pokemon_BT.o \
 		Attack.o \
 		Bag.o \
 		Battle.o \
@@ -251,8 +247,6 @@ DIST          = assets/back1.png \
 		Battle/GUI_BT.h \
 		Battle/BattleState_BT.h \
 		Battle/Animations_BT.h \
-		Battle/Player_BT.h \
-		Battle/Pokemon_BT.h \
 		Battle/Battle_logic/Attack.h \
 		Battle/Battle_logic/Bag.h \
 		Battle/Battle_logic/Battle.h \
@@ -274,8 +268,6 @@ DIST          = assets/back1.png \
 		Battle/GUI_BT.cpp \
 		Battle/BattleState_BT.cpp \
 		Battle/Animations_BT.cpp \
-		Battle/Player_BT.cpp \
-		Battle/Pokemon_BT.cpp \
 		Battle/Battle_logic/Attack.cpp \
 		Battle/Battle_logic/Bag.cpp \
 		Battle/Battle_logic/Battle.cpp \
@@ -473,8 +465,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents assets.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents General/window.h General/gamepad.h General/uart_comm.h Intro_Screen/introscreen.h Overworld/Overworld.h Overworld/Player_OW.h Overworld/Camera_OW.h Overworld/Map_OW.h Overworld/Menu_OW.h Overworld/map_loader.h Battle/GUI_BT.h Battle/BattleState_BT.h Battle/Animations_BT.h Battle/Player_BT.h Battle/Pokemon_BT.h Battle/Battle_logic/Attack.h Battle/Battle_logic/Bag.h Battle/Battle_logic/Battle.h Battle/Battle_logic/Item.h Battle/Battle_logic/Player.h Battle/Battle_logic/Pokemon.h Battle/Battle_logic/PokemonData.h Battle/Battle_logic/Type.h $(DISTDIR)/
-	$(COPY_FILE) --parents General/main.cpp General/window.cpp General/gamepad.cpp General/uart_comm.cpp Intro_Screen/introscreen.cpp Overworld/Overworld.cpp Overworld/Player_OW.cpp Overworld/Camera_OW.cpp Overworld/Map_OW.cpp Overworld/Menu_OW.cpp Overworld/map_loader.cpp Battle/GUI_BT.cpp Battle/BattleState_BT.cpp Battle/Animations_BT.cpp Battle/Player_BT.cpp Battle/Pokemon_BT.cpp Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Bag.cpp Battle/Battle_logic/Battle.cpp Battle/Battle_logic/Item.cpp Battle/Battle_logic/Player.cpp Battle/Battle_logic/Pokemon.cpp Battle/Battle_logic/PokemonData.cpp Battle/Battle_logic/Type.cpp Battle/Battle_logic/jsoncpp.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents General/window.h General/gamepad.h General/uart_comm.h Intro_Screen/introscreen.h Overworld/Overworld.h Overworld/Player_OW.h Overworld/Camera_OW.h Overworld/Map_OW.h Overworld/Menu_OW.h Overworld/map_loader.h Battle/GUI_BT.h Battle/BattleState_BT.h Battle/Animations_BT.h Battle/Battle_logic/Attack.h Battle/Battle_logic/Bag.h Battle/Battle_logic/Battle.h Battle/Battle_logic/Item.h Battle/Battle_logic/Player.h Battle/Battle_logic/Pokemon.h Battle/Battle_logic/PokemonData.h Battle/Battle_logic/Type.h $(DISTDIR)/
+	$(COPY_FILE) --parents General/main.cpp General/window.cpp General/gamepad.cpp General/uart_comm.cpp Intro_Screen/introscreen.cpp Overworld/Overworld.cpp Overworld/Player_OW.cpp Overworld/Camera_OW.cpp Overworld/Map_OW.cpp Overworld/Menu_OW.cpp Overworld/map_loader.cpp Battle/GUI_BT.cpp Battle/BattleState_BT.cpp Battle/Animations_BT.cpp Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Bag.cpp Battle/Battle_logic/Battle.cpp Battle/Battle_logic/Item.cpp Battle/Battle_logic/Player.cpp Battle/Battle_logic/Pokemon.cpp Battle/Battle_logic/PokemonData.cpp Battle/Battle_logic/Type.cpp Battle/Battle_logic/jsoncpp.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -1112,12 +1104,6 @@ Animations_BT.o: Battle/Animations_BT.cpp Battle/Animations_BT.h \
 		Battle/Battle_logic/Item.h \
 		General/uart_comm.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Animations_BT.o Battle/Animations_BT.cpp
-
-Player_BT.o: Battle/Player_BT.cpp Battle/Player_BT.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Player_BT.o Battle/Player_BT.cpp
-
-Pokemon_BT.o: Battle/Pokemon_BT.cpp Battle/Pokemon_BT.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Pokemon_BT.o Battle/Pokemon_BT.cpp
 
 Attack.o: Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Attack.h \
 		Battle/Battle_logic/Type.h

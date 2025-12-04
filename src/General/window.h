@@ -32,6 +32,7 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
     void showEvent(QShowEvent *event) override;
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private slots:
     void onWildEncounterTriggered();
@@ -68,6 +69,19 @@ private:
     void handleGamepadInput(int type, int code, int value);
     void simulateKeyPress(Qt::Key key);
     void simulateKeyRelease(Qt::Key key);
+    
+    // D-pad state tracking for continuous movement
+    QTimer *dpadRepeatTimer = nullptr;
+    Qt::Key currentDpadKey = Qt::Key_unknown;
+    void startDpadRepeat(Qt::Key key);
+    void stopDpadRepeat();
+    
+    // Keyboard movement state tracking for continuous movement
+    QTimer *keyboardMovementTimer = nullptr;
+    QSet<Qt::Key> pressedMovementKeys;
+    void startKeyboardMovement(Qt::Key key);
+    void stopKeyboardMovement(Qt::Key key);
+    void processKeyboardMovement();
 
     // ============================================================
     // UART COMMUNICATION
