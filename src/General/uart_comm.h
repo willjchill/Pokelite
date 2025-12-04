@@ -2,9 +2,9 @@
 #define UART_COMM_H
 
 #include <QObject>
-#include <QSerialPort>
 #include <QTimer>
 #include <QString>
+#include <QSocketNotifier>
 
 // Packet types for PvP battle communication
 enum class PacketType {
@@ -49,7 +49,7 @@ public:
     bool sendPacket(const BattlePacket& packet);
     
     // Check if connected
-    bool isConnected() const { return serialPort && serialPort->isOpen(); }
+    bool isConnected() const { return uartFd >= 0; }
     
     // Check if currently finding player
     bool isFindingPlayer() const { return findingPlayer; }
@@ -65,11 +65,11 @@ signals:
 
 private slots:
     void handleReadyRead();
-    void handleError(QSerialPort::SerialPortError error);
     void sendFindingPlayerPacket();
 
 private:
-    QSerialPort *serialPort;
+    int uartFd;  // File descriptor for UART
+    QSocketNotifier *readNotifier;  // Monitor UART for incoming data
     QTimer *findingPlayerTimer;
     bool findingPlayer;
     QString receiveBuffer;

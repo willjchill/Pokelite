@@ -1,6 +1,11 @@
 #include "uart_comm.h"
 #include <QDebug>
 #include <QByteArray>
+#include <fcntl.h>
+#include <unistd.h>
+#include <termios.h>
+#include <errno.h>
+#include <string.h>
 
 // Serialize packet to string format: "TYPE:data\n"
 QString BattlePacket::serialize() const
@@ -75,15 +80,10 @@ BattlePacket BattlePacket::deserialize(const QString& str)
 }
 
 UartComm::UartComm(QObject *parent)
-    : QObject(parent), serialPort(nullptr), findingPlayerTimer(nullptr),
+    : QObject(parent), uartFd(-1), readNotifier(nullptr), findingPlayerTimer(nullptr),
       findingPlayer(false)
 {
-    serialPort = new QSerialPort(this);
     findingPlayerTimer = new QTimer(this);
-    
-    connect(serialPort, &QSerialPort::readyRead, this, &UartComm::handleReadyRead);
-    connect(serialPort, QOverload<QSerialPort::SerialPortError>::of(&QSerialPort::error),
-            this, &UartComm::handleError);
     connect(findingPlayerTimer, &QTimer::timeout, this, &UartComm::sendFindingPlayerPacket);
 }
 
@@ -94,22 +94,78 @@ UartComm::~UartComm()
 
 bool UartComm::initialize(const QString& portName, qint32 baudRate)
 {
-    if (serialPort->isOpen()) {
-        serialPort->close();
-    }
+    // Close existing connection if any
+    close();
     
-    serialPort->setPortName(portName);
-    serialPort->setBaudRate(baudRate);
-    serialPort->setDataBits(QSerialPort::Data8);
-    serialPort->setParity(QSerialPort::NoParity);
-    serialPort->setStopBits(QSerialPort::OneStop);
-    serialPort->setFlowControl(QSerialPort::NoFlowControl);
+    // Open UART device
+    QByteArray portBytes = portName.toLocal8Bit();
+    uartFd = ::open(portBytes.constData(), O_RDWR | O_NOCTTY | O_NONBLOCK);
     
-    if (!serialPort->open(QIODevice::ReadWrite)) {
-        qDebug() << "Failed to open UART port:" << portName << serialPort->errorString();
+    if (uartFd < 0) {
+        qDebug() << "Failed to open UART port:" << portName << "Error:" << strerror(errno);
         emit connectionStatusChanged(false);
         return false;
     }
+    
+    // Configure serial port using termios
+    struct termios tty;
+    if (tcgetattr(uartFd, &tty) != 0) {
+        qDebug() << "Failed to get UART attributes:" << strerror(errno);
+        ::close(uartFd);
+        uartFd = -1;
+        emit connectionStatusChanged(false);
+        return false;
+    }
+    
+    // Set baud rate
+    speed_t speed;
+    switch (baudRate) {
+        case 9600: speed = B9600; break;
+        case 19200: speed = B19200; break;
+        case 38400: speed = B38400; break;
+        case 57600: speed = B57600; break;
+        case 115200: speed = B115200; break;
+        case 230400: speed = B230400; break;
+        default: speed = B115200; break;
+    }
+    
+    cfsetospeed(&tty, speed);
+    cfsetispeed(&tty, speed);
+    
+    // 8N1 configuration
+    tty.c_cflag &= ~PARENB;  // No parity
+    tty.c_cflag &= ~CSTOPB;  // 1 stop bit
+    tty.c_cflag &= ~CSIZE;   // Clear size bits
+    tty.c_cflag |= CS8;      // 8 data bits
+    tty.c_cflag &= ~CRTSCTS; // No hardware flow control
+    tty.c_cflag |= CREAD | CLOCAL; // Enable receiver, ignore modem control lines
+    
+    // Disable canonical mode (raw input)
+    tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+    
+    // Disable software flow control
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY);
+    
+    // Raw output
+    tty.c_oflag &= ~OPOST;
+    
+    // Set read timeout (0.1 seconds)
+    tty.c_cc[VMIN] = 0;
+    tty.c_cc[VTIME] = 1;
+    
+    // Apply settings
+    if (tcsetattr(uartFd, TCSANOW, &tty) != 0) {
+        qDebug() << "Failed to set UART attributes:" << strerror(errno);
+        ::close(uartFd);
+        uartFd = -1;
+        emit connectionStatusChanged(false);
+        return false;
+    }
+    
+    // Create socket notifier for async reading
+    readNotifier = new QSocketNotifier(uartFd, QSocketNotifier::Read, this);
+    connect(readNotifier, &QSocketNotifier::activated, this, &UartComm::handleReadyRead);
+    readNotifier->setEnabled(true);
     
     qDebug() << "UART port opened successfully:" << portName;
     emit connectionStatusChanged(true);
@@ -120,15 +176,22 @@ void UartComm::close()
 {
     stopFindingPlayer();
     
-    if (serialPort && serialPort->isOpen()) {
-        serialPort->close();
+    if (readNotifier) {
+        readNotifier->setEnabled(false);
+        delete readNotifier;
+        readNotifier = nullptr;
+    }
+    
+    if (uartFd >= 0) {
+        ::close(uartFd);
+        uartFd = -1;
         emit connectionStatusChanged(false);
     }
 }
 
 bool UartComm::sendPacket(const BattlePacket& packet)
 {
-    if (!serialPort || !serialPort->isOpen()) {
+    if (uartFd < 0) {
         qDebug() << "Cannot send packet: UART not open";
         return false;
     }
@@ -136,13 +199,15 @@ bool UartComm::sendPacket(const BattlePacket& packet)
     QString packetStr = packet.serialize();
     QByteArray data = packetStr.toUtf8();
     
-    qint64 bytesWritten = serialPort->write(data);
-    if (bytesWritten == -1) {
-        qDebug() << "Error writing to UART:" << serialPort->errorString();
+    ssize_t bytesWritten = ::write(uartFd, data.constData(), data.size());
+    if (bytesWritten < 0) {
+        qDebug() << "Error writing to UART:" << strerror(errno);
         return false;
     }
     
-    serialPort->flush();
+    // Ensure data is written
+    tcdrain(uartFd);
+    
     qDebug() << "Sent packet:" << packetStr.trimmed();
     return true;
 }
@@ -174,13 +239,21 @@ void UartComm::sendFindingPlayerPacket()
 
 void UartComm::handleReadyRead()
 {
-    if (!serialPort) return;
+    if (uartFd < 0) return;
     
-    QByteArray data = serialPort->readAll();
-    receiveBuffer += QString::fromUtf8(data);
+    char buffer[256];
+    ssize_t bytesRead = ::read(uartFd, buffer, sizeof(buffer) - 1);
     
-    // Parse complete packets (ending with \n)
-    parseReceivedData();
+    if (bytesRead > 0) {
+        buffer[bytesRead] = '\0';
+        receiveBuffer += QString::fromUtf8(buffer, bytesRead);
+        
+        // Parse complete packets (ending with \n)
+        parseReceivedData();
+    } else if (bytesRead < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
+        qDebug() << "Error reading from UART:" << strerror(errno);
+        close();
+    }
 }
 
 void UartComm::parseReceivedData()
@@ -214,13 +287,4 @@ void UartComm::parseReceivedData()
     }
 }
 
-void UartComm::handleError(QSerialPort::SerialPortError error)
-{
-    if (error == QSerialPort::ResourceError) {
-        qDebug() << "UART resource error, closing connection";
-        close();
-    } else if (error != QSerialPort::NoError) {
-        qDebug() << "UART error:" << serialPort->errorString();
-    }
-}
 
