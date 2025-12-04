@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = QtPokemonGame1.0.0
-DISTDIR = /home/william/Homework_ECE535/RPG_Embedded/src/.tmp/QtPokemonGame1.0.0
+DISTDIR = /home/linux/Project/RPG_Embedded/src/.tmp/QtPokemonGame1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lGL -lpthread   
@@ -53,6 +53,7 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = battle/battle_system.cpp \
+		battle/battle_animations.cpp \
 		battle_sequence.cpp \
 		overworld.cpp \
 		game_logic/Attack.cpp \
@@ -69,12 +70,14 @@ SOURCES       = battle/battle_system.cpp \
 		mainwindow.cpp \
 		map/map_loader.cpp \
 		gamepadthread.cpp qrc_assets.cpp \
+		moc_battle_animations.cpp \
 		moc_battle_sequence.cpp \
 		moc_overworld.cpp \
 		moc_introscreen.cpp \
 		moc_mainwindow.cpp \
 		moc_gamepadthread.cpp
 OBJECTS       = battle_system.o \
+		battle_animations.o \
 		battle_sequence.o \
 		overworld.o \
 		Attack.o \
@@ -92,6 +95,7 @@ OBJECTS       = battle_system.o \
 		map_loader.o \
 		gamepadthread.o \
 		qrc_assets.o \
+		moc_battle_animations.o \
 		moc_battle_sequence.o \
 		moc_overworld.o \
 		moc_introscreen.o \
@@ -174,6 +178,12 @@ DIST          = assets/back1.png \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_platformcompositor_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport_private.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qml.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlmodels.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmltest.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlworkerscript.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quick.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quickwidgets.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_service_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql_private.pri \
@@ -211,7 +221,9 @@ DIST          = assets/back1.png \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
-		QtPokemonGame.pro battle/battle_system.h \
+		QtPokemonGame.pro battle/battle_animations.h \
+		battle/battle_system.h \
+		battle/battle_animations.h \
 		battle_sequence.h \
 		overworld.h \
 		game_logic/Attack.h \
@@ -226,6 +238,7 @@ DIST          = assets/back1.png \
 		mainwindow.h \
 		map/map_loader.h \
 		gamepadthread.h battle/battle_system.cpp \
+		battle/battle_animations.cpp \
 		battle_sequence.cpp \
 		overworld.cpp \
 		game_logic/Attack.cpp \
@@ -293,6 +306,12 @@ Makefile: QtPokemonGame.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmak
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_platformcompositor_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport_private.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qml.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlmodels.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmltest.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlworkerscript.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quick.pri \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quickwidgets.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_service_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql_private.pri \
@@ -373,6 +392,12 @@ Makefile: QtPokemonGame.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmak
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_platformcompositor_support_private.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_printsupport_private.pri:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qml.pri:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlmodels.pri:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmltest.pri:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_qmlworkerscript.pri:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quick.pri:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_quickwidgets.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_service_support_private.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_sql_private.pri:
@@ -428,8 +453,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents assets.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents battle/battle_system.h battle_sequence.h overworld.h game_logic/Attack.h game_logic/Bag.h game_logic/Battle.h game_logic/Item.h game_logic/Player.h game_logic/Pokemon.h game_logic/PokemonData.h game_logic/Type.h introscreen.h mainwindow.h map/map_loader.h gamepadthread.h $(DISTDIR)/
-	$(COPY_FILE) --parents battle/battle_system.cpp battle_sequence.cpp overworld.cpp game_logic/Attack.cpp game_logic/Bag.cpp game_logic/Battle.cpp game_logic/Item.cpp game_logic/Player.cpp game_logic/Pokemon.cpp game_logic/PokemonData.cpp game_logic/Type.cpp game_logic/jsoncpp.cpp introscreen.cpp main.cpp mainwindow.cpp map/map_loader.cpp gamepadthread.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents battle/battle_animations.h battle/battle_system.h battle/battle_animations.h battle_sequence.h overworld.h game_logic/Attack.h game_logic/Bag.h game_logic/Battle.h game_logic/Item.h game_logic/Player.h game_logic/Pokemon.h game_logic/PokemonData.h game_logic/Type.h introscreen.h mainwindow.h map/map_loader.h gamepadthread.h $(DISTDIR)/
+	$(COPY_FILE) --parents battle/battle_system.cpp battle/battle_animations.cpp battle_sequence.cpp overworld.cpp game_logic/Attack.cpp game_logic/Bag.cpp game_logic/Battle.cpp game_logic/Item.cpp game_logic/Player.cpp game_logic/Pokemon.cpp game_logic/PokemonData.cpp game_logic/Type.cpp game_logic/jsoncpp.cpp introscreen.cpp main.cpp mainwindow.cpp map/map_loader.cpp gamepadthread.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -829,9 +854,19 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_battle_sequence.cpp moc_overworld.cpp moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
+compiler_moc_header_make_all: moc_battle_animations.cpp moc_battle_animations.cpp moc_battle_sequence.cpp moc_overworld.cpp moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_battle_sequence.cpp moc_overworld.cpp moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
+	-$(DEL_FILE) moc_battle_animations.cpp moc_battle_animations.cpp moc_battle_sequence.cpp moc_overworld.cpp moc_introscreen.cpp moc_mainwindow.cpp moc_gamepadthread.cpp
+moc_battle_animations.cpp: battle/battle_animations.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include battle/battle_animations.h -o moc_battle_animations.cpp
+
+moc_battle_animations.cpp: battle/battle_animations.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include battle/battle_animations.h -o moc_battle_animations.cpp
+
 moc_battle_sequence.cpp: battle_sequence.h \
 		battle/battle_system.h \
 		game_logic/Battle.h \
@@ -842,9 +877,10 @@ moc_battle_sequence.cpp: battle_sequence.h \
 		game_logic/PokemonData.h \
 		game_logic/Bag.h \
 		game_logic/Item.h \
+		battle/battle_animations.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include battle_sequence.h -o moc_battle_sequence.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include battle_sequence.h -o moc_battle_sequence.cpp
 
 moc_overworld.cpp: overworld.h \
 		map/map_loader.h \
@@ -857,13 +893,13 @@ moc_overworld.cpp: overworld.h \
 		game_logic/Item.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include overworld.h -o moc_overworld.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include overworld.h -o moc_overworld.cpp
 
 moc_introscreen.cpp: introscreen.h \
 		gamepadthread.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include introscreen.h -o moc_introscreen.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include introscreen.h -o moc_introscreen.cpp
 
 moc_mainwindow.cpp: mainwindow.h \
 		gamepadthread.h \
@@ -878,12 +914,12 @@ moc_mainwindow.cpp: mainwindow.h \
 		game_logic/Item.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
 moc_gamepadthread.cpp: gamepadthread.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include gamepadthread.h -o moc_gamepadthread.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/linux/Project/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/linux/Project/RPG_Embedded/src -I/home/linux/Project/RPG_Embedded/src/game_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include gamepadthread.h -o moc_gamepadthread.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -912,7 +948,8 @@ battle_system.o: battle/battle_system.cpp battle/battle_system.h \
 		game_logic/Item.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_system.o battle/battle_system.cpp
 
-battle_sequence.o: battle_sequence.cpp battle_sequence.h \
+battle_animations.o: battle/battle_animations.cpp battle/battle_animations.h \
+		battle_sequence.h \
 		battle/battle_system.h \
 		game_logic/Battle.h \
 		game_logic/Player.h \
@@ -922,6 +959,19 @@ battle_sequence.o: battle_sequence.cpp battle_sequence.h \
 		game_logic/PokemonData.h \
 		game_logic/Bag.h \
 		game_logic/Item.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_animations.o battle/battle_animations.cpp
+
+battle_sequence.o: battle_sequence.cpp battle_sequence.h \
+		battle/battle_system.h \
+		game_logic/Battle.h \
+		game_logic/Player.h \
+		game_logic/Pokemon.h \
+		game_logic/Type.h \
+		game_logic/Attack.h \
+		game_logic/PokemonData.h \
+		game_logic/Bag.h \
+		game_logic/Item.h \
+		battle/battle_animations.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_sequence.o battle_sequence.cpp
 
 overworld.o: overworld.cpp overworld.h \
@@ -1014,7 +1064,8 @@ mainwindow.o: mainwindow.cpp mainwindow.h \
 		game_logic/Item.h \
 		overworld.h \
 		map/map_loader.h \
-		battle_sequence.h
+		battle_sequence.h \
+		battle/battle_animations.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 map_loader.o: map/map_loader.cpp map/map_loader.h
@@ -1025,6 +1076,9 @@ gamepadthread.o: gamepadthread.cpp gamepadthread.h
 
 qrc_assets.o: qrc_assets.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_assets.o qrc_assets.cpp
+
+moc_battle_animations.o: moc_battle_animations.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_battle_animations.o moc_battle_animations.cpp
 
 moc_battle_sequence.o: moc_battle_sequence.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_battle_sequence.o moc_battle_sequence.cpp

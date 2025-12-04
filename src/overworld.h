@@ -69,7 +69,7 @@ private:
     QGraphicsPixmapItem *player;
 
     // Movement
-    float speed = 4.0f;
+    float speed = 2.0f;
     bool isMoving = false;
     QString currentDirection = "front";
     int frameIndex = 1;

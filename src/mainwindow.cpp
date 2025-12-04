@@ -181,6 +181,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::keyReleaseEvent(QKeyEvent *event)
 {
+    // Ignore auto-repeat releases so walking animation keeps running
+    if (event->isAutoRepeat())
+        return;
+
     if (!inBattle) {
         overworld->handleKeyRelease(event);
     }

@@ -8,7 +8,7 @@
 #include <QPolygonF>
 
 Overworld::Overworld(QGraphicsScene *scene, QGraphicsView *view)
-    : QObject(nullptr), scene(scene), view(view)
+    : QObject(view), scene(scene), view(view)
 {
     loadAnimations();
 

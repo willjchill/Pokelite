@@ -18,6 +18,7 @@
 #include <QObject>
 #include "battle/battle_system.h"
 #include "game_logic/Player.h"
+#include "battle/battle_animations.h"
 
 class BattleSequence : public QObject
 {
@@ -55,6 +56,7 @@ public:
     void slideOutCommandMenu(std::function<void()> onFinished = nullptr);
     void fadeInBattleScreen();
     void fadeOutBattleScreen(std::function<void()> onFinished = nullptr);
+    BattleAnimations animations;
 
     // Getters
     bool isInBattle() const { return inBattle; }
@@ -141,6 +143,8 @@ private:
     void destroyPokemonMenu();
     QString capitalizeFirst(const QString& str) const;
     void attemptCatchPokemon(int itemIndex);
+
+    friend class BattleAnimations;
 };
 
 #endif // BATTLE_SEQUENCE_H

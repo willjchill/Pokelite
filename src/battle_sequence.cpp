@@ -10,8 +10,9 @@
 #include <QFont>
 #include <cmath>
 
+
 BattleSequence::BattleSequence(QGraphicsScene *scene, QGraphicsView *view)
-    : QObject(nullptr), battleScene(scene), view(view)
+    : QObject(nullptr), battleScene(scene), view(view), animations(this)
 {
     connect(&battleTextTimer, &QTimer::timeout, this, [this]() {
         if (!battleTextItem) {
@@ -26,6 +27,7 @@ BattleSequence::BattleSequence(QGraphicsScene *scene, QGraphicsView *view)
         battleTextItem->setPlainText(fullBattleText.left(battleTextIndex));
     });
 }
+
 
 BattleSequence::~BattleSequence()
 {
