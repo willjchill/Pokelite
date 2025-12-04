@@ -1,12 +1,16 @@
 #include "window.h"
 #include "../Overworld/Overworld.h"
 #include "../Overworld/Player_OW.h"
-#include "../Battle/battle_sequence.h"
+#include "../Battle/GUI_BT.h"
 #include "../Battle/Battle_logic/PokemonData.h"
+#include "uart_comm.h"
 #include <QDebug>
 #include <QApplication>
 #include <QShowEvent>
 #include <QRandomGenerator>
+#include <QFont>
+#include <QGraphicsRectItem>
+#include <QGraphicsTextItem>
 
 Window::Window(QWidget *parent)
     : QMainWindow(parent), gamepadThread(nullptr)
@@ -33,9 +37,18 @@ Window::Window(QWidget *parent)
 
     // Connect overworld signals
     connect(overworld, &Overworld::wildEncounterTriggered, this, &Window::onWildEncounterTriggered);
+    connect(overworld, &Overworld::pvpBattleRequested, this, &Window::onPvpBattleRequested);
     
     // Connect battle sequence signals
     connect(battleSequence, &BattleSequence::battleEnded, this, &Window::onBattleEnded);
+
+    // Initialize UART communication
+    uartComm = new UartComm(this);
+    connect(uartComm, &UartComm::packetReceived, this, &Window::onUartPacketReceived);
+    connect(uartComm, &UartComm::playerFound, this, &Window::onPlayerFound);
+    
+    // Try to initialize UART (may fail if not on BeagleBone, that's okay)
+    uartComm->initialize();
 
     // Initialize player
     initializePlayer();
@@ -176,6 +189,12 @@ void Window::onBattleEnded()
 
 void Window::keyPressEvent(QKeyEvent *event)
 {
+    // Handle Q/SELECT key for PvP battle (dev key)
+    if ((event->key() == Qt::Key_Q || event->key() == Qt::Key_Select) && !inBattle && !findingPlayer) {
+        onPvpBattleRequested();
+        return;
+    }
+    
     // Handle gamepad input simulation
     if (event->key() == Qt::Key_M && !inBattle) {
         overworld->showOverworldMenu();
@@ -245,6 +264,10 @@ void Window::handleGamepadInput(int type, int code, int value)
             } else {
                 simulateKeyRelease(Qt::Key_Escape);
             }
+        } else if (code == 314) { // SELECT button
+            if (pressed && !inBattle && !findingPlayer) {
+                onPvpBattleRequested();
+            }
         }
     } else if (type == 3) { // EV_ABS - analog stick/dpad
         // ABS_X = 0 (left stick X or dpad left/right)
@@ -302,4 +325,141 @@ void Window::simulateKeyRelease(Qt::Key key)
 {
     QKeyEvent *event = new QKeyEvent(QEvent::KeyRelease, key, Qt::NoModifier);
     QApplication::postEvent(this, event);
+}
+
+void Window::onPvpBattleRequested()
+{
+    if (inBattle || findingPlayer || !uartComm) return;
+    
+    findingPlayer = true;
+    showFindingPlayerPopup();
+    uartComm->startFindingPlayer();
+}
+
+void Window::onUartPacketReceived(const BattlePacket& packet)
+{
+    qDebug() << "Received UART packet type:" << static_cast<int>(packet.type) << "data:" << packet.data;
+    
+    switch (packet.type) {
+        case PacketType::READY_BATTLE:
+            // Handled by onPlayerFound signal
+            break;
+        case PacketType::TURN:
+            // Notify battle sequence that opponent has completed their turn
+            // packet.data contains the move index
+            if (battleSequence && inBattle) {
+                bool ok;
+                int moveIndex = packet.data.toInt(&ok);
+                if (ok) {
+                    battleSequence->onOpponentTurnComplete(moveIndex);
+                } else {
+                    battleSequence->onOpponentTurnComplete();
+                }
+            }
+            break;
+        case PacketType::BATTLE_END:
+            // Handle battle end from opponent
+            break;
+        default:
+            break;
+    }
+}
+
+void Window::onPlayerFound()
+{
+    if (!findingPlayer) return;
+    
+    hideFindingPlayerPopup();
+    findingPlayer = false;
+    uartComm->stopFindingPlayer();
+    
+    // Send READY_BATTLE packet back
+    BattlePacket readyPacket(PacketType::READY_BATTLE);
+    uartComm->sendPacket(readyPacket);
+    
+    // Start PvP battle
+    startPvpBattle();
+}
+
+void Window::showFindingPlayerPopup()
+{
+    if (!scene) return;
+    
+    QFont font("Pokemon Fire Red", 12, QFont::Bold);
+    
+    // Create popup background
+    const qreal boxW = 300, boxH = 80;
+    qreal boxX = (480 - boxW) / 2;
+    qreal boxY = (272 - boxH) / 2;
+    
+    findingPlayerRect = new QGraphicsRectItem(boxX, boxY, boxW, boxH);
+    findingPlayerRect->setBrush(QColor(240, 240, 240));
+    findingPlayerRect->setPen(QPen(Qt::black, 3));
+    findingPlayerRect->setZValue(20);
+    scene->addItem(findingPlayerRect);
+    
+    // Create text
+    findingPlayerText = new QGraphicsTextItem("Finding player...");
+    findingPlayerText->setFont(font);
+    findingPlayerText->setDefaultTextColor(Qt::black);
+    findingPlayerText->setPos(boxX + 20, boxY + 25);
+    findingPlayerText->setZValue(21);
+    scene->addItem(findingPlayerText);
+}
+
+void Window::hideFindingPlayerPopup()
+{
+    if (findingPlayerRect) {
+        if (scene) {
+            scene->removeItem(findingPlayerRect);
+        }
+        delete findingPlayerRect;
+        findingPlayerRect = nullptr;
+    }
+    
+    if (findingPlayerText) {
+        if (scene) {
+            scene->removeItem(findingPlayerText);
+        }
+        delete findingPlayerText;
+        findingPlayerText = nullptr;
+    }
+}
+
+void Window::startPvpBattle()
+{
+    if (inBattle) return;
+    
+    // For now, create a dummy enemy player - in real implementation,
+    // you would receive Pokemon data via UART
+    // Clean up previous enemy player if exists
+    if (enemyPlayer) {
+        delete enemyPlayer;
+    }
+    
+    // Create enemy player (will be replaced with actual data from UART)
+    enemyPlayer = new Player("Opponent", PlayerType::HUMAN);
+    // For now, use a random Pokemon - in real implementation, receive via UART
+    int randomDex = QRandomGenerator::global()->bounded(1, 152);
+    Pokemon enemyPokemon(randomDex, 5);
+    enemyPlayer->addPokemon(enemyPokemon);
+    
+    // Initialize battle system with PvP mode (isWild = false)
+    if (battleSystem) {
+        delete battleSystem;
+    }
+    battleSystem = new BattleSystem();
+    battleSystem->initializeBattle(gamePlayer, enemyPlayer, false);
+    battleSystem->setPvpMode(true);  // Enable PvP mode
+    
+    // Remove overworld zoom before battle
+    if (overworld && overworld->getCamera()) {
+        overworld->getCamera()->removeZoom();
+    }
+    
+    // Start battle sequence
+    battleSequence->startBattle(gamePlayer, enemyPlayer, battleSystem);
+    battleSequence->setUartComm(uartComm);  // Pass UART to battle sequence
+    
+    inBattle = true;
 }

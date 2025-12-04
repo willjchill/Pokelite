@@ -28,6 +28,7 @@ Overworld::Overworld(QGraphicsScene *scene, QGraphicsView *view)
     connect(menu, &Menu_OW::menuClosed, this, [this]() {
         hideOverworldMenu();
     });
+    connect(menu, &Menu_OW::pvpBattleRequested, this, &Overworld::pvpBattleRequested);
 }
 
 Overworld::~Overworld()

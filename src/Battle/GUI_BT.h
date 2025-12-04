@@ -1,5 +1,5 @@
-#ifndef BATTLE_SEQUENCE_H
-#define BATTLE_SEQUENCE_H
+#ifndef GUI_BT_H
+#define GUI_BT_H
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -16,9 +16,10 @@
 #include <QVector>
 #include <functional>
 #include <QObject>
-#include "battle_system.h"
+#include "BattleState_BT.h"
 #include "Battle_logic/Player.h"
-#include "battle_animations.h"
+#include "Animations_BT.h"
+#include "../General/uart_comm.h"
 
 class BattleSequence : public QObject
 {
@@ -65,22 +66,34 @@ public:
     // Text display
     void setBattleText(const QString &text);
     void startTextAnimation();
+    
+    // PvP support
+    void setUartComm(UartComm* uart) { uartComm = uart; }
+    void onOpponentTurnComplete(int opponentMoveIndex = -1);  // Called when TURN packet is received
 
 signals:
     void battleEnded();
 
-    friend class BattleAnimations;
+    friend class Animations_BT;
 
 private:
     QGraphicsScene *battleScene;
     QGraphicsView *view;
-    BattleAnimations animations;
+    Animations_BT animations;
 
     // Battle state
     bool inBattle = false;
     BattleSystem* battleSystem = nullptr;
     Player* gamePlayer = nullptr;
     Player* enemyPlayer = nullptr;
+    UartComm* uartComm = nullptr;
+    bool waitingForOpponent = false;
+    
+    // PvP turn synchronization
+    int playerMoveIndex = -1;      // Player's selected move (waiting to execute)
+    int opponentMoveIndex = -1;    // Opponent's move (received via UART)
+    bool playerMoveReady = false;   // True when player has selected move
+    bool opponentMoveReady = false; // True when opponent's move is received
 
     // Battle UI elements
     QGraphicsPixmapItem *battleTrainerItem = nullptr;
@@ -146,9 +159,10 @@ private:
     QString capitalizeFirst(const QString& str) const;
     void attemptCatchPokemon(int itemIndex);
     bool checkAndAutoSwitchPokemon(); // Returns true if switched, false if no Pokemon available
+    void executePvpTurn(); // Execute both moves in speed order for PvP
 
-    friend class BattleAnimations;
+    friend class Animations_BT;
 };
 
-#endif // BATTLE_SEQUENCE_H
+#endif // GUI_BT_H
 

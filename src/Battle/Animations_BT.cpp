@@ -1,10 +1,10 @@
-#include "battle_animations.h"
-#include "battle_sequence.h"
+#include "Animations_BT.h"
+#include "GUI_BT.h"
 #include <QPainterPath>
 #include <QVariantAnimation>
 #include <QTimer>
 
-BattleAnimations::BattleAnimations(QObject *parent)
+Animations_BT::Animations_BT(QObject *parent)
     : QObject(parent)
 {
 }
@@ -13,7 +13,7 @@ BattleAnimations::BattleAnimations(QObject *parent)
 // ================================================
 // 1. BATTLE ZOOM REVEAL
 // ================================================
-void BattleAnimations::battleZoomReveal(BattleSequence *b)
+void Animations_BT::battleZoomReveal(BattleSequence *b)
 {
     if (!b || !b->getScene()) return;
 
@@ -57,7 +57,7 @@ void BattleAnimations::battleZoomReveal(BattleSequence *b)
 // ================================================
 // 2. ENTRANCE ANIMATION
 // ================================================
-void BattleAnimations::animateBattleEntrances(BattleSequence *b)
+void Animations_BT::animateBattleEntrances(BattleSequence *b)
 {
     if (!b || !b->battleEnemyItem) return;
 
@@ -155,7 +155,7 @@ void BattleAnimations::animateBattleEntrances(BattleSequence *b)
 // ================================================
 // 3. SLIDE-IN COMMAND MENU
 // ================================================
-void BattleAnimations::slideInCommandMenu(BattleSequence *b)
+void Animations_BT::slideInCommandMenu(BattleSequence *b)
 {
     if (!b || !b->commandBoxSprite) return;
 
@@ -191,7 +191,7 @@ void BattleAnimations::slideInCommandMenu(BattleSequence *b)
 // ================================================
 // 4. SLIDE-OUT COMMAND MENU
 // ================================================
-void BattleAnimations::slideOutCommandMenu(BattleSequence *b, std::function<void()> done)
+void Animations_BT::slideOutCommandMenu(BattleSequence *b, std::function<void()> done)
 {
     if (!b || !b->commandBoxSprite) return;
 
@@ -230,7 +230,7 @@ void BattleAnimations::slideOutCommandMenu(BattleSequence *b, std::function<void
 // ================================================
 // 5. MENU SELECTION BOUNCE
 // ================================================
-void BattleAnimations::animateMenuSelection(BattleSequence *b, int index)
+void Animations_BT::animateMenuSelection(BattleSequence *b, int index)
 {
     if (!b || !b->battleCursorSprite) return;
 

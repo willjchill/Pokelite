@@ -1,6 +1,7 @@
-#include "battle_sequence.h"
+#include "GUI_BT.h"
 #include "Battle_logic/PokemonData.h"
 #include "Battle_logic/Item.h"
+#include "../General/uart_comm.h"
 #include <QDebug>
 #include <QBrush>
 #include <QPen>
@@ -55,6 +56,11 @@ void BattleSequence::startBattle(Player* player, Player* enemy, BattleSystem* bs
     battleMenuIndex = 0;
     fullBattleText.clear();
     battleTextIndex = 0;
+    waitingForOpponent = false;
+    playerMoveIndex = -1;
+    opponentMoveIndex = -1;
+    playerMoveReady = false;
+    opponentMoveReady = false;
 
     // Clean any leftover menus
     destroyMoveMenu();
@@ -372,6 +378,11 @@ void BattleSequence::handleBattleKey(QKeyEvent *event)
     if (!inBattle || !battleSystem)
         return;
 
+    // In PvP mode, block input while waiting for opponent or if move already selected
+    if (battleSystem->getPvpMode() && (waitingForOpponent || playerMoveReady)) {
+        return;
+    }
+
     if (battleSystem->isWaitingForEnemyTurn())
         return;
 
@@ -578,13 +589,48 @@ void BattleSequence::playerChoseMove(int moveIndex)
         return;
     }
     
+    destroyMoveMenu();
+    inBattleMenu = false;
+    
+    // In PvP mode, we need to handle turns differently
+    if (battleSystem->getPvpMode()) {
+        // Store player's move and send to opponent
+        playerMoveIndex = moveIndex;
+        playerMoveReady = true;
+        
+        // Send move index to opponent via UART
+        if (uartComm) {
+            BattlePacket turnPacket(PacketType::TURN, QString::number(moveIndex));
+            uartComm->sendPacket(turnPacket);
+        }
+        
+        // Show message that move was selected
+        QString moveName = moves[moveIndex];
+        setBattleText(battleSystem->getPlayerPokemonName() + " selected " + moveName + "!");
+        startTextAnimation();
+        
+        // Block input while waiting
+        waitingForOpponent = true;
+        battleSystem->setWaitingForOpponentTurn(true);
+        
+        // Check if opponent's move is already received
+        if (opponentMoveReady) {
+            // Both moves ready, execute in speed order
+            executePvpTurn();
+        } else {
+            // Wait for opponent's move
+            setBattleText("Waiting for opponent...");
+            startTextAnimation();
+        }
+        return;
+    }
+    
+    // Normal battle flow (non-PvP)
     QString moveName = moves[moveIndex];
     setBattleText(battleSystem->getPlayerPokemonName() + " used " + moveName + "!");
     startTextAnimation();
     
-    destroyMoveMenu();
-    inBattleMenu = false;
-    
+    // Normal battle flow (non-PvP)
     battleSystem->processFightAction(moveIndex);
     
     updateBattleUI();
@@ -1316,6 +1362,133 @@ void BattleSequence::attemptCatchPokemon(int itemIndex)
             enemyTurn();
         });
     }
+}
+
+void BattleSequence::onOpponentTurnComplete(int opponentMoveIndex)
+{
+    if (!battleSystem || !battleSystem->getPvpMode()) return;
+    
+    // Store opponent's move
+    if (opponentMoveIndex >= 0 && enemyPlayer && enemyPlayer->getActivePokemon()) {
+        const auto& moves = enemyPlayer->getActivePokemon()->getMoves();
+        if (opponentMoveIndex < static_cast<int>(moves.size())) {
+            this->opponentMoveIndex = opponentMoveIndex;
+            opponentMoveReady = true;
+            
+            // If player's move is also ready, execute both moves in speed order
+            if (playerMoveReady) {
+                executePvpTurn();
+            } else {
+                // Player hasn't selected move yet, just wait
+                setBattleText("Opponent is ready. Choose your move!");
+                startTextAnimation();
+            }
+        }
+    }
+}
+
+void BattleSequence::executePvpTurn()
+{
+    if (!battleSystem || !gamePlayer || !enemyPlayer) return;
+    
+    // Reset flags
+    waitingForOpponent = false;
+    battleSystem->setWaitingForOpponentTurn(false);
+    
+    const Pokemon* playerPoke = gamePlayer->getActivePokemon();
+    const Pokemon* enemyPoke = enemyPlayer->getActivePokemon();
+    
+    if (!playerPoke || !enemyPoke || playerMoveIndex < 0 || opponentMoveIndex < 0) {
+        // Reset and return to menu
+        playerMoveIndex = -1;
+        opponentMoveIndex = -1;
+        playerMoveReady = false;
+        opponentMoveReady = false;
+        inBattleMenu = true;
+        battleMenuIndex = 0;
+        updateBattleCursor();
+        return;
+    }
+    
+    // Determine turn order to show messages correctly
+    int playerSpeed = playerPoke->getStats().speed;
+    int enemySpeed = enemyPoke->getStats().speed;
+    bool playerGoesFirst = false;
+    
+    if (playerSpeed > enemySpeed) {
+        playerGoesFirst = true;
+    } else if (playerSpeed == enemySpeed) {
+        // Random on tie
+        playerGoesFirst = (QRandomGenerator::global()->bounded(2) == 0);
+    }
+    
+    // Show first move message
+    if (playerGoesFirst) {
+        QString playerMoveName = QString::fromStdString(playerPoke->getMoves()[playerMoveIndex].getName());
+        setBattleText(battleSystem->getPlayerPokemonName() + " used " + capitalizeFirst(playerMoveName) + "!");
+    } else {
+        QString enemyMoveName = QString::fromStdString(enemyPoke->getMoves()[opponentMoveIndex].getName());
+        QString enemyName = battleSystem->getEnemyPokemonName();
+        if (enemyName.isEmpty()) {
+            enemyName = "The foe";
+        }
+        setBattleText(enemyName + " used " + capitalizeFirst(enemyMoveName) + "!");
+    }
+    startTextAnimation();
+    
+    // Execute both moves (executeTurn handles turn order internally)
+    Battle* battle = battleSystem->getBattle();
+    if (!battle) {
+        // Reset and return
+        playerMoveIndex = -1;
+        opponentMoveIndex = -1;
+        playerMoveReady = false;
+        opponentMoveReady = false;
+        return;
+    }
+    
+    // Execute both moves - Battle::executeTurn will handle speed order
+    QTimer::singleShot(1500, [=]() {
+        battle->executeTurn(playerMoveIndex, opponentMoveIndex);
+        updateBattleUI();
+        
+        // Check if battle ended
+        if (battleSystem->isBattleOver()) {
+            Player* winner = battleSystem->getWinner();
+            if (winner == gamePlayer) {
+                setBattleText("You won!");
+            } else {
+                setBattleText("You lost!");
+            }
+            startTextAnimation();
+            
+            QTimer::singleShot(2000, [=]() {
+                fadeOutBattleScreen([=]() {
+                    closeBattle();
+                });
+            });
+            
+            // Reset state
+            playerMoveIndex = -1;
+            opponentMoveIndex = -1;
+            playerMoveReady = false;
+            opponentMoveReady = false;
+            return;
+        }
+        
+        // Reset state and return to menu
+        playerMoveIndex = -1;
+        opponentMoveIndex = -1;
+        playerMoveReady = false;
+        opponentMoveReady = false;
+        
+        setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
+        startTextAnimation();
+        
+        inBattleMenu = true;
+        battleMenuIndex = 0;
+        updateBattleCursor();
+    });
 }
 
 bool BattleSequence::checkAndAutoSwitchPokemon()

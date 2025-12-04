@@ -7,10 +7,14 @@
 #include <QKeyEvent>
 #include <QShowEvent>
 #include "gamepad.h"
-#include "../Battle/battle_system.h"
+#include "uart_comm.h"
+#include "../Battle/BattleState_BT.h"
 #include "../Battle/Battle_logic/Player.h"
 #include "../Battle/Battle_logic/Pokemon.h"
 #include "../Battle/Battle_logic/PokemonData.h"
+#include <QGraphicsRectItem>
+#include <QGraphicsTextItem>
+#include <QTimer>
 
 // Forward declarations
 class Overworld;
@@ -32,6 +36,9 @@ protected:
 private slots:
     void onWildEncounterTriggered();
     void onBattleEnded();
+    void onPvpBattleRequested();
+    void onUartPacketReceived(const BattlePacket& packet);
+    void onPlayerFound();
 
 private:
     // ============================================================
@@ -63,10 +70,25 @@ private:
     void simulateKeyRelease(Qt::Key key);
 
     // ============================================================
+    // UART COMMUNICATION
+    // ============================================================
+    UartComm *uartComm = nullptr;
+    void showFindingPlayerPopup();
+    void hideFindingPlayerPopup();
+    void startPvpBattle();
+
+    // ============================================================
     // HELPER FUNCTIONS
     // ============================================================
     void initializePlayer();
     void startWildEncounter();
+    
+    // ============================================================
+    // PVP BATTLE UI
+    // ============================================================
+    bool findingPlayer = false;
+    QGraphicsRectItem *findingPlayerRect = nullptr;
+    QGraphicsTextItem *findingPlayerText = nullptr;
 };
 
 #endif // WINDOW_H

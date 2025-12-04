@@ -1,4 +1,4 @@
-#include "battle_system.h"
+#include "BattleState_BT.h"
 #include <algorithm>
 
 BattleSystem::BattleSystem() : battle(nullptr) {
@@ -9,6 +9,9 @@ BattleSystem::~BattleSystem() {
 
 void BattleSystem::initializeBattle(Player* player1, Player* player2, bool isWild) {
     battle = std::make_unique<Battle>(player1, player2, isWild);
+    if (isPvpMode) {
+        battle->setPvpMode(true);
+    }
 }
 
 void BattleSystem::startBattle() {

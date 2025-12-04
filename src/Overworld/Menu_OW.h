@@ -27,6 +27,7 @@ public:
 
 signals:
     void menuClosed();
+    void pvpBattleRequested();
 
 private:
     QGraphicsScene *scene;

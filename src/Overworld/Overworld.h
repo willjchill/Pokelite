@@ -47,6 +47,7 @@ public:
 
 signals:
     void wildEncounterTriggered();
+    void pvpBattleRequested();
 
 private:
     Map_OW *mapOW;

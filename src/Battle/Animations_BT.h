@@ -1,5 +1,5 @@
-#ifndef BATTLE_ANIMATIONS_H
-#define BATTLE_ANIMATIONS_H
+#ifndef ANIMATIONS_BT_H
+#define ANIMATIONS_BT_H
 
 #include <QObject>
 #include <QVariantAnimation>
@@ -8,11 +8,11 @@
 
 class BattleSequence; // forward declare
 
-class BattleAnimations : public QObject
+class Animations_BT : public QObject
 {
     Q_OBJECT
 public:
-    explicit BattleAnimations(QObject* parent = nullptr);
+    explicit Animations_BT(QObject* parent = nullptr);
 
     // Every function receives BattleSequence* and uses ITS variables
     void animateTrainerThrow(BattleSequence* b, std::function<void()> onFinished);
@@ -23,4 +23,4 @@ public:
     void animateMenuSelection(BattleSequence *b, int index);
 };
 
-#endif
+#endif // ANIMATIONS_BT_H

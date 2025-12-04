@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -10,6 +10,7 @@ SOURCES += \
     General/main.cpp \
     General/window.cpp \
     General/gamepad.cpp \
+    General/uart_comm.cpp \
     Intro_Screen/introscreen.cpp \
     Overworld/Overworld.cpp \
     Overworld/Player_OW.cpp \
@@ -17,12 +18,11 @@ SOURCES += \
     Overworld/Map_OW.cpp \
     Overworld/Menu_OW.cpp \
     Overworld/map_loader.cpp \
-    Battle/battle_sequence.cpp \
-    Battle/battle_system.cpp \
-    Battle/battle_animations.cpp \
+    Battle/GUI_BT.cpp \
+    Battle/BattleState_BT.cpp \
+    Battle/Animations_BT.cpp \
     Battle/Player_BT.cpp \
     Battle/Pokemon_BT.cpp \
-    Battle/Menu_BT.cpp \
     Battle/Battle_logic/Attack.cpp \
     Battle/Battle_logic/Bag.cpp \
     Battle/Battle_logic/Battle.cpp \
@@ -36,6 +36,7 @@ SOURCES += \
 HEADERS += \
     General/window.h \
     General/gamepad.h \
+    General/uart_comm.h \
     Intro_Screen/introscreen.h \
     Overworld/Overworld.h \
     Overworld/Player_OW.h \
@@ -43,12 +44,11 @@ HEADERS += \
     Overworld/Map_OW.h \
     Overworld/Menu_OW.h \
     Overworld/map_loader.h \
-    Battle/battle_sequence.h \
-    Battle/battle_system.h \
-    Battle/battle_animations.h \
+    Battle/GUI_BT.h \
+    Battle/BattleState_BT.h \
+    Battle/Animations_BT.h \
     Battle/Player_BT.h \
     Battle/Pokemon_BT.h \
-    Battle/Menu_BT.h \
     Battle/Battle_logic/Attack.h \
     Battle/Battle_logic/Bag.h \
     Battle/Battle_logic/Battle.h \

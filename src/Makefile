@@ -14,10 +14,10 @@ EQ            = =
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
+DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -IBattle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
+INCPATH       = -I. -IBattle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
 QMAKE         = /usr/lib/qt5/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -40,7 +40,7 @@ DISTNAME      = QtPokemonGame1.0.0
 DISTDIR = /home/william/Homework_ECE535/RPG_Embedded/src/.tmp/QtPokemonGame1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
-LIBS          = $(SUBLIBS) /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lGL -lpthread   
+LIBS          = $(SUBLIBS) /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5SerialPort.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lGL -lpthread   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -55,6 +55,7 @@ OBJECTS_DIR   = ./
 SOURCES       = General/main.cpp \
 		General/window.cpp \
 		General/gamepad.cpp \
+		General/uart_comm.cpp \
 		Intro_Screen/introscreen.cpp \
 		Overworld/Overworld.cpp \
 		Overworld/Player_OW.cpp \
@@ -62,12 +63,11 @@ SOURCES       = General/main.cpp \
 		Overworld/Map_OW.cpp \
 		Overworld/Menu_OW.cpp \
 		Overworld/map_loader.cpp \
-		Battle/battle_sequence.cpp \
-		Battle/battle_system.cpp \
-		Battle/battle_animations.cpp \
+		Battle/GUI_BT.cpp \
+		Battle/BattleState_BT.cpp \
+		Battle/Animations_BT.cpp \
 		Battle/Player_BT.cpp \
 		Battle/Pokemon_BT.cpp \
-		Battle/Menu_BT.cpp \
 		Battle/Battle_logic/Attack.cpp \
 		Battle/Battle_logic/Bag.cpp \
 		Battle/Battle_logic/Battle.cpp \
@@ -79,17 +79,18 @@ SOURCES       = General/main.cpp \
 		Battle/Battle_logic/jsoncpp.cpp qrc_assets.cpp \
 		moc_window.cpp \
 		moc_gamepad.cpp \
+		moc_uart_comm.cpp \
 		moc_introscreen.cpp \
 		moc_Overworld.cpp \
 		moc_Player_OW.cpp \
 		moc_Map_OW.cpp \
 		moc_Menu_OW.cpp \
-		moc_battle_sequence.cpp \
-		moc_battle_animations.cpp \
-		moc_Menu_BT.cpp
+		moc_GUI_BT.cpp \
+		moc_Animations_BT.cpp
 OBJECTS       = main.o \
 		window.o \
 		gamepad.o \
+		uart_comm.o \
 		introscreen.o \
 		Overworld.o \
 		Player_OW.o \
@@ -97,12 +98,11 @@ OBJECTS       = main.o \
 		Map_OW.o \
 		Menu_OW.o \
 		map_loader.o \
-		battle_sequence.o \
-		battle_system.o \
-		battle_animations.o \
+		GUI_BT.o \
+		BattleState_BT.o \
+		Animations_BT.o \
 		Player_BT.o \
 		Pokemon_BT.o \
-		Menu_BT.o \
 		Attack.o \
 		Bag.o \
 		Battle.o \
@@ -115,14 +115,14 @@ OBJECTS       = main.o \
 		qrc_assets.o \
 		moc_window.o \
 		moc_gamepad.o \
+		moc_uart_comm.o \
 		moc_introscreen.o \
 		moc_Overworld.o \
 		moc_Player_OW.o \
 		moc_Map_OW.o \
 		moc_Menu_OW.o \
-		moc_battle_sequence.o \
-		moc_battle_animations.o \
-		moc_Menu_BT.o
+		moc_GUI_BT.o \
+		moc_Animations_BT.o
 DIST          = assets/back1.png \
 		assets/back2.png \
 		assets/back3.png \
@@ -240,6 +240,7 @@ DIST          = assets/back1.png \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		QtPokemonGame.pro General/window.h \
 		General/gamepad.h \
+		General/uart_comm.h \
 		Intro_Screen/introscreen.h \
 		Overworld/Overworld.h \
 		Overworld/Player_OW.h \
@@ -247,12 +248,11 @@ DIST          = assets/back1.png \
 		Overworld/Map_OW.h \
 		Overworld/Menu_OW.h \
 		Overworld/map_loader.h \
-		Battle/battle_sequence.h \
-		Battle/battle_system.h \
-		Battle/battle_animations.h \
+		Battle/GUI_BT.h \
+		Battle/BattleState_BT.h \
+		Battle/Animations_BT.h \
 		Battle/Player_BT.h \
 		Battle/Pokemon_BT.h \
-		Battle/Menu_BT.h \
 		Battle/Battle_logic/Attack.h \
 		Battle/Battle_logic/Bag.h \
 		Battle/Battle_logic/Battle.h \
@@ -263,6 +263,7 @@ DIST          = assets/back1.png \
 		Battle/Battle_logic/Type.h General/main.cpp \
 		General/window.cpp \
 		General/gamepad.cpp \
+		General/uart_comm.cpp \
 		Intro_Screen/introscreen.cpp \
 		Overworld/Overworld.cpp \
 		Overworld/Player_OW.cpp \
@@ -270,12 +271,11 @@ DIST          = assets/back1.png \
 		Overworld/Map_OW.cpp \
 		Overworld/Menu_OW.cpp \
 		Overworld/map_loader.cpp \
-		Battle/battle_sequence.cpp \
-		Battle/battle_system.cpp \
-		Battle/battle_animations.cpp \
+		Battle/GUI_BT.cpp \
+		Battle/BattleState_BT.cpp \
+		Battle/Animations_BT.cpp \
 		Battle/Player_BT.cpp \
 		Battle/Pokemon_BT.cpp \
-		Battle/Menu_BT.cpp \
 		Battle/Battle_logic/Attack.cpp \
 		Battle/Battle_logic/Bag.cpp \
 		Battle/Battle_logic/Battle.cpp \
@@ -473,8 +473,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents assets.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents General/window.h General/gamepad.h Intro_Screen/introscreen.h Overworld/Overworld.h Overworld/Player_OW.h Overworld/Camera_OW.h Overworld/Map_OW.h Overworld/Menu_OW.h Overworld/map_loader.h Battle/battle_sequence.h Battle/battle_system.h Battle/battle_animations.h Battle/Player_BT.h Battle/Pokemon_BT.h Battle/Menu_BT.h Battle/Battle_logic/Attack.h Battle/Battle_logic/Bag.h Battle/Battle_logic/Battle.h Battle/Battle_logic/Item.h Battle/Battle_logic/Player.h Battle/Battle_logic/Pokemon.h Battle/Battle_logic/PokemonData.h Battle/Battle_logic/Type.h $(DISTDIR)/
-	$(COPY_FILE) --parents General/main.cpp General/window.cpp General/gamepad.cpp Intro_Screen/introscreen.cpp Overworld/Overworld.cpp Overworld/Player_OW.cpp Overworld/Camera_OW.cpp Overworld/Map_OW.cpp Overworld/Menu_OW.cpp Overworld/map_loader.cpp Battle/battle_sequence.cpp Battle/battle_system.cpp Battle/battle_animations.cpp Battle/Player_BT.cpp Battle/Pokemon_BT.cpp Battle/Menu_BT.cpp Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Bag.cpp Battle/Battle_logic/Battle.cpp Battle/Battle_logic/Item.cpp Battle/Battle_logic/Player.cpp Battle/Battle_logic/Pokemon.cpp Battle/Battle_logic/PokemonData.cpp Battle/Battle_logic/Type.cpp Battle/Battle_logic/jsoncpp.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents General/window.h General/gamepad.h General/uart_comm.h Intro_Screen/introscreen.h Overworld/Overworld.h Overworld/Player_OW.h Overworld/Camera_OW.h Overworld/Map_OW.h Overworld/Menu_OW.h Overworld/map_loader.h Battle/GUI_BT.h Battle/BattleState_BT.h Battle/Animations_BT.h Battle/Player_BT.h Battle/Pokemon_BT.h Battle/Battle_logic/Attack.h Battle/Battle_logic/Bag.h Battle/Battle_logic/Battle.h Battle/Battle_logic/Item.h Battle/Battle_logic/Player.h Battle/Battle_logic/Pokemon.h Battle/Battle_logic/PokemonData.h Battle/Battle_logic/Type.h $(DISTDIR)/
+	$(COPY_FILE) --parents General/main.cpp General/window.cpp General/gamepad.cpp General/uart_comm.cpp Intro_Screen/introscreen.cpp Overworld/Overworld.cpp Overworld/Player_OW.cpp Overworld/Camera_OW.cpp Overworld/Map_OW.cpp Overworld/Menu_OW.cpp Overworld/map_loader.cpp Battle/GUI_BT.cpp Battle/BattleState_BT.cpp Battle/Animations_BT.cpp Battle/Player_BT.cpp Battle/Pokemon_BT.cpp Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Bag.cpp Battle/Battle_logic/Battle.cpp Battle/Battle_logic/Item.cpp Battle/Battle_logic/Player.cpp Battle/Battle_logic/Pokemon.cpp Battle/Battle_logic/PokemonData.cpp Battle/Battle_logic/Type.cpp Battle/Battle_logic/jsoncpp.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -877,12 +877,13 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_window.cpp moc_gamepad.cpp moc_introscreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_battle_sequence.cpp moc_battle_animations.cpp moc_Menu_BT.cpp
+compiler_moc_header_make_all: moc_window.cpp moc_gamepad.cpp moc_uart_comm.cpp moc_introscreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_GUI_BT.cpp moc_Animations_BT.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_window.cpp moc_gamepad.cpp moc_introscreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_battle_sequence.cpp moc_battle_animations.cpp moc_Menu_BT.cpp
+	-$(DEL_FILE) moc_window.cpp moc_gamepad.cpp moc_uart_comm.cpp moc_introscreen.cpp moc_Overworld.cpp moc_Player_OW.cpp moc_Map_OW.cpp moc_Menu_OW.cpp moc_GUI_BT.cpp moc_Animations_BT.cpp
 moc_window.cpp: General/window.h \
 		General/gamepad.h \
-		Battle/battle_system.h \
+		General/uart_comm.h \
+		Battle/BattleState_BT.h \
 		Battle/Battle_logic/Battle.h \
 		Battle/Battle_logic/Player.h \
 		Battle/Battle_logic/Pokemon.h \
@@ -893,18 +894,23 @@ moc_window.cpp: General/window.h \
 		Battle/Battle_logic/Item.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include General/window.h -o moc_window.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include General/window.h -o moc_window.cpp
 
 moc_gamepad.cpp: General/gamepad.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include General/gamepad.h -o moc_gamepad.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include General/gamepad.h -o moc_gamepad.cpp
+
+moc_uart_comm.cpp: General/uart_comm.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include General/uart_comm.h -o moc_uart_comm.cpp
 
 moc_introscreen.cpp: Intro_Screen/introscreen.h \
 		General/gamepad.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Intro_Screen/introscreen.h -o moc_introscreen.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Intro_Screen/introscreen.h -o moc_introscreen.cpp
 
 moc_Overworld.cpp: Overworld/Overworld.h \
 		Overworld/Player_OW.h \
@@ -921,18 +927,18 @@ moc_Overworld.cpp: Overworld/Overworld.h \
 		Battle/Battle_logic/Item.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Overworld.h -o moc_Overworld.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Overworld.h -o moc_Overworld.cpp
 
 moc_Player_OW.cpp: Overworld/Player_OW.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Player_OW.h -o moc_Player_OW.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Player_OW.h -o moc_Player_OW.cpp
 
 moc_Map_OW.cpp: Overworld/Map_OW.h \
 		Overworld/map_loader.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Map_OW.h -o moc_Map_OW.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Map_OW.h -o moc_Map_OW.cpp
 
 moc_Menu_OW.cpp: Overworld/Menu_OW.h \
 		Battle/Battle_logic/Player.h \
@@ -944,10 +950,10 @@ moc_Menu_OW.cpp: Overworld/Menu_OW.h \
 		Battle/Battle_logic/Item.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Menu_OW.h -o moc_Menu_OW.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Overworld/Menu_OW.h -o moc_Menu_OW.cpp
 
-moc_battle_sequence.cpp: Battle/battle_sequence.h \
-		Battle/battle_system.h \
+moc_GUI_BT.cpp: Battle/GUI_BT.h \
+		Battle/BattleState_BT.h \
 		Battle/Battle_logic/Battle.h \
 		Battle/Battle_logic/Player.h \
 		Battle/Battle_logic/Pokemon.h \
@@ -956,20 +962,16 @@ moc_battle_sequence.cpp: Battle/battle_sequence.h \
 		Battle/Battle_logic/PokemonData.h \
 		Battle/Battle_logic/Bag.h \
 		Battle/Battle_logic/Item.h \
-		Battle/battle_animations.h \
+		Battle/Animations_BT.h \
+		General/uart_comm.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Battle/battle_sequence.h -o moc_battle_sequence.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Battle/GUI_BT.h -o moc_GUI_BT.cpp
 
-moc_battle_animations.cpp: Battle/battle_animations.h \
+moc_Animations_BT.cpp: Battle/Animations_BT.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Battle/battle_animations.h -o moc_battle_animations.cpp
-
-moc_Menu_BT.cpp: Battle/Menu_BT.h \
-		moc_predefs.h \
-		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Battle/Menu_BT.h -o moc_Menu_BT.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/william/Homework_ECE535/RPG_Embedded/src/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/william/Homework_ECE535/RPG_Embedded/src -I/home/william/Homework_ECE535/RPG_Embedded/src/Battle/Battle_logic/json -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSerialPort -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Battle/Animations_BT.h -o moc_Animations_BT.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -990,7 +992,8 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 main.o: General/main.cpp Intro_Screen/introscreen.h \
 		General/gamepad.h \
 		General/window.h \
-		Battle/battle_system.h \
+		General/uart_comm.h \
+		Battle/BattleState_BT.h \
 		Battle/Battle_logic/Battle.h \
 		Battle/Battle_logic/Player.h \
 		Battle/Battle_logic/Pokemon.h \
@@ -1003,7 +1006,8 @@ main.o: General/main.cpp Intro_Screen/introscreen.h \
 
 window.o: General/window.cpp General/window.h \
 		General/gamepad.h \
-		Battle/battle_system.h \
+		General/uart_comm.h \
+		Battle/BattleState_BT.h \
 		Battle/Battle_logic/Battle.h \
 		Battle/Battle_logic/Player.h \
 		Battle/Battle_logic/Pokemon.h \
@@ -1018,12 +1022,15 @@ window.o: General/window.cpp General/window.h \
 		Overworld/Map_OW.h \
 		Overworld/map_loader.h \
 		Overworld/Menu_OW.h \
-		Battle/battle_sequence.h \
-		Battle/battle_animations.h
+		Battle/GUI_BT.h \
+		Battle/Animations_BT.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o window.o General/window.cpp
 
 gamepad.o: General/gamepad.cpp General/gamepad.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gamepad.o General/gamepad.cpp
+
+uart_comm.o: General/uart_comm.cpp General/uart_comm.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o uart_comm.o General/uart_comm.cpp
 
 introscreen.o: Intro_Screen/introscreen.cpp Intro_Screen/introscreen.h \
 		General/gamepad.h
@@ -1067,8 +1074,8 @@ Menu_OW.o: Overworld/Menu_OW.cpp Overworld/Menu_OW.h \
 map_loader.o: Overworld/map_loader.cpp Overworld/map_loader.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_loader.o Overworld/map_loader.cpp
 
-battle_sequence.o: Battle/battle_sequence.cpp Battle/battle_sequence.h \
-		Battle/battle_system.h \
+GUI_BT.o: Battle/GUI_BT.cpp Battle/GUI_BT.h \
+		Battle/BattleState_BT.h \
 		Battle/Battle_logic/Battle.h \
 		Battle/Battle_logic/Player.h \
 		Battle/Battle_logic/Pokemon.h \
@@ -1077,10 +1084,11 @@ battle_sequence.o: Battle/battle_sequence.cpp Battle/battle_sequence.h \
 		Battle/Battle_logic/PokemonData.h \
 		Battle/Battle_logic/Bag.h \
 		Battle/Battle_logic/Item.h \
-		Battle/battle_animations.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_sequence.o Battle/battle_sequence.cpp
+		Battle/Animations_BT.h \
+		General/uart_comm.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o GUI_BT.o Battle/GUI_BT.cpp
 
-battle_system.o: Battle/battle_system.cpp Battle/battle_system.h \
+BattleState_BT.o: Battle/BattleState_BT.cpp Battle/BattleState_BT.h \
 		Battle/Battle_logic/Battle.h \
 		Battle/Battle_logic/Player.h \
 		Battle/Battle_logic/Pokemon.h \
@@ -1089,11 +1097,11 @@ battle_system.o: Battle/battle_system.cpp Battle/battle_system.h \
 		Battle/Battle_logic/PokemonData.h \
 		Battle/Battle_logic/Bag.h \
 		Battle/Battle_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_system.o Battle/battle_system.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o BattleState_BT.o Battle/BattleState_BT.cpp
 
-battle_animations.o: Battle/battle_animations.cpp Battle/battle_animations.h \
-		Battle/battle_sequence.h \
-		Battle/battle_system.h \
+Animations_BT.o: Battle/Animations_BT.cpp Battle/Animations_BT.h \
+		Battle/GUI_BT.h \
+		Battle/BattleState_BT.h \
 		Battle/Battle_logic/Battle.h \
 		Battle/Battle_logic/Player.h \
 		Battle/Battle_logic/Pokemon.h \
@@ -1101,17 +1109,15 @@ battle_animations.o: Battle/battle_animations.cpp Battle/battle_animations.h \
 		Battle/Battle_logic/Attack.h \
 		Battle/Battle_logic/PokemonData.h \
 		Battle/Battle_logic/Bag.h \
-		Battle/Battle_logic/Item.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o battle_animations.o Battle/battle_animations.cpp
+		Battle/Battle_logic/Item.h \
+		General/uart_comm.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Animations_BT.o Battle/Animations_BT.cpp
 
 Player_BT.o: Battle/Player_BT.cpp Battle/Player_BT.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Player_BT.o Battle/Player_BT.cpp
 
 Pokemon_BT.o: Battle/Pokemon_BT.cpp Battle/Pokemon_BT.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Pokemon_BT.o Battle/Pokemon_BT.cpp
-
-Menu_BT.o: Battle/Menu_BT.cpp Battle/Menu_BT.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Menu_BT.o Battle/Menu_BT.cpp
 
 Attack.o: Battle/Battle_logic/Attack.cpp Battle/Battle_logic/Attack.h \
 		Battle/Battle_logic/Type.h
@@ -1170,6 +1176,9 @@ moc_window.o: moc_window.cpp
 moc_gamepad.o: moc_gamepad.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_gamepad.o moc_gamepad.cpp
 
+moc_uart_comm.o: moc_uart_comm.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_uart_comm.o moc_uart_comm.cpp
+
 moc_introscreen.o: moc_introscreen.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_introscreen.o moc_introscreen.cpp
 
@@ -1185,14 +1194,11 @@ moc_Map_OW.o: moc_Map_OW.cpp
 moc_Menu_OW.o: moc_Menu_OW.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Menu_OW.o moc_Menu_OW.cpp
 
-moc_battle_sequence.o: moc_battle_sequence.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_battle_sequence.o moc_battle_sequence.cpp
+moc_GUI_BT.o: moc_GUI_BT.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_GUI_BT.o moc_GUI_BT.cpp
 
-moc_battle_animations.o: moc_battle_animations.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_battle_animations.o moc_battle_animations.cpp
-
-moc_Menu_BT.o: moc_Menu_BT.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Menu_BT.o moc_Menu_BT.cpp
+moc_Animations_BT.o: moc_Animations_BT.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_Animations_BT.o moc_Animations_BT.cpp
 
 ####### Install
 

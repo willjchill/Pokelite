@@ -30,6 +30,7 @@ private:
     Player* player1;
     Player* player2;
     bool isWildBattle;  // true if player2 is a wild Pokemon (NPC)
+    bool isPvpMode;     // true if this is a PvP battle
     int escapeAttempts;
     BattleState state;
     std::string lastEnemyMoveName;  // Store last enemy move name for UI display
@@ -83,6 +84,10 @@ public:
     Player* getPlayer2() const { return player2; }
     bool getIsWildBattle() const { return isWildBattle; }
     std::string getLastEnemyMoveName() const { return lastEnemyMoveName; }
+    
+    // PvP mode
+    void setPvpMode(bool enabled) { isPvpMode = enabled; }
+    bool getPvpMode() const { return isPvpMode; }
 };
 
 #endif // BATTLE_H

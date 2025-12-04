@@ -40,8 +40,8 @@ void Menu_OW::showMenu()
     scene->addItem(menuRect);
     
     menuOptions.clear();
-    QString options[2] = {"POKEMON", "EXIT"};
-    for (int i = 0; i < 2; ++i) {
+    QString options[3] = {"POKEMON", "PVP BATTLE", "EXIT"};
+    for (int i = 0; i < 3; ++i) {
         QGraphicsTextItem *t = new QGraphicsTextItem(options[i]);
         t->setFont(font);
         t->setDefaultTextColor(Qt::black);
@@ -194,6 +194,10 @@ void Menu_OW::menuSelected(int index)
     if (index == 0) {
         showPokemonMenu();
     } else if (index == 1) {
+        // PvP Battle option
+        hideMenu();
+        emit pvpBattleRequested();
+    } else if (index == 2) {
         hideMenu();
         emit menuClosed();
     }

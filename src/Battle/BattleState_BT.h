@@ -1,5 +1,5 @@
-#ifndef BATTLE_SYSTEM_H
-#define BATTLE_SYSTEM_H
+#ifndef BATTLE_STATE_BT_H
+#define BATTLE_STATE_BT_H
 
 #include "Battle_logic/Battle.h"
 #include "Battle_logic/Player.h"
@@ -76,11 +76,19 @@ public:
     // Get the underlying Battle object (for advanced use)
     Battle* getBattle() { return battle.get(); }
     const Battle* getBattle() const { return battle.get(); }
+    
+    // PvP mode
+    void setPvpMode(bool enabled) { isPvpMode = enabled; if (battle) battle->setPvpMode(enabled); }
+    bool getPvpMode() const { return isPvpMode; }
+    bool isWaitingForOpponentTurn() const { return waitingForOpponentTurn; }
+    void setWaitingForOpponentTurn(bool waiting) { waitingForOpponentTurn = waiting; }
 
 private:
     std::unique_ptr<Battle> battle;
     QString lastMessage;
     QString enemyLastMoveName; // Store last enemy move name
+    bool isPvpMode = false;
+    bool waitingForOpponentTurn = false;
     
     // Helper to convert std::string to QString
     QString toQString(const std::string& str) const;
@@ -88,4 +96,4 @@ private:
     QString capitalizeFirst(const QString& str) const;
 };
 
-#endif // BATTLE_SYSTEM_H
+#endif // BATTLE_STATE_BT_H

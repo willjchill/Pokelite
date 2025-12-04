@@ -6,7 +6,7 @@
 #include <cmath>
 
 Battle::Battle(Player* p1, Player* p2, bool isWild)
-    : player1(p1), player2(p2), isWildBattle(isWild), escapeAttempts(0),
+    : player1(p1), player2(p2), isWildBattle(isWild), isPvpMode(false), escapeAttempts(0),
       state(BattleState::SETUP), gen(rd()),
       damageRandom(85, 100), accuracyCheck(1, 100), runCheck(0, 255), criticalCheck(1, 100) {
 }
