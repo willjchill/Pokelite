@@ -61,6 +61,12 @@ void BattleSequence::startBattle(Player* player, Player* enemy, BattleSystem* bs
     opponentMoveIndex = -1;
     playerMoveReady = false;
     opponentMoveReady = false;
+    opponentTurnComplete = false;
+    isMyTurn = false; // Will be set by determineInitialTurnOrder or setInitialTurnOrder for PvP
+    
+    // Don't determine turn order here - it will be set by:
+    // - Initiator: determines and sends TURN_ORDER packet, then calls setInitialTurnOrder
+    // - Responder: waits for TURN_ORDER packet, then calls setInitialTurnOrder
 
     // Clean any leftover menus
     destroyMoveMenu();
@@ -269,7 +275,17 @@ void BattleSequence::setupBattleUI()
     battleTextItem->setZValue(3);
     battleScene->addItem(battleTextItem);
 
-    fullBattleText = "What will " + (battleSystem ? battleSystem->getPlayerPokemonName() : "BULBASAUR") + " do?";
+    // Set initial battle text based on turn order for PvP
+    if (battleSystem && battleSystem->getPvpMode()) {
+        if (isMyTurn) {
+            fullBattleText = "What will " + battleSystem->getPlayerPokemonName() + " do?";
+        } else {
+            fullBattleText = "Waiting for opponent's turn...";
+            inBattleMenu = false; // Disable menu if not our turn
+        }
+    } else {
+        fullBattleText = "What will " + (battleSystem ? battleSystem->getPlayerPokemonName() : "BULBASAUR") + " do?";
+    }
     battleTextIndex = 0;
     battleTextItem->setPlainText("");
     battleTextTimer.start(30);
@@ -378,13 +394,31 @@ void BattleSequence::handleBattleKey(QKeyEvent *event)
     if (!inBattle || !battleSystem)
         return;
 
-    // In PvP mode, block input while waiting for opponent or if move already selected
-    if (battleSystem->getPvpMode() && (waitingForOpponent || playerMoveReady)) {
+    // In single-player battles, block input while the enemy turn is executing.
+    // In PvP mode, we never use BattleState::EXECUTING_TURN as a lock, so we
+    // should NOT block here or the local player can get softlocked.
+    if (!battleSystem->getPvpMode() && battleSystem->isWaitingForEnemyTurn())
+        return;
+
+    // In PvP mode, if it's not the player's turn, block input
+    if (battleSystem->getPvpMode() && !isMyTurn) {
         return;
     }
 
-    if (battleSystem->isWaitingForEnemyTurn())
-        return;
+    // Safety: if we're in a PvP battle and no menu is currently active, but
+    // it's our turn, force the main battle menu back on so controls can always recover.
+    if (battleSystem->getPvpMode()
+        && isMyTurn
+        && !inBattleMenu && !inBagMenu && !inPokemonMenu
+        && !battleSystem->isWaitingForPlayerMove()) {
+        inBattleMenu = true;
+        battleMenuIndex = 0;
+        updateBattleCursor();
+        // Ensure view has focus for input
+        if (view) {
+            view->setFocus();
+        }
+    }
 
     bool inMoveMenu = battleSystem->isWaitingForPlayerMove();
     
@@ -397,6 +431,22 @@ void BattleSequence::handleBattleKey(QKeyEvent *event)
         maxIndex = moveMenuOptions.size();
     } else if (inBattleMenu) {
         maxIndex = battleMenuOptions.size();
+    }
+    
+    // If no menu is active, try to force the main menu back on (safety recovery)
+    if (maxIndex == 0 && battleSystem->getPvpMode()) {
+        // Only force menu if we're not waiting for opponent
+        if (!waitingForOpponent && !playerMoveReady && !opponentMoveReady) {
+            inBattleMenu = true;
+            battleMenuIndex = 0;
+            maxIndex = battleMenuOptions.size();
+            updateBattleCursor();
+            if (view) {
+                view->setFocus();
+            }
+        } else {
+            return; // Still waiting, block input
+        }
     }
     
     if (maxIndex == 0)
@@ -540,6 +590,23 @@ void BattleSequence::playerSelectedOption(int index)
     }
     
     if (index == 3) { // RUN
+        // In PvP battles, running is not allowed
+        if (battleSystem->getPvpMode()) {
+            setBattleText("Can't run from a PvP battle!");
+            startTextAnimation();
+            
+            // Stay in the main battle menu so the player can choose another action
+            inBattleMenu = true;
+            battleMenuIndex = 0;
+            QTimer::singleShot(1000, [=]() {
+                setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
+                startTextAnimation();
+                updateBattleCursor();
+            });
+            return;
+        }
+
+        // Normal (non-PvP) run behavior
         battleSystem->processRunAction();
         
         bool runSuccessful = battleSystem->isBattleOver();
@@ -592,36 +659,47 @@ void BattleSequence::playerChoseMove(int moveIndex)
     destroyMoveMenu();
     inBattleMenu = false;
     
-    // In PvP mode, we need to handle turns differently
+    // In PvP mode, we need to handle turns differently (alternating turns)
     if (battleSystem->getPvpMode()) {
-        // Store player's move and send to opponent
-        playerMoveIndex = moveIndex;
-        playerMoveReady = true;
+        // Only allow move selection if it's the player's turn
+        if (!isMyTurn) {
+            // Not the player's turn - ignore input
+            return;
+        }
         
-        // Send move index to opponent via UART
+        // Precalculate damage BEFORE sending packet (ensures synchronization)
+        Battle* battle = battleSystem->getBattle();
+        int precalculatedDamage = -1;
+        if (battle && gamePlayer && enemyPlayer) {
+            Pokemon* playerPoke = gamePlayer->getActivePokemon();
+            Pokemon* enemyPoke = enemyPlayer->getActivePokemon();
+            if (playerPoke && enemyPoke && moveIndex >= 0 && moveIndex < static_cast<int>(playerPoke->getMoves().size())) {
+                Attack& move = playerPoke->getMoves()[moveIndex];
+                if (move.canUse() && battle->checkAccuracyForPvp(move)) {
+                    // Calculate damage that will be dealt (non-deterministic, so we must send it)
+                    precalculatedDamage = battle->calculateDamageForPvp(*playerPoke, *enemyPoke, move);
+                } else {
+                    // Move will miss or has no PP - damage is 0
+                    precalculatedDamage = 0;
+                }
+            }
+        }
+        
+        // Store player's move and precalculated damage
+        playerMoveIndex = moveIndex;
+        playerDamage = precalculatedDamage;
+        playerMoveReady = true;
+
+        // Send move index and precalculated damage to opponent via UART
+        // Format: "moveIndex,damage"
         if (uartComm) {
-            BattlePacket turnPacket(PacketType::TURN, QString::number(moveIndex));
+            QString dataStr = QString::number(moveIndex) + "," + QString::number(precalculatedDamage);
+            BattlePacket turnPacket(PacketType::TURN, dataStr);
             uartComm->sendPacket(turnPacket);
         }
-        
-        // Show message that move was selected
-        QString moveName = moves[moveIndex];
-        setBattleText(battleSystem->getPlayerPokemonName() + " selected " + moveName + "!");
-        startTextAnimation();
-        
-        // Block input while waiting
-        waitingForOpponent = true;
-        battleSystem->setWaitingForOpponentTurn(true);
-        
-        // Check if opponent's move is already received
-        if (opponentMoveReady) {
-            // Both moves ready, execute in speed order
-            executePvpTurn();
-        } else {
-            // Wait for opponent's move
-            setBattleText("Waiting for opponent...");
-            startTextAnimation();
-        }
+
+        // Execute the player's move immediately (it's their turn)
+        executePvpTurn();
         return;
     }
     
@@ -676,6 +754,34 @@ void BattleSequence::playerChoseMove(int moveIndex)
         return;
     }
     
+    // Check if enemy Pokemon fainted first (before showing enemy move)
+    if (enemyPlayer && enemyPlayer->getActivePokemon() && enemyPlayer->getActivePokemon()->isFainted()) {
+        QString enemyName = battleSystem->getEnemyPokemonName();
+        if (enemyName.isEmpty()) {
+            enemyName = "The foe";
+        }
+        setBattleText(enemyName + " fainted!");
+        startTextAnimation();
+        
+        QTimer::singleShot(1500, [=]() {
+            // Check if battle ended (enemy has no usable Pokemon)
+            if (battleSystem->isBattleOver()) {
+                setBattleText("You won!");
+                startTextAnimation();
+                
+                QTimer::singleShot(2000, [=]() {
+                    fadeOutBattleScreen([=]() {
+                        closeBattle();
+                    });
+                });
+                return;
+            }
+            // Enemy will switch Pokemon (handled by enemyTurn)
+            enemyTurn();
+        });
+        return;
+    }
+    
     // Show enemy's move message first (enemy already moved during processFightAction)
     // Then check if player's Pokemon fainted and auto-switch
     QString enemyName = battleSystem->getEnemyPokemonName();
@@ -696,7 +802,7 @@ void BattleSequence::playerChoseMove(int moveIndex)
     QTimer::singleShot(1000, [=]() {
         updateBattleUI();
         
-        // Check if player's Pokemon fainted and auto-switch
+        // Check if player's Pokemon fainted and prompt for switch
         if (gamePlayer && gamePlayer->getActivePokemon() && gamePlayer->getActivePokemon()->isFainted()) {
             // Show fainted message first
             QString faintedName = battleSystem->getPlayerPokemonName();
@@ -704,8 +810,9 @@ void BattleSequence::playerChoseMove(int moveIndex)
             startTextAnimation();
             
             QTimer::singleShot(1000, [=]() {
-                bool switched = checkAndAutoSwitchPokemon();
-                if (!switched) {
+                // Check if player has usable Pokemon
+                std::vector<int> usableIndices = gamePlayer->getUsablePokemonIndices();
+                if (usableIndices.empty()) {
                     // No Pokemon available - game over
                     if (gamePlayer->isDefeated()) {
                         setBattleText("You have no Pokemon left!\nYou failed the game!");
@@ -720,19 +827,12 @@ void BattleSequence::playerChoseMove(int moveIndex)
                         return;
                     }
                 } else {
-                    // Successfully switched - show message and return to menu
-                    setBattleText("Go! " + battleSystem->getPlayerPokemonName() + "!");
+                    // Prompt player to choose a Pokemon
+                    setBattleText("Choose a Pokemon to send out!");
                     startTextAnimation();
                     
                     QTimer::singleShot(1000, [=]() {
-                        setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
-                        startTextAnimation();
-                        
-                        inBattleMenu = true;
-                        battleMenuIndex = 0;
-                        
-                        destroyMoveMenu();
-                        updateBattleCursor();
+                        showPokemonMenu();
                     });
                     return;
                 }
@@ -819,7 +919,7 @@ void BattleSequence::enemyTurn()
         return;
     }
     
-    // Check if player's Pokemon fainted and auto-switch
+    // Check if player's Pokemon fainted and prompt for switch
     if (gamePlayer && gamePlayer->getActivePokemon() && gamePlayer->getActivePokemon()->isFainted()) {
         // Show fainted message first
         QString faintedName = battleSystem->getPlayerPokemonName();
@@ -827,8 +927,9 @@ void BattleSequence::enemyTurn()
         startTextAnimation();
         
         QTimer::singleShot(1000, [=]() {
-            bool switched = checkAndAutoSwitchPokemon();
-            if (!switched) {
+            // Check if player has usable Pokemon
+            std::vector<int> usableIndices = gamePlayer->getUsablePokemonIndices();
+            if (usableIndices.empty()) {
                 // No Pokemon available - game over
                 if (gamePlayer->isDefeated()) {
                     setBattleText("You have no Pokemon left!\nYou failed the game!");
@@ -845,19 +946,12 @@ void BattleSequence::enemyTurn()
                     return;
                 }
             } else {
-                // Successfully switched - show message
-                setBattleText("Go! " + battleSystem->getPlayerPokemonName() + "!");
+                // Prompt player to choose a Pokemon
+                setBattleText("Choose a Pokemon to send out!");
                 startTextAnimation();
                 
                 QTimer::singleShot(1000, [=]() {
-                    setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
-                    startTextAnimation();
-                    
-                    inBattleMenu = true;
-                    battleMenuIndex = 0;
-                    
-                    destroyMoveMenu();
-                    updateBattleCursor();
+                    showPokemonMenu();
                 });
                 return;
             }
@@ -1036,6 +1130,11 @@ void BattleSequence::playerSelectedBagItem(int index)
 {
     if (!battleSystem) return;
     
+    // In PvP mode, only allow item usage if it's the player's turn
+    if (battleSystem->getPvpMode() && !isMyTurn) {
+        return;
+    }
+    
     // Check if BACK was selected
     if (index >= bagMenuItemIndices.size() || bagMenuItemIndices[index] == -1) {
         destroyBagMenu();
@@ -1056,17 +1155,112 @@ void BattleSequence::playerSelectedBagItem(int index)
     // Get the actual bag item index from the mapping
     int actualItemIndex = bagMenuItemIndices[index];
     
-    // Check if it's a Pokeball
-    if (battleSystem->getBattle() && battleSystem->getBattle()->getPlayer1()) {
-        const auto& items = battleSystem->getBattle()->getPlayer1()->getBag().getItems();
-        if (actualItemIndex >= 0 && actualItemIndex < static_cast<int>(items.size())) {
-            const auto& item = items[actualItemIndex];
-            if (item.getType() == ItemType::POKE_BALL) {
-                // Handle catching Pokemon
-                attemptCatchPokemon(actualItemIndex);
-                return;
+    if (!battleSystem->getBattle() || !battleSystem->getBattle()->getPlayer1()) {
+        return;
+    }
+
+    auto &items = battleSystem->getBattle()->getPlayer1()->getBag().getItems();
+    if (actualItemIndex < 0 || actualItemIndex >= static_cast<int>(items.size())) {
+        return;
+    }
+
+    Item &item = items[actualItemIndex];
+
+    // In PvP battles, block items that are not allowed and send ITEM packet for allowed ones
+    if (battleSystem->getPvpMode()) {
+        QString itemName = QString::fromStdString(item.getName());
+
+        if (!item.isUsableInPvp()) {
+            setBattleText("Can't use " + itemName + " in PvP battle!");
+            startTextAnimation();
+
+            destroyBagMenu();
+            inBagMenu = false;
+            inBattleMenu = true;
+            battleMenuIndex = 0;
+
+            QTimer::singleShot(1000, [=]() {
+                setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
+                startTextAnimation();
+                updateBattleCursor();
+            });
+            return;
+        }
+
+        // Only handle healing-type items in PvP for now (potions, etc.)
+        int healAmount = 0;
+        Pokemon *active = gamePlayer ? gamePlayer->getActivePokemon() : nullptr;
+        if (active) {
+            switch (item.getType()) {
+                case ItemType::POTION:
+                case ItemType::SUPER_POTION:
+                    if (!active->isFainted() && item.getQuantity() > 0) {
+                        int beforeHP = active->getCurrentHP();
+                        active->heal(item.getEffectValue());
+                        item.use();
+                        int afterHP = active->getCurrentHP();
+                        healAmount = afterHP - beforeHP;
+                    }
+                    break;
+                case ItemType::REVIVE:
+                    if (active->isFainted() && item.getQuantity() > 0) {
+                        int beforeHP = active->getCurrentHP();
+                        active->heal(active->getMaxHP() / 2);
+                        item.use();
+                        int afterHP = active->getCurrentHP();
+                        healAmount = afterHP - beforeHP;
+                    }
+                    break;
+                default:
+                    // Other item types are not yet supported in PvP
+                    break;
             }
         }
+
+        destroyBagMenu();
+        inBagMenu = false;
+        inBattleMenu = false;
+        battleMenuIndex = 0;
+
+        if (healAmount > 0) {
+            setBattleText("You used " + itemName + "!");
+        } else {
+            setBattleText("Item had no effect!");
+        }
+        startTextAnimation();
+
+        updateBattleUI();
+
+        // Send ITEM packet with the item index and precalculated healing amount
+        if (uartComm) {
+            QString data = QString::number(actualItemIndex) + "," + QString::number(healAmount);
+            BattlePacket itemPacket(PacketType::ITEM, data);
+            uartComm->sendPacket(itemPacket);
+        }
+
+        // In PvP, after using an item, we've completed our turn
+        // Switch to opponent's turn immediately to block input
+        isMyTurn = false;
+        waitingForOpponent = false;
+        battleSystem->setWaitingForOpponentTurn(false);
+        inBattleMenu = false; // Disable menu immediately to prevent further input
+        
+        QTimer::singleShot(1000, [=]() {
+            setBattleText("Waiting for opponent's turn...");
+            startTextAnimation();
+            battleMenuIndex = 0;
+            updateBattleCursor();
+        });
+        
+        return;
+    }
+
+    // Non-PvP: existing single-player/wild battle behavior
+    // Check if it's a Pokeball (wild battle catching logic)
+    if (item.getType() == ItemType::POKE_BALL) {
+        // Handle catching Pokemon (only valid in wild battles)
+        attemptCatchPokemon(actualItemIndex);
+        return;
     }
     
     // Use regular item (potion, etc.)
@@ -1090,6 +1284,11 @@ void BattleSequence::playerSelectedBagItem(int index)
 void BattleSequence::playerSelectedPokemon(int index)
 {
     if (!battleSystem) return;
+    
+    // In PvP mode, only allow switching if it's the player's turn
+    if (battleSystem->getPvpMode() && !isMyTurn) {
+        return;
+    }
     
     std::vector<QString> names = battleSystem->getTeamNames();
     
@@ -1151,10 +1350,35 @@ void BattleSequence::playerSelectedPokemon(int index)
             }
         }
         
-        inBattleMenu = false;
-        QTimer::singleShot(1000, [=]() {
-            enemyTurn();
-        });
+        // In PvP mode, send SWITCH packet and count as a turn
+        if (battleSystem->getPvpMode()) {
+            const Pokemon* newActive = gamePlayer->getActivePokemon();
+            if (newActive && uartComm) {
+                // Send SWITCH packet with Pokemon info: "dexNumber,level,currentHP"
+                QString dataStr = QString::number(newActive->getDexNumber()) + "," + 
+                                  QString::number(newActive->getLevel()) + "," + 
+                                  QString::number(newActive->getCurrentHP());
+                BattlePacket switchPacket(PacketType::SWITCH, dataStr);
+                uartComm->sendPacket(switchPacket);
+            }
+            
+            // Switching counts as using a turn - switch to opponent's turn
+            isMyTurn = false;
+            inBattleMenu = false;
+            
+            QTimer::singleShot(1000, [=]() {
+                setBattleText("Waiting for opponent's turn...");
+                startTextAnimation();
+                battleMenuIndex = 0;
+                updateBattleCursor();
+            });
+        } else {
+            // Non-PvP: enemy gets a turn after switch
+            inBattleMenu = false;
+            QTimer::singleShot(1000, [=]() {
+                enemyTurn();
+            });
+        }
     } else {
         inBattleMenu = true;
         QTimer::singleShot(1000, [=]() {
@@ -1364,93 +1588,152 @@ void BattleSequence::attemptCatchPokemon(int itemIndex)
     }
 }
 
-void BattleSequence::onOpponentTurnComplete(int opponentMoveIndex)
+void BattleSequence::onOpponentTurnComplete(int opponentMoveIndex, int damage)
 {
     if (!battleSystem || !battleSystem->getPvpMode()) return;
     
-    // Store opponent's move
-    if (opponentMoveIndex >= 0 && enemyPlayer && enemyPlayer->getActivePokemon()) {
-        const auto& moves = enemyPlayer->getActivePokemon()->getMoves();
-        if (opponentMoveIndex < static_cast<int>(moves.size())) {
-            this->opponentMoveIndex = opponentMoveIndex;
-            opponentMoveReady = true;
-            
-            // If player's move is also ready, execute both moves in speed order
-            if (playerMoveReady) {
-                executePvpTurn();
-            } else {
-                // Player hasn't selected move yet, just wait
-                setBattleText("Opponent is ready. Choose your move!");
-                startTextAnimation();
-            }
-        }
+    // Only process if it's the opponent's turn
+    if (isMyTurn) {
+        // It's our turn, ignore opponent's move (shouldn't happen, but handle gracefully)
+        return;
     }
-}
-
-void BattleSequence::executePvpTurn()
-{
-    if (!battleSystem || !gamePlayer || !enemyPlayer) return;
     
-    // Reset flags
-    waitingForOpponent = false;
-    battleSystem->setWaitingForOpponentTurn(false);
-    
-    const Pokemon* playerPoke = gamePlayer->getActivePokemon();
-    const Pokemon* enemyPoke = enemyPlayer->getActivePokemon();
-    
-    if (!playerPoke || !enemyPoke || playerMoveIndex < 0 || opponentMoveIndex < 0) {
-        // Reset and return to menu
+    // If we don't have a valid enemy Pokemon, just reset state so controls don't get stuck
+    if (!enemyPlayer || !enemyPlayer->getActivePokemon()) {
         playerMoveIndex = -1;
         opponentMoveIndex = -1;
+        playerDamage = -1;
+        opponentDamage = -1;
         playerMoveReady = false;
         opponentMoveReady = false;
+        waitingForOpponent = false;
+        if (battleSystem) {
+            battleSystem->setWaitingForOpponentTurn(false);
+        }
         inBattleMenu = true;
         battleMenuIndex = 0;
         updateBattleCursor();
         return;
     }
-    
-    // Determine turn order to show messages correctly
-    int playerSpeed = playerPoke->getStats().speed;
-    int enemySpeed = enemyPoke->getStats().speed;
-    bool playerGoesFirst = false;
-    
-    if (playerSpeed > enemySpeed) {
-        playerGoesFirst = true;
-    } else if (playerSpeed == enemySpeed) {
-        // Random on tie
-        playerGoesFirst = (QRandomGenerator::global()->bounded(2) == 0);
+
+    Pokemon* enemyPoke = enemyPlayer->getActivePokemon();
+    const auto& moves = enemyPoke->getMoves();
+
+    // Clamp/validate opponent move index – if it's out of range, treat it as "no move"
+    int validOpponentMoveIndex = -1;
+    int validOpponentDamage = 0;
+    if (opponentMoveIndex >= 0 && opponentMoveIndex < static_cast<int>(moves.size())) {
+        validOpponentMoveIndex = opponentMoveIndex;
+        validOpponentDamage = (damage >= 0) ? damage : 0;
     }
-    
-    // Show first move message
-    if (playerGoesFirst) {
-        QString playerMoveName = QString::fromStdString(playerPoke->getMoves()[playerMoveIndex].getName());
-        setBattleText(battleSystem->getPlayerPokemonName() + " used " + capitalizeFirst(playerMoveName) + "!");
-    } else {
-        QString enemyMoveName = QString::fromStdString(enemyPoke->getMoves()[opponentMoveIndex].getName());
-        QString enemyName = battleSystem->getEnemyPokemonName();
-        if (enemyName.isEmpty()) {
-            enemyName = "The foe";
-        }
-        setBattleText(enemyName + " used " + capitalizeFirst(enemyMoveName) + "!");
-    }
-    startTextAnimation();
-    
-    // Execute both moves (executeTurn handles turn order internally)
+
+    // Execute opponent's move immediately (it's their turn)
     Battle* battle = battleSystem->getBattle();
     if (!battle) {
-        // Reset and return
-        playerMoveIndex = -1;
-        opponentMoveIndex = -1;
-        playerMoveReady = false;
-        opponentMoveReady = false;
+        // Switch to player's turn even if we can't execute
+        isMyTurn = true;
+        waitingForOpponent = false;
+        battleSystem->setWaitingForOpponentTurn(false);
+        inBattleMenu = true;
+        battleMenuIndex = 0;
+        setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
+        startTextAnimation();
+        updateBattleCursor();
         return;
     }
     
-    // Execute both moves - Battle::executeTurn will handle speed order
+    // Show opponent's move message
+    QString enemyName = battleSystem->getEnemyPokemonName();
+    if (enemyName.isEmpty()) {
+        enemyName = "The foe";
+    }
+    
+    if (validOpponentMoveIndex >= 0) {
+        QString enemyMoveName = QString::fromStdString(moves[validOpponentMoveIndex].getName());
+        setBattleText(enemyName + " used " + capitalizeFirst(enemyMoveName) + "!");
+    } else {
+        setBattleText(enemyName + " is thinking...");
+    }
+    startTextAnimation();
+    
+    // Execute opponent's move using precalculated damage
+    // Capture enemyPoke pointer to access non-const moves inside lambda
     QTimer::singleShot(1500, [=]() {
-        battle->executeTurn(playerMoveIndex, opponentMoveIndex);
+        if (validOpponentMoveIndex >= 0 && enemyPoke) {
+            auto& movesRef = enemyPoke->getMoves(); // Get non-const reference inside lambda
+            if (validOpponentMoveIndex < static_cast<int>(movesRef.size())) {
+                Attack& move = movesRef[validOpponentMoveIndex];
+                if (move.canUse() && battle->checkAccuracyForPvp(move)) {
+                    // Use precalculated damage from opponent
+                    if (validOpponentDamage > 0 && gamePlayer && gamePlayer->getActivePokemon()) {
+                        gamePlayer->getActivePokemon()->takeDamage(validOpponentDamage);
+                    }
+                    move.use();
+                }
+            }
+        }
+        
         updateBattleUI();
+        
+        // Check if player's Pokemon fainted - show message and handle switching
+        if (gamePlayer && gamePlayer->getActivePokemon() && gamePlayer->getActivePokemon()->isFainted()) {
+            QString faintedName = battleSystem->getPlayerPokemonName();
+            setBattleText(faintedName + " fainted!");
+            startTextAnimation();
+            
+            // Check if player has usable Pokemon
+            std::vector<int> playerUsableIndices = gamePlayer->getUsablePokemonIndices();
+            if (playerUsableIndices.empty()) {
+                // Player has no usable Pokemon - send LOSE packet and end battle
+                if (uartComm) {
+                    BattlePacket losePacket(PacketType::LOSE);
+                    uartComm->sendPacket(losePacket);
+                }
+                
+                QTimer::singleShot(1500, [=]() {
+                    setBattleText("You have no Pokemon left!\nYou lost!");
+                    startTextAnimation();
+                    
+                    QTimer::singleShot(2000, [=]() {
+                        fadeOutBattleScreen([=]() {
+                            closeBattle();
+                        });
+                    });
+                });
+                return;
+            }
+            
+            // Player has usable Pokemon - auto-switch
+            QTimer::singleShot(1500, [=]() {
+                bool switched = checkAndAutoSwitchPokemon();
+                if (switched) {
+                    setBattleText("Go! " + battleSystem->getPlayerPokemonName() + "!");
+                    startTextAnimation();
+                    
+                    QTimer::singleShot(1500, [=]() {
+                        // Switch to player's turn after switching Pokemon
+                        isMyTurn = true;
+                        waitingForOpponent = false;
+                        battleSystem->setWaitingForOpponentTurn(false);
+                        
+                        if (battle) {
+                            battle->returnToMainMenu();
+                        }
+                        
+                        setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
+                        startTextAnimation();
+                        
+                        inBattleMenu = true;
+                        battleMenuIndex = 0;
+                        updateBattleCursor();
+                        if (view) {
+                            view->setFocus();
+                        }
+                    });
+                }
+            });
+            return;
+        }
         
         // Check if battle ended
         if (battleSystem->isBattleOver()) {
@@ -1458,6 +1741,11 @@ void BattleSequence::executePvpTurn()
             if (winner == gamePlayer) {
                 setBattleText("You won!");
             } else {
+                // Player lost - check if all Pokemon are fainted and send LOSE packet
+                if (gamePlayer && gamePlayer->isDefeated() && uartComm) {
+                    BattlePacket losePacket(PacketType::LOSE);
+                    uartComm->sendPacket(losePacket);
+                }
                 setBattleText("You lost!");
             }
             startTextAnimation();
@@ -1467,28 +1755,425 @@ void BattleSequence::executePvpTurn()
                     closeBattle();
                 });
             });
-            
-            // Reset state
-            playerMoveIndex = -1;
-            opponentMoveIndex = -1;
-            playerMoveReady = false;
-            opponentMoveReady = false;
             return;
         }
         
-        // Reset state and return to menu
-        playerMoveIndex = -1;
-        opponentMoveIndex = -1;
-        playerMoveReady = false;
-        opponentMoveReady = false;
+        // Switch to player's turn
+        isMyTurn = true;
+        waitingForOpponent = false;
+        battleSystem->setWaitingForOpponentTurn(false);
         
+        // Ensure battle state is back to MENU
+        if (battle) {
+            battle->returnToMainMenu();
+        }
+        
+        // Enable menu for player's turn
         setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
         startTextAnimation();
         
         inBattleMenu = true;
         battleMenuIndex = 0;
         updateBattleCursor();
+        if (view) {
+            view->setFocus();
+        }
     });
+}
+
+void BattleSequence::onOpponentItemUsed(int itemIndex, int healAmount)
+{
+    if (!battleSystem || !battleSystem->getPvpMode()) return;
+
+    // Apply healing to the opponent's active Pokemon on our side
+    if (!enemyPlayer) return;
+
+    Pokemon *enemyPoke = enemyPlayer->getActivePokemon();
+    if (!enemyPoke) return;
+
+    int beforeHP = enemyPoke->getCurrentHP();
+    if (healAmount > 0) {
+        enemyPoke->heal(healAmount);
+    }
+    int afterHP = enemyPoke->getCurrentHP();
+
+    // Try to resolve item name from opponent's bag if possible
+    QString itemName = "item";
+    if (enemyPlayer) {
+        const auto &items = enemyPlayer->getBag().getItems();
+        if (itemIndex >= 0 && itemIndex < static_cast<int>(items.size())) {
+            itemName = QString::fromStdString(items[itemIndex].getName());
+        }
+    }
+
+    QString enemyName = battleSystem->getEnemyPokemonName();
+    if (enemyName.isEmpty()) {
+        enemyName = "The foe";
+    }
+
+    if (healAmount > 0 && afterHP > beforeHP) {
+        setBattleText(enemyName + " used " + itemName + "!\nRestored " + QString::number(healAmount) + " HP!");
+    } else {
+        setBattleText(enemyName + " used " + itemName + "!\nBut it had no effect!");
+    }
+    startTextAnimation();
+
+    updateBattleUI();
+
+    // Opponent has completed their turn with an item
+    // Switch to player's turn
+    isMyTurn = true;
+    waitingForOpponent = false;
+    battleSystem->setWaitingForOpponentTurn(false);
+    
+    // Reset any pending player move (shouldn't have one, but be safe)
+    if (playerMoveReady) {
+        playerMoveReady = false;
+        playerMoveIndex = -1;
+        playerDamage = -1;
+    }
+    
+    QTimer::singleShot(1000, [=]() {
+        setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
+        startTextAnimation();
+        inBattleMenu = true;
+        inBagMenu = false;
+        inPokemonMenu = false;
+        battleMenuIndex = 0;
+        updateBattleCursor();
+        // Ensure view has focus for input
+        if (view) {
+            view->setFocus();
+        }
+    });
+}
+
+void BattleSequence::onOpponentSwitched(int dexNumber, int level, int currentHP)
+{
+    if (!battleSystem || !battleSystem->getPvpMode()) return;
+    
+    // Only process if it's the opponent's turn (they're switching)
+    if (isMyTurn) {
+        // It's our turn, ignore opponent's switch (shouldn't happen, but handle gracefully)
+        return;
+    }
+    
+    // Create or update opponent's Pokemon with the new Pokemon data
+    if (!enemyPlayer) return;
+    
+    // Check if we need to create a new Pokemon or update existing
+    Pokemon* currentActive = enemyPlayer->getActivePokemon();
+    if (!currentActive || currentActive->getDexNumber() != dexNumber || currentActive->getLevel() != level) {
+        // Create new Pokemon and switch to it
+        if (dexNumber > 0 && level > 0) {
+            Pokemon newPokemon(dexNumber, level);
+            // Set health if provided (otherwise use full health from constructor)
+            if (currentHP >= 0 && currentHP <= newPokemon.getMaxHP()) {
+                // Calculate damage needed to reach the desired HP
+                int damage = newPokemon.getMaxHP() - currentHP;
+                if (damage > 0) {
+                    newPokemon.takeDamage(damage);
+                }
+            }
+            // Remove old active Pokemon if it exists and is fainted
+            if (currentActive && currentActive->isFainted()) {
+                // Find and remove fainted Pokemon from team
+                auto& team = enemyPlayer->getTeam();
+                for (size_t i = 0; i < team.size(); ++i) {
+                    if (&team[i] == currentActive) {
+                        enemyPlayer->removePokemon(static_cast<int>(i));
+                        break;
+                    }
+                }
+            }
+            // Add new Pokemon to team
+            enemyPlayer->addPokemon(newPokemon);
+            // Switch to the new Pokemon (last in team)
+            int newIndex = static_cast<int>(enemyPlayer->getTeam().size()) - 1;
+            enemyPlayer->switchPokemon(newIndex);
+        }
+    } else if (currentActive && currentHP >= 0) {
+        // Same Pokemon, but update health if provided
+        int maxHP = currentActive->getMaxHP();
+        if (currentHP <= maxHP) {
+            int currentHealth = currentActive->getCurrentHP();
+            if (currentHP != currentHealth) {
+                // Adjust health to match
+                if (currentHP < currentHealth) {
+                    int damage = currentHealth - currentHP;
+                    currentActive->takeDamage(damage);
+                } else {
+                    int healAmount = currentHP - currentHealth;
+                    currentActive->heal(healAmount);
+                }
+            }
+        }
+    }
+    
+    // Update enemy Pokemon sprite
+    if (battleEnemyItem) {
+        const Pokemon* newActive = enemyPlayer->getActivePokemon();
+        if (newActive) {
+            QString enemySpritePath = QString::fromStdString(newActive->getFrontSpritePath());
+            QPixmap enemyPx(enemySpritePath);
+            if (enemyPx.isNull()) {
+                QString spriteDir = QString::fromStdString(newActive->getSpriteDir());
+                enemySpritePath = ":/" + spriteDir + "/front.png";
+                enemyPx = QPixmap(enemySpritePath);
+            }
+            if (enemyPx.isNull()) {
+                enemyPx = QPixmap(":/Battle/assets/pokemon_sprites/006_charizard/front.png");
+            }
+            if (!enemyPx.isNull()) {
+                float sx = 120.0f / enemyPx.width();
+                float sy = 120.0f / enemyPx.height();
+                float scale = std::min(sx, sy);
+                battleEnemyItem->setPixmap(enemyPx);
+                battleEnemyItem->setScale(scale);
+                qreal h = enemyPx.height() * scale;
+                battleEnemyItem->setPos(360, 272 - h - 80);
+            }
+        }
+    }
+    
+    updateBattleUI();
+    
+    QString enemyName = battleSystem->getEnemyPokemonName();
+    if (enemyName.isEmpty()) {
+        enemyName = "The foe";
+    }
+    
+    setBattleText(enemyName + " sent out " + QString::fromStdString(enemyPlayer->getActivePokemon()->getName()) + "!");
+    startTextAnimation();
+    
+    // Opponent has completed their turn by switching
+    // Switch to player's turn
+    isMyTurn = true;
+    waitingForOpponent = false;
+    battleSystem->setWaitingForOpponentTurn(false);
+    
+    QTimer::singleShot(1500, [=]() {
+        setBattleText("What will " + battleSystem->getPlayerPokemonName() + " do?");
+        startTextAnimation();
+        inBattleMenu = true;
+        battleMenuIndex = 0;
+        updateBattleCursor();
+        if (view) {
+            view->setFocus();
+        }
+    });
+}
+
+void BattleSequence::onOpponentLost()
+{
+    if (!battleSystem || !battleSystem->getPvpMode()) return;
+    
+    // Opponent has no usable Pokemon - player wins!
+    setBattleText("Opponent has no Pokemon left!\nYou won!");
+    startTextAnimation();
+    
+    QTimer::singleShot(2000, [=]() {
+        fadeOutBattleScreen([=]() {
+            closeBattle();
+        });
+    });
+}
+
+void BattleSequence::executePvpTurn()
+{
+    if (!battleSystem || !gamePlayer || !enemyPlayer) return;
+    
+    // Reset flags – we are now actively executing the turn
+    waitingForOpponent = false;
+    battleSystem->setWaitingForOpponentTurn(false);
+    
+    Pokemon* playerPoke = gamePlayer->getActivePokemon();
+    Pokemon* enemyPoke = enemyPlayer->getActivePokemon();
+    
+    if (!playerPoke || !enemyPoke) {
+        // Reset and return to menu
+        playerMoveIndex = -1;
+        playerDamage = -1;
+        playerMoveReady = false;
+        inBattleMenu = true;
+        battleMenuIndex = 0;
+        updateBattleCursor();
+        if (view) {
+            view->setFocus();
+        }
+        return;
+    }
+    
+    Battle* battle = battleSystem->getBattle();
+    if (!battle) {
+        // Reset and return
+        playerMoveIndex = -1;
+        playerDamage = -1;
+        playerMoveReady = false;
+        if (view) {
+            view->setFocus();
+        }
+        return;
+    }
+    
+    // Only execute if it's the player's turn and they have a move ready
+    if (!isMyTurn || !playerMoveReady || playerMoveIndex < 0) {
+        return;
+    }
+    
+    // Show move message
+    QString playerMoveName = QString::fromStdString(playerPoke->getMoves()[playerMoveIndex].getName());
+    setBattleText(battleSystem->getPlayerPokemonName() + " used " + capitalizeFirst(playerMoveName) + "!");
+    startTextAnimation();
+    
+    // Execute player's move using PRE CALCULATED damage
+    QTimer::singleShot(1500, [=]() {
+        if (playerMoveIndex >= 0 && playerMoveIndex < static_cast<int>(playerPoke->getMoves().size())) {
+            Attack& move = playerPoke->getMoves()[playerMoveIndex];
+            if (move.canUse() && battle->checkAccuracyForPvp(move)) {
+                // Use precalculated damage instead of recalculating
+                if (playerDamage > 0) {
+                    enemyPoke->takeDamage(playerDamage);
+                }
+                move.use();
+            }
+        }
+        
+        updateBattleUI();
+        
+        // Check if enemy Pokemon fainted - show message and wait for SWITCH or LOSE packet
+        if (enemyPoke && enemyPoke->isFainted()) {
+            QString enemyName = battleSystem->getEnemyPokemonName();
+            if (enemyName.isEmpty()) {
+                enemyName = "The foe";
+            }
+            setBattleText(enemyName + " fainted!");
+            startTextAnimation();
+            
+            // In PvP mode, don't decide battle outcome locally - wait for opponent's SWITCH or LOSE packet
+            // Reset state and wait for opponent's response
+            playerMoveIndex = -1;
+            playerDamage = -1;
+            playerMoveReady = false;
+            isMyTurn = false;  // Wait for opponent's turn (they'll send SWITCH or LOSE)
+            inBattleMenu = false;  // Disable menu while waiting
+            
+            QTimer::singleShot(1500, [=]() {
+                setBattleText("Waiting for opponent...");
+                startTextAnimation();
+            });
+            return;
+        }
+        
+        // Check if battle ended (only for player's Pokemon fainting, not enemy's)
+        // Enemy fainting is handled above - we wait for SWITCH/LOSE packet
+        if (battleSystem->isBattleOver()) {
+            // Only end battle if player lost (all player Pokemon fainted)
+            Player* winner = battleSystem->getWinner();
+            if (winner != gamePlayer) {
+                // Player lost - check if all Pokemon are fainted and send LOSE packet
+                if (gamePlayer && gamePlayer->isDefeated() && uartComm) {
+                    BattlePacket losePacket(PacketType::LOSE);
+                    uartComm->sendPacket(losePacket);
+                }
+                setBattleText("You lost!");
+                startTextAnimation();
+                
+                QTimer::singleShot(2000, [=]() {
+                    fadeOutBattleScreen([=]() {
+                        closeBattle();
+                    });
+                });
+                
+                // Reset state
+                playerMoveIndex = -1;
+                playerDamage = -1;
+                playerMoveReady = false;
+                if (view) {
+                    view->setFocus();
+                }
+                return;
+            }
+            // If winner is gamePlayer, we should have already handled enemy fainting above
+            // and be waiting for SWITCH/LOSE packet, so this shouldn't happen
+        }
+        
+        // Switch to opponent's turn
+        isMyTurn = false;
+        
+        // Reset player's move state
+        playerMoveIndex = -1;
+        playerDamage = -1;
+        playerMoveReady = false;
+        
+        // Ensure battle state is back to MENU
+        if (battle) {
+            battle->returnToMainMenu();
+        }
+        
+        // Show waiting message for opponent's turn
+        setBattleText("Waiting for opponent's turn...");
+        startTextAnimation();
+        
+        inBattleMenu = false; // Disable menu while waiting for opponent
+        if (view) {
+            view->setFocus();
+        }
+    });
+}
+
+void BattleSequence::setInitialTurnOrder(bool weGoFirst)
+{
+    isMyTurn = weGoFirst;
+    
+    // Update initial battle text based on turn order
+    if (battleSystem && battleSystem->getPvpMode()) {
+        if (isMyTurn) {
+            fullBattleText = "What will " + battleSystem->getPlayerPokemonName() + " do?";
+            inBattleMenu = true;
+        } else {
+            fullBattleText = "Waiting for opponent's turn...";
+            inBattleMenu = false;
+        }
+        battleTextIndex = 0;
+        if (battleTextItem) {
+            battleTextItem->setPlainText("");
+        }
+        battleTextTimer.start(30);
+    }
+}
+
+void BattleSequence::determineInitialTurnOrder()
+{
+    // This method is deprecated - turn order is now determined by the initiator
+    // and sent via TURN_ORDER packet. This is kept for backwards compatibility
+    // but should not be called in PvP mode.
+    if (!battleSystem || !gamePlayer || !enemyPlayer) return;
+    
+    Pokemon* playerPoke = gamePlayer->getActivePokemon();
+    Pokemon* enemyPoke = enemyPlayer->getActivePokemon();
+    
+    if (!playerPoke || !enemyPoke) {
+        // Default to opponent going first if we can't determine
+        isMyTurn = false;
+        return;
+    }
+    
+    int playerSpeed = playerPoke->getStats().speed;
+    int enemySpeed = enemyPoke->getStats().speed;
+    
+    // Player with higher speed goes first
+    if (playerSpeed > enemySpeed) {
+        isMyTurn = true;
+    } else if (enemySpeed > playerSpeed) {
+        isMyTurn = false;
+    } else {
+        // Speed tie: use Pokemon name as deterministic tiebreaker (alphabetical)
+        // This ensures both players agree on who goes first
+        QString playerName = QString::fromStdString(playerPoke->getName()).toLower();
+        QString enemyName = QString::fromStdString(enemyPoke->getName()).toLower();
+        isMyTurn = (playerName < enemyName); // Alphabetically first goes first
+    }
 }
 
 bool BattleSequence::checkAndAutoSwitchPokemon()
@@ -1504,13 +2189,30 @@ bool BattleSequence::checkAndAutoSwitchPokemon()
     std::vector<int> usableIndices = gamePlayer->getUsablePokemonIndices();
     
     if (usableIndices.empty()) {
-        // No Pokemon available - game over
+        // No Pokemon available - send LOSE packet in PvP mode
+        if (battleSystem->getPvpMode() && uartComm) {
+            BattlePacket losePacket(PacketType::LOSE);
+            uartComm->sendPacket(losePacket);
+        }
         return false;
     }
     
     // Switch to the first available Pokemon
     int nextIndex = usableIndices[0];
     battleSystem->processPokemonAction(nextIndex);
+    
+    // In PvP mode, send SWITCH packet for auto-switch
+    if (battleSystem->getPvpMode()) {
+        const Pokemon* newActive = gamePlayer->getActivePokemon();
+        if (newActive && uartComm) {
+            // Send SWITCH packet with Pokemon info: "dexNumber,level,currentHP"
+            QString dataStr = QString::number(newActive->getDexNumber()) + "," + 
+                              QString::number(newActive->getLevel()) + "," + 
+                              QString::number(newActive->getCurrentHP());
+            BattlePacket switchPacket(PacketType::SWITCH, dataStr);
+            uartComm->sendPacket(switchPacket);
+        }
+    }
     
     // Update sprite
     if (battlePlayerPokemonItem) {

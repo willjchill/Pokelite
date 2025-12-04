@@ -101,6 +101,11 @@ private:
     // PVP BATTLE UI
     // ============================================================
     bool findingPlayer = false;
+    bool isBattleInitiator = false;  // True if we initiated the battle (sent FINDING_PLAYER)
+
+    // Cached opponent Pokemon info received over UART when starting PvP
+    int pvpOpponentDexNumber = -1;
+    int pvpOpponentLevel = -1;
     QGraphicsRectItem *findingPlayerRect = nullptr;
     QGraphicsTextItem *findingPlayerText = nullptr;
 };

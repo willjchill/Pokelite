@@ -69,7 +69,11 @@ public:
     
     // PvP support
     void setUartComm(UartComm* uart) { uartComm = uart; }
-    void onOpponentTurnComplete(int opponentMoveIndex = -1);  // Called when TURN packet is received
+    void setInitialTurnOrder(bool weGoFirst);  // Set initial turn order (called when TURN_ORDER packet received)
+    void onOpponentTurnComplete(int opponentMoveIndex = -1, int damage = -1);  // Called when TURN packet is received
+    void onOpponentItemUsed(int itemIndex, int healAmount);   // Called when ITEM packet is received
+    void onOpponentSwitched(int dexNumber, int level, int currentHP = -1);  // Called when SWITCH packet is received
+    void onOpponentLost();                                     // Called when LOSE packet is received
 
 signals:
     void battleEnded();
@@ -92,8 +96,12 @@ private:
     // PvP turn synchronization
     int playerMoveIndex = -1;      // Player's selected move (waiting to execute)
     int opponentMoveIndex = -1;    // Opponent's move (received via UART)
+    int playerDamage = -1;          // Precalculated damage for player's move
+    int opponentDamage = -1;        // Precalculated damage for opponent's move (received via UART)
     bool playerMoveReady = false;   // True when player has selected move
     bool opponentMoveReady = false; // True when opponent's move is received
+    bool opponentTurnComplete = false; // True when opponent has completed their turn (item or move)
+    bool isMyTurn = false;          // True when it's the local player's turn (alternating turns)
 
     // Battle UI elements
     QGraphicsPixmapItem *battleTrainerItem = nullptr;
@@ -159,7 +167,8 @@ private:
     QString capitalizeFirst(const QString& str) const;
     void attemptCatchPokemon(int itemIndex);
     bool checkAndAutoSwitchPokemon(); // Returns true if switched, false if no Pokemon available
-    void executePvpTurn(); // Execute both moves in speed order for PvP
+    void executePvpTurn(); // Execute a single move for PvP (alternating turns)
+    void determineInitialTurnOrder(); // Determine who goes first based on speed stats
 
     friend class Animations_BT;
 };

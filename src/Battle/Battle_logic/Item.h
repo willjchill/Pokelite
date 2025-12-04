@@ -18,15 +18,18 @@ private:
     ItemType type;
     int quantity;
     int effectValue;  // e.g., HP restored, PP restored
+    bool usableInPvp; // whether this item can be used in PvP battles
 
 public:
-    Item(const std::string& name, ItemType type, int quantity, int effectValue = 0);
+    Item(const std::string& name, ItemType type, int quantity, int effectValue = 0, bool usableInPvp = true);
     
     // Getters
     std::string getName() const { return name; }
     ItemType getType() const { return type; }
     int getQuantity() const { return quantity; }
     int getEffectValue() const { return effectValue; }
+    bool isUsableInPvp() const { return usableInPvp; }
+    void setUsableInPvp(bool usable) { usableInPvp = usable; }
     
     // Use item (decrease quantity)
     bool use();

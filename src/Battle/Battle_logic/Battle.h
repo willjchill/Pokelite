@@ -88,6 +88,14 @@ public:
     // PvP mode
     void setPvpMode(bool enabled) { isPvpMode = enabled; }
     bool getPvpMode() const { return isPvpMode; }
+    
+    // Public methods for PvP damage precalculation (needed for synchronization)
+    int calculateDamageForPvp(Pokemon& attacker, Pokemon& defender, Attack& move) {
+        return calculateDamage(attacker, defender, move);
+    }
+    bool checkAccuracyForPvp(const Attack& move) {
+        return checkAccuracy(move);
+    }
 };
 
 #endif // BATTLE_H

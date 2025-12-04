@@ -1,7 +1,7 @@
 #include "Item.h"
 
-Item::Item(const std::string& name, ItemType type, int quantity, int effectValue)
-    : name(name), type(type), quantity(quantity), effectValue(effectValue) {
+Item::Item(const std::string& name, ItemType type, int quantity, int effectValue, bool usableInPvp)
+    : name(name), type(type), quantity(quantity), effectValue(effectValue), usableInPvp(usableInPvp) {
 }
 
 bool Item::use() {
