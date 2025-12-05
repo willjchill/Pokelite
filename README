@@ -1,6 +1,7 @@
 ==== UPDATE LOG ====
 
 NAME, DATE, DESCRIPTION
+willjdes, 12/4/2025, Adding UART, fixing project organization A LOT
 willjdes, 12/2/2025, Adding Pokeball feature and fixing GUI. 
 willjdes, 11/23/2025, Adding ARM Makefile. Allows userland code to be run properly on BeagleBone. Note that QT uses C++17 and game logic uses C++11.
 willjdes, 11/20/2025, Further tweaking game state and fixing pokemon database. Basic attacks should work. No modifiers like poison or flinch etc exist. Also need to add "catching" and wild encounter probabilities.

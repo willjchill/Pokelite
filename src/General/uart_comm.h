@@ -10,7 +10,11 @@
 enum class PacketType {
     FINDING_PLAYER,      // Sent when player presses Q/SELECT to find opponent
     READY_BATTLE,        // Sent when both players are ready to start battle
+    TURN_ORDER,          // Sent by initiator to determine who goes first (format: "1" or "2" - 1=initiator, 2=responder)
     TURN,                // Sent when a player completes their turn
+    ITEM,                // Sent when a player uses an item during their turn
+    SWITCH,              // Sent when a player switches Pokemon (format: "dexNumber,level,currentHP")
+    LOSE,                // Sent when a player has no usable Pokemon left
     BATTLE_END,          // Sent when battle ends
     POKEMON_DATA,        // Sent to sync Pokemon data at battle start
     INVALID

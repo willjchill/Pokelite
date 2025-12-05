@@ -21,6 +21,18 @@ QString BattlePacket::serialize() const
         case PacketType::TURN:
             typeStr = "TURN";
             break;
+        case PacketType::TURN_ORDER:
+            typeStr = "TURN_ORDER";
+            break;
+        case PacketType::ITEM:
+            typeStr = "ITEM";
+            break;
+        case PacketType::SWITCH:
+            typeStr = "SWITCH";
+            break;
+        case PacketType::LOSE:
+            typeStr = "LOSE";
+            break;
         case PacketType::BATTLE_END:
             typeStr = "BATTLE_END";
             break;
@@ -65,8 +77,16 @@ BattlePacket BattlePacket::deserialize(const QString& str)
         packet.type = PacketType::FINDING_PLAYER;
     } else if (typeStr == "READY_BATTLE") {
         packet.type = PacketType::READY_BATTLE;
+    } else if (typeStr == "TURN_ORDER") {
+        packet.type = PacketType::TURN_ORDER;
     } else if (typeStr == "TURN") {
         packet.type = PacketType::TURN;
+    } else if (typeStr == "ITEM") {
+        packet.type = PacketType::ITEM;
+    } else if (typeStr == "SWITCH") {
+        packet.type = PacketType::SWITCH;
+    } else if (typeStr == "LOSE") {
+        packet.type = PacketType::LOSE;
     } else if (typeStr == "BATTLE_END") {
         packet.type = PacketType::BATTLE_END;
     } else if (typeStr == "POKEMON_DATA") {
@@ -269,19 +289,24 @@ void UartComm::parseReceivedData()
             if (packet.type != PacketType::INVALID) {
                 qDebug() << "Received packet:" << line;
                 
-                // Handle READY_BATTLE specially
+                // Emit packetReceived FIRST so data can be parsed before playerFound signal
+                emit packetReceived(packet);
+                
+                // Handle READY_BATTLE specially - emit playerFound AFTER data is parsed
                 if (packet.type == PacketType::READY_BATTLE) {
+                    // Stop searching once someone is ready to battle
                     stopFindingPlayer();
+                    // Emit playerFound AFTER packetReceived so Window::onUartPacketReceived
+                    // has a chance to parse and store the Pokemon data first
                     emit playerFound();
                 }
                 
-                // If we're finding a player and receive FINDING_PLAYER, send READY_BATTLE
+                // If we're finding a player and receive FINDING_PLAYER, reply with READY_BATTLE.
+                // Higher-level code is responsible for filling in Pokemon data.
                 if (packet.type == PacketType::FINDING_PLAYER && findingPlayer) {
                     BattlePacket readyPacket(PacketType::READY_BATTLE);
                     sendPacket(readyPacket);
                 }
-                
-                emit packetReceived(packet);
             }
         }
     }

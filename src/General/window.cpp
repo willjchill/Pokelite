@@ -520,6 +520,7 @@ void Window::onPvpBattleRequested()
     if (inBattle || findingPlayer || !uartComm) return;
     
     findingPlayer = true;
+    isBattleInitiator = true;  // We are initiating the battle
     showFindingPlayerPopup();
     uartComm->startFindingPlayer();
     
@@ -535,19 +536,113 @@ void Window::onUartPacketReceived(const BattlePacket& packet)
     
     switch (packet.type) {
         case PacketType::READY_BATTLE:
-            // Handled by onPlayerFound signal
+        {
+            // Parse opponent Pokemon data from READY_BATTLE:[dex],[level]
+            // This will be used when we actually start the PvP battle.
+            if (!packet.data.isEmpty()) {
+                const QStringList parts = packet.data.split(',');
+                if (parts.size() >= 2) {
+                    bool okDex = false;
+                    bool okLvl = false;
+                    int dex = parts[0].toInt(&okDex);
+                    int lvl = parts[1].toInt(&okLvl);
+                    if (okDex && okLvl && dex > 0 && lvl > 0) {
+                        pvpOpponentDexNumber = dex;
+                        pvpOpponentLevel = lvl;
+                        qDebug() << "Stored PvP opponent Pokemon: dex" << dex << "level" << lvl;
+                    }
+                }
+            }
+            // Connection handshake / battle start is still driven by onPlayerFound signal.
             break;
+        }
         case PacketType::TURN:
             // Notify battle sequence that opponent has completed their turn
-            // packet.data contains the move index
+            // packet.data format: "moveIndex,damage" (precalculated damage)
             if (battleSequence && inBattle) {
-                bool ok;
-                int moveIndex = packet.data.toInt(&ok);
-                if (ok) {
-                    battleSequence->onOpponentTurnComplete(moveIndex);
-                } else {
-                    battleSequence->onOpponentTurnComplete();
+                int moveIndex = -1;
+                int damage = -1;
+                if (!packet.data.isEmpty()) {
+                    const QStringList parts = packet.data.split(',');
+                    if (parts.size() >= 1) {
+                        bool okIdx = false;
+                        moveIndex = parts[0].toInt(&okIdx);
+                        if (!okIdx) moveIndex = -1;
+                    }
+                    if (parts.size() >= 2) {
+                        bool okDmg = false;
+                        damage = parts[1].toInt(&okDmg);
+                        if (!okDmg) damage = -1;
+                    }
                 }
+                battleSequence->onOpponentTurnComplete(moveIndex, damage);
+            }
+            break;
+        case PacketType::ITEM:
+            // Opponent used an item: data format "itemIndex,healAmount"
+            if (battleSequence && inBattle) {
+                int itemIndex = -1;
+                int healAmount = 0;
+                if (!packet.data.isEmpty()) {
+                    const QStringList parts = packet.data.split(',');
+                    if (parts.size() >= 2) {
+                        bool okIdx = false;
+                        bool okHeal = false;
+                        itemIndex = parts[0].toInt(&okIdx);
+                        healAmount = parts[1].toInt(&okHeal);
+                        if (!okIdx) itemIndex = -1;
+                        if (!okHeal) healAmount = 0;
+                    }
+                }
+                // A healAmount of 0 is still valid (e.g., failed item), so always forward.
+                battleSequence->onOpponentItemUsed(itemIndex, healAmount);
+            }
+            break;
+        case PacketType::SWITCH:
+            // Opponent switched Pokemon: data format "dexNumber,level,currentHP"
+            if (battleSequence && inBattle) {
+                int dexNumber = -1;
+                int level = -1;
+                int currentHP = -1;
+                if (!packet.data.isEmpty()) {
+                    const QStringList parts = packet.data.split(',');
+                    if (parts.size() >= 2) {
+                        bool okDex = false;
+                        bool okLevel = false;
+                        dexNumber = parts[0].toInt(&okDex);
+                        level = parts[1].toInt(&okLevel);
+                        if (!okDex) dexNumber = -1;
+                        if (!okLevel) level = -1;
+                        // Parse health if available (for backward compatibility, make it optional)
+                        if (parts.size() >= 3) {
+                            bool okHP = false;
+                            currentHP = parts[2].toInt(&okHP);
+                            if (!okHP) currentHP = -1;
+                        }
+                    }
+                }
+                battleSequence->onOpponentSwitched(dexNumber, level, currentHP);
+            }
+            break;
+        case PacketType::TURN_ORDER:
+            // Initiator sent turn order: data format "1" or "2" (1=initiator goes first, 2=responder goes first)
+            if (battleSequence && inBattle) {
+                int firstPlayer = 1;  // Default to initiator
+                if (!packet.data.isEmpty()) {
+                    bool ok = false;
+                    firstPlayer = packet.data.toInt(&ok);
+                    if (!ok) firstPlayer = 1;
+                }
+                // firstPlayer: 1 = initiator goes first, 2 = responder goes first
+                // isBattleInitiator: true = we are initiator, false = we are responder
+                bool weGoFirst = (firstPlayer == 1 && isBattleInitiator) || (firstPlayer == 2 && !isBattleInitiator);
+                battleSequence->setInitialTurnOrder(weGoFirst);
+            }
+            break;
+        case PacketType::LOSE:
+            // Opponent has no usable Pokemon left - they lost
+            if (battleSequence && inBattle) {
+                battleSequence->onOpponentLost();
             }
             break;
         case PacketType::BATTLE_END:
@@ -566,8 +661,20 @@ void Window::onPlayerFound()
     findingPlayer = false;
     uartComm->stopFindingPlayer();
     
-    // Send READY_BATTLE packet back
-    BattlePacket readyPacket(PacketType::READY_BATTLE);
+    // Send READY_BATTLE packet back including our active Pokemon data so the
+    // opponent can construct an identical battle state.
+    int dexNumber = -1;
+    int level = -1;
+    if (gamePlayer && gamePlayer->getActivePokemon()) {
+        const Pokemon *active = gamePlayer->getActivePokemon();
+        dexNumber = active->getDexNumber();
+        level = active->getLevel();
+    }
+    QString dataStr;
+    if (dexNumber > 0 && level > 0) {
+        dataStr = QString::number(dexNumber) + "," + QString::number(level);
+    }
+    BattlePacket readyPacket(PacketType::READY_BATTLE, dataStr);
     uartComm->sendPacket(readyPacket);
     
     // Start PvP battle
@@ -632,19 +739,30 @@ void Window::startPvpBattle()
 {
     if (inBattle) return;
     
-    // For now, create a dummy enemy player - in real implementation,
-    // you would receive Pokemon data via UART
     // Clean up previous enemy player if exists
     if (enemyPlayer) {
         delete enemyPlayer;
     }
     
-    // Create enemy player (will be replaced with actual data from UART)
+    // Create enemy player using Pokemon data received over UART.
+    // Fallback to a simple default if, for some reason, we did not receive data.
     enemyPlayer = new Player("Opponent", PlayerType::HUMAN);
-    // For now, use a random Pokemon - in real implementation, receive via UART
-    int randomDex = QRandomGenerator::global()->bounded(1, 152);
-    Pokemon enemyPokemon(randomDex, 5);
+    int dexNumber = pvpOpponentDexNumber;
+    int level = pvpOpponentLevel;
+    if (dexNumber <= 0 || level <= 0) {
+        dexNumber = 1;
+        level = 5;
+    }
+    Pokemon enemyPokemon(dexNumber, level);
     enemyPlayer->addPokemon(enemyPokemon);
+    
+    // Auto-heal all Pokemon in the team before battle (assume both players start at full health)
+    if (gamePlayer) {
+        auto& team = gamePlayer->getTeam();
+        for (auto& pokemon : team) {
+            pokemon.heal(pokemon.getMaxHP());
+        }
+    }
     
     // Initialize battle system with PvP mode (isWild = false)
     if (battleSystem) {
@@ -664,6 +782,36 @@ void Window::startPvpBattle()
     battleSequence->setUartComm(uartComm);  // Pass UART to battle sequence
     
     inBattle = true;
+    
+    // If we are the initiator, determine turn order and send TURN_ORDER packet
+    if (isBattleInitiator && gamePlayer && enemyPlayer && gamePlayer->getActivePokemon() && enemyPlayer->getActivePokemon()) {
+        Pokemon* playerPoke = gamePlayer->getActivePokemon();
+        Pokemon* enemyPoke = enemyPlayer->getActivePokemon();
+        
+        int playerSpeed = playerPoke->getStats().speed;
+        int enemySpeed = enemyPoke->getStats().speed;
+        
+        int firstPlayer = 1;  // Default to initiator (us)
+        
+        if (enemySpeed > playerSpeed) {
+            // Enemy (responder) goes first
+            firstPlayer = 2;
+        } else if (enemySpeed == playerSpeed) {
+            // Speed tie: 50/50 random chance
+            firstPlayer = (QRandomGenerator::global()->bounded(2) == 0) ? 1 : 2;
+        }
+        // else: playerSpeed > enemySpeed, firstPlayer stays 1 (initiator goes first)
+        
+        // Send TURN_ORDER packet
+        QString dataStr = QString::number(firstPlayer);
+        BattlePacket turnOrderPacket(PacketType::TURN_ORDER, dataStr);
+        uartComm->sendPacket(turnOrderPacket);
+        
+        // Set our turn order based on who goes first
+        bool weGoFirst = (firstPlayer == 1);
+        battleSequence->setInitialTurnOrder(weGoFirst);
+    }
+    // If we're not the initiator, we'll wait for TURN_ORDER packet (handled in onUartPacketReceived)
 }
 
 void Window::setPlayerSpawnPosition(const QPointF &pos)
