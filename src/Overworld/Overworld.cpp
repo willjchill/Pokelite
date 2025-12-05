@@ -160,6 +160,16 @@ void Overworld::setPlayer(Player *player)
     menu->setPlayer(player);
 }
 
+void Overworld::setPlayerPosition(const QPointF &pos)
+{
+    if (playerOW) {
+        playerOW->setPosition(pos);
+        if (cameraOW) {
+            cameraOW->updateCamera(playerOW);
+        }
+    }
+}
+
 void Overworld::showOverworldMenu()
 {
     menu->showMenu();

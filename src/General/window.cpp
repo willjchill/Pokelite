@@ -257,6 +257,8 @@ void Window::keyPressEvent(QKeyEvent *event)
         if (!event->isAutoRepeat()) {
             startKeyboardMovement(static_cast<Qt::Key>(event->key()));
         }
+        // Check for lab entrance after movement
+        checkLabEntrance();
     }
     // Explicitly accept arrow keys to prevent QGraphicsView from scrolling the camera
     else if (event->key() == Qt::Key_Up || event->key() == Qt::Key_Down || 
@@ -662,4 +664,48 @@ void Window::startPvpBattle()
     battleSequence->setUartComm(uartComm);  // Pass UART to battle sequence
     
     inBattle = true;
+}
+
+void Window::setPlayerSpawnPosition(const QPointF &pos)
+{
+    if (overworld) {
+        overworld->setPlayerPosition(pos);
+
+        // Set player to face front when exiting lab
+        if (overworld->getPlayerItem()) {
+            overworld->getPlayerItem()->setDirection("front");
+            overworld->getPlayerItem()->stopAnimation();
+        }
+    }
+}
+
+void Window::checkLabEntrance()
+{
+    if (!overworld || !overworld->getPlayerItem()) return;
+
+    QPointF playerPos = overworld->getPlayerItem()->getPosition();
+
+    // Check if player is at lab entrance position (303, 199) with some tolerance
+    if (qAbs(playerPos.x() - 303) < 10 && qAbs(playerPos.y() - 199) < 10) {
+        emit returnToLab();
+    }
+}
+
+void Window::clearMovementState()
+{
+    // Clear all pressed movement keys
+    pressedMovementKeys.clear();
+
+    // Stop keyboard movement timer
+    if (keyboardMovementTimer && keyboardMovementTimer->isActive()) {
+        keyboardMovementTimer->stop();
+    }
+
+    // Stop D-pad repeat
+    stopDpadRepeat();
+
+    // Stop player animation in overworld
+    if (overworld && overworld->getPlayerItem()) {
+        overworld->getPlayerItem()->stopAnimation();
+    }
 }

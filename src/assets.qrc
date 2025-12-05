@@ -373,5 +373,6 @@
         <file>assets/battle/battle_player1.png</file>
         <file>assets/intro/title/IntroBG.png</file>
         <file>assets/intro/title/labBG.png</file>
+        <file>assets/intro/title/labCollision.png</file>
     </qresource>
 </RCC>

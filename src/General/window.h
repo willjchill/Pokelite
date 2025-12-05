@@ -27,6 +27,11 @@ class Window : public QMainWindow
 public:
     Window(QWidget *parent = nullptr);
     ~Window();
+    void setPlayerSpawnPosition(const QPointF &pos);
+    void clearMovementState();
+
+signals:
+    void returnToLab();
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
@@ -96,6 +101,7 @@ private:
     // ============================================================
     void initializePlayer();
     void startWildEncounter();
+    void checkLabEntrance();
     
     // ============================================================
     // PVP BATTLE UI

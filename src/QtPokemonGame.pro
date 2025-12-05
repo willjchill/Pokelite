@@ -7,6 +7,7 @@ CONFIG += c++17
 INCLUDEPATH += Battle/Battle_logic/json
 
 SOURCES += \
+    General/fadeeffect.cpp \
     General/main.cpp \
     General/window.cpp \
     General/gamepad.cpp \
@@ -34,6 +35,7 @@ SOURCES += \
     Battle/Battle_logic/jsoncpp.cpp
 
 HEADERS += \
+    General/fadeeffect.h \
     General/window.h \
     General/gamepad.h \
     General/uart_comm.h \

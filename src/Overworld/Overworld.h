@@ -30,6 +30,7 @@ public:
     // Player management
     void setPlayer(Player *player);
     Player* getPlayer() const { return gamePlayer; }
+    void setPlayerPosition(const QPointF &pos);
 
     // Wild encounters
     void tryWildEncounter();
