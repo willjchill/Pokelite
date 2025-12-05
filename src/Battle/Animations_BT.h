@@ -5,6 +5,8 @@
 #include <QVariantAnimation>
 #include <QTimer>
 #include <functional>
+#include <QRandomGenerator>
+#include <cmath>
 
 class BattleSequence; // forward declare
 
@@ -21,6 +23,7 @@ public:
     void slideInCommandMenu(BattleSequence *b);
     void slideOutCommandMenu(BattleSequence *b, std::function<void()> finished = nullptr);
     void animateMenuSelection(BattleSequence *b, int index);
+    void animateAttackImpact(BattleSequence *b, bool isPlayerAttacking);
 };
 
 #endif // ANIMATIONS_BT_H
