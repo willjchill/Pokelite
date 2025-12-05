@@ -1725,6 +1725,10 @@ void BattleSequence::attemptCatchPokemon(int itemIndex)
     // Use the pokeball immediately BEFORE animation
     pokeball.use();
 
+    // Hide bag menu during throw animation
+    destroyBagMenu();
+    inBagMenu = false;
+
     // Hide player Pokemon during catch attempt
     if (battlePlayerPokemonItem) {
         battlePlayerPokemonItem->setVisible(false);
@@ -1732,6 +1736,8 @@ void BattleSequence::attemptCatchPokemon(int itemIndex)
 
     // Play the trainer throw animation with pokeball
     animations.animateTrainerThrow(this, [=]() {
+
+
         // After pokeball throw animation completes, do catch calculation
 
         // Get enemy Pokemon
