@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include <QStringList>
 #include <QTimer>
+#include "../General/gamepad.h"
 
 class LoreScreen : public QWidget
 {
@@ -25,9 +26,11 @@ protected:
 private slots:
     void typeNextCharacter();
     void updatePromptGlow();
+    void handleGamepadInput(int type, int code, int value);
 
 private:
     void startTyping(const QString &text);
+    void simulateKeyPress(Qt::Key key);
 
     QLabel *loreTextLabel;
     QLabel *promptLabel;
@@ -43,6 +46,9 @@ private:
     bool isTyping;
     float glowIntensity;
     bool glowIncreasing;
+    
+    // Gamepad support
+    Gamepad *gamepadThread;
 };
 
 #endif

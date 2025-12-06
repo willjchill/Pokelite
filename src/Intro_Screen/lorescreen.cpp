@@ -2,6 +2,7 @@
 #include <QKeyEvent>
 #include <QShowEvent>
 #include <QFont>
+#include <QApplication>
 
 LoreScreen::LoreScreen(QWidget *parent)
     : QWidget(parent),
@@ -9,10 +10,16 @@ LoreScreen::LoreScreen(QWidget *parent)
     typeIndex(0),
     isTyping(false),
     glowIntensity(0.0f),
-    glowIncreasing(true)
+    glowIncreasing(true),
+    gamepadThread(nullptr)
 {
     setFixedSize(480, 272);
     setFocusPolicy(Qt::StrongFocus);
+    
+    // Initialize gamepad thread
+    gamepadThread = new Gamepad("/dev/input/event1", this);
+    connect(gamepadThread, &Gamepad::inputReceived, this, &LoreScreen::handleGamepadInput);
+    gamepadThread->start();
 
     bgLabel = new QLabel(this);
     bgLabel->setGeometry(0, 0, 480, 272);
@@ -61,6 +68,10 @@ LoreScreen::LoreScreen(QWidget *parent)
 
 LoreScreen::~LoreScreen()
 {
+    if (gamepadThread) {
+        gamepadThread->stop();
+        delete gamepadThread;
+    }
 }
 
 void LoreScreen::startTyping(const QString &text)
@@ -118,7 +129,8 @@ void LoreScreen::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Return ||
         event->key() == Qt::Key_Enter ||
-        event->key() == Qt::Key_Space) {
+        event->key() == Qt::Key_Space ||
+        event->key() == Qt::Key_Escape) {
 
         if (isTyping) {
             typeTimer.stop();
@@ -150,4 +162,24 @@ void LoreScreen::showEvent(QShowEvent *event)
     QWidget::showEvent(event);
     setFocus();
     startTyping(loreParts[0]);
+}
+
+void LoreScreen::handleGamepadInput(int type, int code, int value)
+{
+    // Only handle button presses for lore screen
+    if (type == 1 && value == 1) { // EV_KEY, pressed
+        if (code == 304) { // A button
+            simulateKeyPress(Qt::Key_Return);
+        } else if (code == 315) { // START button
+            simulateKeyPress(Qt::Key_Return);
+        } else if (code == 305) { // B button
+            simulateKeyPress(Qt::Key_Escape);
+        }
+    }
+}
+
+void LoreScreen::simulateKeyPress(Qt::Key key)
+{
+    QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
+    QApplication::postEvent(this, event);
 }

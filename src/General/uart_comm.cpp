@@ -301,12 +301,8 @@ void UartComm::parseReceivedData()
                     emit playerFound();
                 }
                 
-                // If we're finding a player and receive FINDING_PLAYER, reply with READY_BATTLE.
-                // Higher-level code is responsible for filling in Pokemon data.
-                if (packet.type == PacketType::FINDING_PLAYER && findingPlayer) {
-                    BattlePacket readyPacket(PacketType::READY_BATTLE);
-                    sendPacket(readyPacket);
-                }
+                // Note: FINDING_PLAYER response with Pokemon data is now handled in Window::onUartPacketReceived
+                // to ensure Pokemon data is included in the READY_BATTLE response
             }
         }
     }

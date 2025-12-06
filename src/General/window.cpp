@@ -363,6 +363,10 @@ void Window::handleGamepadInput(int type, int code, int value)
             if (pressed && !inBattle && !findingPlayer) {
                 onPvpBattleRequested();
             }
+        } else if (code == 315) { // START button
+            if (pressed && !inBattle && !findingPlayer) {
+                simulateKeyPress(Qt::Key_M);
+            }
         }
     } else if (type == 3) { // EV_ABS - analog stick/dpad
         // ABS_X = 0 (left stick X or dpad left/right)
@@ -535,6 +539,27 @@ void Window::onUartPacketReceived(const BattlePacket& packet)
     qDebug() << "Received UART packet type:" << static_cast<int>(packet.type) << "data:" << packet.data;
     
     switch (packet.type) {
+        case PacketType::FINDING_PLAYER:
+        {
+            // If we're finding a player and receive FINDING_PLAYER, reply with READY_BATTLE including our Pokemon data
+            if (findingPlayer && uartComm) {
+                int dexNumber = -1;
+                int level = -1;
+                if (gamePlayer && gamePlayer->getActivePokemon()) {
+                    const Pokemon *active = gamePlayer->getActivePokemon();
+                    dexNumber = active->getDexNumber();
+                    level = active->getLevel();
+                }
+                QString dataStr;
+                if (dexNumber > 0 && level > 0) {
+                    dataStr = QString::number(dexNumber) + "," + QString::number(level);
+                }
+                BattlePacket readyPacket(PacketType::READY_BATTLE, dataStr);
+                uartComm->sendPacket(readyPacket);
+                qDebug() << "Responded to FINDING_PLAYER with READY_BATTLE:" << dataStr;
+            }
+            break;
+        }
         case PacketType::READY_BATTLE:
         {
             // Parse opponent Pokemon data from READY_BATTLE:[dex],[level]
@@ -807,9 +832,13 @@ void Window::startPvpBattle()
         BattlePacket turnOrderPacket(PacketType::TURN_ORDER, dataStr);
         uartComm->sendPacket(turnOrderPacket);
         
-        // Set our turn order based on who goes first
-        bool weGoFirst = (firstPlayer == 1);
-        battleSequence->setInitialTurnOrder(weGoFirst);
+        // Wait a brief moment to ensure the responder receives TURN_ORDER before allowing input
+        // This prevents race conditions where both players might go first
+        QTimer::singleShot(100, [=]() {
+            // Set our turn order based on who goes first
+            bool weGoFirst = (firstPlayer == 1);
+            battleSequence->setInitialTurnOrder(weGoFirst);
+        });
     }
     // If we're not the initiator, we'll wait for TURN_ORDER packet (handled in onUartPacketReceived)
 }

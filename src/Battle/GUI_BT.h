@@ -103,6 +103,7 @@ private:
     bool opponentMoveReady = false; // True when opponent's move is received
     bool opponentTurnComplete = false; // True when opponent has completed their turn (item or move)
     bool isMyTurn = false;          // True when it's the local player's turn (alternating turns)
+    bool hasReceivedTurnOrder = false; // True when TURN_ORDER packet has been received (PvP only)
 
     // Battle UI elements
     QGraphicsPixmapItem *battleTrainerItem = nullptr;

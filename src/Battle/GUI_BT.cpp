@@ -63,6 +63,7 @@ void BattleSequence::startBattle(Player* player, Player* enemy, BattleSystem* bs
     opponentMoveReady = false;
     opponentTurnComplete = false;
     isMyTurn = false; // Will be set by determineInitialTurnOrder or setInitialTurnOrder for PvP
+    hasReceivedTurnOrder = false; // Will be set when TURN_ORDER packet is received (PvP only)
 
     // Don't determine turn order here - it will be set by:
     // - Initiator: determines and sends TURN_ORDER packet, then calls setInitialTurnOrder
@@ -595,6 +596,11 @@ void BattleSequence::handleBattleKey(QKeyEvent *event)
     if (!battleSystem->getPvpMode() && battleSystem->isWaitingForEnemyTurn())
         return;
 
+    // In PvP mode, block input until turn order is received
+    if (battleSystem->getPvpMode() && !hasReceivedTurnOrder) {
+        return;
+    }
+    
     // In PvP mode, if it's not the player's turn, block input
     if (battleSystem->getPvpMode() && !isMyTurn) {
         return;
@@ -2383,6 +2389,7 @@ void BattleSequence::executePvpTurn()
 
 void BattleSequence::setInitialTurnOrder(bool weGoFirst)
 {
+    hasReceivedTurnOrder = true; // Mark that we've received turn order
     isMyTurn = weGoFirst;
     // Update initial battle text based on turn order
     if (battleSystem && battleSystem->getPvpMode()) {
