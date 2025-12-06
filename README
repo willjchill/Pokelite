@@ -1,9 +1,12 @@
 ==== UPDATE LOG ====
 
 NAME, DATE, DESCRIPTION
+ptnguy01, 12/5/2025, Overhaul of battle system + animations fixed. Added impact graphics for pokemon attacking + misc graphics fix to smooth transition between window frames
 willjdes, 12/5/2025, compatible with /etc/inittab startup, more UART fixes
+ptnguy01, 12/4/2025, Added animations of player throwing aniamtion at the start of battle. Added introduction sequence + intro lab map with tutorial allowing players to choose starting pokemon.
 willjdes, 12/4/2025, Adding UART, fixing project organization A LOT
 willjdes, 12/2/2025, Adding Pokeball feature and fixing GUI. 
+ptnguy01, 11/24/2025, Finished up the intro sequence graphics when booting up the game
 willjdes, 11/23/2025, Adding ARM Makefile. Allows userland code to be run properly on BeagleBone. Note that QT uses C++17 and game logic uses C++11.
 willjdes, 11/20/2025, Further tweaking game state and fixing pokemon database. Basic attacks should work. No modifiers like poison or flinch etc exist. Also need to add "catching" and wild encounter probabilities.
 willjdes, 11/19/2025, Setup pokemon JSON files, parser, battle logic, initial object designs
