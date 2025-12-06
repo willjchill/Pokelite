@@ -12,6 +12,7 @@
 #include <QImage>
 #include <QVector>
 #include "Player_OW.h"
+#include "../General/gamepad.h"
 #include <cmath>
 
 class LabMap : public QWidget
@@ -35,6 +36,7 @@ private slots:
     void typeNextCharacter();
     void updatePromptGlow();
     void gameLoop();
+    void handleGamepadInput(int type, int code, int value);
 
 private:
     void startDialogue();
@@ -103,6 +105,10 @@ private:
         QString spritePath;
     };
     QVector<StarterPokemon> starters;
+    
+    // Gamepad support
+    Gamepad *gamepadThread;
+    void simulateKeyPress(Qt::Key key);
 };
 
 #endif

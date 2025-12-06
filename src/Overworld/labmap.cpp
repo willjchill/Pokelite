@@ -3,6 +3,7 @@
 #include <QKeyEvent>
 #include <QShowEvent>
 #include <QFont>
+#include <QApplication>
 
 LabMap::LabMap(QWidget *parent)
     : QWidget(parent),
@@ -20,10 +21,16 @@ LabMap::LabMap(QWidget *parent)
     bgXOffset(0),
     bgYOffset(0),
     hasShownInitialDialogue(false),
-    shimmerPhase(0.0f)
+    shimmerPhase(0.0f),
+    gamepadThread(nullptr)
 {
     setFixedSize(480, 272);
     setFocusPolicy(Qt::StrongFocus);
+    
+    // Initialize gamepad thread
+    gamepadThread = new Gamepad("/dev/input/event1", this);
+    connect(gamepadThread, &Gamepad::inputReceived, this, &LabMap::handleGamepadInput);
+    gamepadThread->start();
 
     scene = new QGraphicsScene(this);
     scene->setSceneRect(0, 0, 480, 272);
@@ -219,6 +226,10 @@ LabMap::LabMap(QWidget *parent)
 }
 LabMap::~LabMap()
 {
+    if (gamepadThread) {
+        gamepadThread->stop();
+        delete gamepadThread;
+    }
 }
 
 bool LabMap::isSolidPixel(int x, int y) const
@@ -551,7 +562,8 @@ void LabMap::keyPressEvent(QKeyEvent *event)
     if (dialogueActive && !dialogueFinished) {
         if (event->key() == Qt::Key_Return ||
             event->key() == Qt::Key_Enter ||
-            event->key() == Qt::Key_Space) {
+            event->key() == Qt::Key_Space ||
+            event->key() == Qt::Key_Escape) {
 
             if (isTyping) {
                 typeTimer.stop();
@@ -659,6 +671,61 @@ void LabMap::updateSelectionShimmer()
         shimmerPhase = 0.0f;
     }
     updateStarterDisplay();
+}
+
+void LabMap::handleGamepadInput(int type, int code, int value)
+{
+    // Only handle button presses for lab map
+    if (type == 1 && value == 1) { // EV_KEY, pressed
+        if (code == 304) { // A button
+            simulateKeyPress(Qt::Key_Return);
+        } else if (code == 315) { // START button
+            // START button should skip dialogue or confirm starter selection
+            if (dialogueActive && !dialogueFinished) {
+                simulateKeyPress(Qt::Key_Return);
+            } else if (isSelectingStarter) {
+                simulateKeyPress(Qt::Key_Return);
+            }
+        } else if (code == 305) { // B button
+            // B button should skip dialogue or act as cancel
+            if (dialogueActive && !dialogueFinished) {
+                simulateKeyPress(Qt::Key_Return);
+            }
+        }
+    } else if (type == 3) { // EV_ABS - analog stick/dpad
+        // Handle D-pad for movement
+        if (code == 16) { // D-pad X
+            if (isSelectingStarter) {
+                if (value == -1) { // Left
+                    simulateKeyPress(Qt::Key_A);
+                } else if (value == 1) { // Right
+                    simulateKeyPress(Qt::Key_D);
+                }
+            } else if (!dialogueActive || dialogueFinished) {
+                // Movement handled by keyPressEvent
+                if (value == -1) { // Left
+                    simulateKeyPress(Qt::Key_A);
+                } else if (value == 1) { // Right
+                    simulateKeyPress(Qt::Key_D);
+                }
+            }
+        } else if (code == 17) { // D-pad Y
+            if (!dialogueActive || dialogueFinished) {
+                // Movement handled by keyPressEvent
+                if (value == -1) { // Up
+                    simulateKeyPress(Qt::Key_W);
+                } else if (value == 1) { // Down
+                    simulateKeyPress(Qt::Key_S);
+                }
+            }
+        }
+    }
+}
+
+void LabMap::simulateKeyPress(Qt::Key key)
+{
+    QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
+    QApplication::postEvent(this, event);
 }
 
 

@@ -687,6 +687,32 @@ void BattleSequence::handleBattleKey(QKeyEvent *event)
         }
         return;
     }
+    else if (key == Qt::Key_Escape || key == Qt::Key_B) {
+        // B button / Escape: Go back to main battle menu
+        if (inBagMenu) {
+            destroyBagMenu();
+            inBagMenu = false;
+            inBattleMenu = true;
+            battleMenuIndex = 0;
+            updateBattleCursor();
+            return;
+        } else if (inPokemonMenu) {
+            destroyPokemonMenu();
+            inPokemonMenu = false;
+            inBattleMenu = true;
+            battleMenuIndex = 0;
+            updateBattleCursor();
+            return;
+        } else if (inMoveMenu) {
+            destroyMoveMenu();
+            inMoveMenu = false;
+            inBattleMenu = true;
+            battleMenuIndex = 0;
+            updateBattleCursor();
+            return;
+        }
+        // If already in main battle menu, do nothing
+    }
 
     updateBattleCursor();
 }
