@@ -1,3 +1,38 @@
+# PokeLite - Embedded Systems Pokemon Game
+
+## 🎮 Features
+
+### Core Gameplay
+- **Turn-based Battle System** - Classic Pokemon-style combat with 4 moves per Pokemon
+- **Type Effectiveness** - Full type chart implementation (Fire, Water, Grass, Electric, etc.)
+- **Pokemon Stats** - HP, Attack, Defense, Speed with level-based scaling
+- **Bag System** - Potions, revives, and Pokeballs for catching wild Pokemon
+- **Player vs Environment** - Battle wild Pokemon and catch them
+- **Player vs Player** - UART-based multiplayer battles between two BeagleBones
+
+### Battle Features
+- **Dynamic Animations**
+  - Pokeball throw animation with arc trajectory
+  - Attack impact effects with screen shake
+  - Pokemon sprite movements (lunge forward, recoil back)
+  - Smooth HP bar transitions
+  - Battle transitions and fades
+- **Interactive UI**
+  - Custom battle menus with cursor navigation
+  - HP indicator boxes with tail pointers
+  - Move selection with type indicators
+  - Bag interface for items
+  - Pokemon switching interface
+
+### Embedded Systems Integration
+- **Framebuffer Rendering** - Direct rendering to `/dev/fb0` at 60 FPS
+- **Controller Input** - USB gamepad support (D-pad, A/B/X/Y, L/R, Start/Select)
+- **UART Communication** - Real-time PvP battle synchronization via link cable
+- **Boot Animation** - Game Boy-style startup sequence
+
+
+
+
 ==== UPDATE LOG ====
 
 NAME, DATE, DESCRIPTION
