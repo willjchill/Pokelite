@@ -1,6 +1,7 @@
 # RPG Embedded Game
 
-A Pokemon-style RPG game built with Qt for embedded systems. The game features overworld exploration, turn-based battles, and multiplayer PvP support via UART communication.
+A Pokemon-style RPG game built with **C++** and **Qt Framework**, designed to run on BeagleBone Black with LCD touchscreen cape. Features turn-based battles, PvP multiplayer via UART, and smooth battle animations.
+
 
 ## Project Structure
 
