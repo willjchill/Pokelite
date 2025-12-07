@@ -4,6 +4,8 @@ A Pokemon-style RPG game built with **C++** and **Qt Framework**, designed to ru
 
 ## Gameplay Features:
 
+![Walking Demo](misc/WalkingDemo.gif)
+
 Battle through Pokemon encounters with turn-based combat featuring:
 - **Attack** - Choose from 3 unique moves per Pokemon
 - **Items** - Use potions and revives from inventory
