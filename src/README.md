@@ -13,6 +13,27 @@ Battle through Pokemon encounters with turn-based combat featuring:
 
 Fight wild Pokemon to level up your team, or connect two BeagleBones via UART for real-time PvP battles.
 
+### Battle Animations
+- Pokeball throw animation with arc trajectory and rotation
+- Attack impact effects with screen shake
+- Pokemon sprite movements (lunge forward, recoil back)
+- Smooth HP bar transitions with color coding
+- Battle transitions and fade effects
+- White flash on critical hits
+
+### Interactive UI
+- Custom battle menus with cursor navigation
+- HP indicator boxes with tail pointers to Pokemon
+- Move selection with type indicators
+- Bag interface for items and Pokeballs
+- Pokemon switching interface with team overview
+
+### Embedded Systems Integration
+- **Framebuffer Rendering** - Direct rendering to `/dev/fb0` at 60 FPS
+- **Controller Input** - USB gamepad support (D-pad, A/B/X/Y, L/R, Start/Select)
+- **UART Communication** - Real-time PvP battle synchronization via link cable
+- **Boot Animation** - Game Boy-style startup sequence
+
 ## Project Structure
 
 - **General/**: Core application infrastructure and window management
