@@ -54,7 +54,6 @@ Fight wild Pokemon to level up your team, or connect two BeagleBones via UART fo
 - Resource file: `assets.qrc`
 
 
-
 ==== UPDATE LOG ====
 
 NAME, DATE, DESCRIPTION
