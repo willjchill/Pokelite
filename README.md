@@ -166,6 +166,6 @@ make
 | **willjdes** | 11/13/2025 | Google doc planning |
 | **willjdes** | 11/13/2025 | Repo created |
 
-Credits:
+## Credits:
 - Banner generated using Nano Banana Pro in Gemini
 - Assets taken from The Spriter Resources Pokemon FireRed / LeafGreen
