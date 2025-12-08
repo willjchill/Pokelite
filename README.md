@@ -1,79 +1,120 @@
 # RPG Embedded Game
 
-A Pokemon-style RPG game built with **C++** and **Qt Framework**, designed to run on BeagleBone Black with LCD touchscreen cape. Features turn-based battles, PvP multiplayer via UART, and smooth battle animations.
+A polished Pokémon-style RPG built with **C++** and the **Qt Framework**, designed for the **BeagleBone Black** with an LCD touchscreen cape.  
+Experience smooth overworld exploration, full turn-based battles, PvP multiplayer via UART, and custom battle animations optimized for embedded hardware.
 
-## Gameplay Features:
-![Walking Demo](misc/Walking.gif)
+---
 
+## 🎮 Gameplay Features
 
-Battle through Pokemon encounters with turn-based combat featuring:
-- **Attack** - Choose from 3 unique moves per Pokemon
-- **Items** - Use potions and revives from inventory
-- **Switch** - Swap Pokemon mid-battle strategically
-- **Catch** - Capture wild Pokemon with Pokeballs
-- **PvP** - Real time multiplayer battle with other players
+<p align="center">
+  <img src="misc/Walking.gif" width="450">
+</p>
 
-Fight wild Pokemon to level up your team, or connect two BeagleBones via UART for real-time PvP battles.
+Explore maps, encounter Pokémon, and engage in classic turn-based combat featuring:
 
-![Pokemon Starter](misc/PokemonStarter.gif)
+- **Attack** – 3 unique moves per Pokémon  
+- **Items** – Potions, revives, and Pokéballs  
+- **Switch** – Swap party members mid-battle  
+- **Catch** – Capture wild Pokémon  
+- **PvP Battles** – Real-time UART-linked battles between two BeagleBones  
 
-### Battle Animations
-- Pokeball throw animation with arc trajectory and rotation
-- Attack impact effects with screen shake
-- Pokemon sprite movements (lunge forward, recoil back)
-- Smooth HP bar transitions with color coding
-- Battle transitions and fade effects
-- White flash on critical hits
-  
-![Battle Demo](misc/Battle.gif)
+Fight, level up, and build your team as you explore the world.
 
-### Interactive UI
-- Custom battle menus with cursor navigation
-- HP indicator boxes with tail pointers to Pokemon
-- Move selection with type indicators
-- Bag interface for items and Pokeballs
-- Pokemon switching interface with team overview
+<p align="center">
+  <img src="misc/PokemonStarter.gif" width="450">
+</p>
 
-### Embedded Systems Integration
-- **Framebuffer Rendering** - Direct rendering to `/dev/fb0` at 60 FPS
-- **Controller Input** - USB gamepad support (D-pad, A/B/X/Y, L/R, Start/Select)
-- **UART Communication** - Real-time PvP battle synchronization via link cable
-- **Boot Animation** - Game Boy-style startup sequence
+---
 
-## Project Structure
+## ⚔️ Battle Animations
 
-- **General/**: Core application infrastructure and window management
-- **Intro_Screen/**: Game introduction sequence
-- **Overworld/**: Overworld exploration and map system
-- **Battle/**: Battle system with GUI, animations, and game logic
+- Pokéball throw arc with rotation  
+- Attack hit/impact effects with screen shake  
+- Pokémon movement animations (lunge → recoil)
+- Smooth HP bar transitions with color cues  
+- Fade-in/out battle transitions  
+- Critical-hit white flash  
 
-## Entry Point
+<p align="center">
+  <img src="misc/Battle.gif" width="450">
+</p>
 
-`General/main.cpp` initializes the Qt application, displays the intro screen, and transitions to the main game window.
+---
 
-## Build System
+## 🖥️ Interactive UI
 
-- Qt project file: `QtPokemonGame.pro`
-- Makefile: `Makefile`
-- Resource file: `assets.qrc`
+- Clean four-option battle menu with cursor navigation  
+- HP indicator boxes with pointer tails  
+- Move selection with type labels  
+- Bag interface with categorized items  
+- Party menu with Pokémon stats + selection  
 
+---
 
-==== UPDATE LOG ====
+## 🔧 Embedded Systems Integration
 
-NAME, DATE, DESCRIPTION
-ptnguy01, 12/5/2025, Overhaul of battle system + animations fixed. Added impact graphics for pokemon attacking + misc graphics fix to smooth transition between window frames
-willjdes, 12/5/2025, compatible with /etc/inittab startup, more UART fixes
-ptnguy01, 12/4/2025, Added animations of player throwing aniamtion at the start of battle. Added introduction sequence + intro lab map with tutorial allowing players to choose starting pokemon.
-willjdes, 12/4/2025, Adding UART, fixing project organization A LOT
-willjdes, 12/2/2025, Adding Pokeball feature and fixing GUI. 
-ptnguy01, 11/24/2025, Finished up the intro sequence graphics when booting up the game
-willjdes, 11/23/2025, Adding ARM Makefile. Allows userland code to be run properly on BeagleBone. Note that QT uses C++17 and game logic uses C++11.
-willjdes, 11/20/2025, Further tweaking game state and fixing pokemon database. Basic attacks should work. No modifiers like poison or flinch etc exist. Also need to add "catching" and wild encounter probabilities.
-willjdes, 11/19/2025, Setup pokemon JSON files, parser, battle logic, initial object designs
-ptnguy01, 11/19/2025, Added animations for player sprite, added collisions for obstacles on map
-ptnguy01, 11/18/2025, Uploaded src for basic movement using assets to feature/graphics branch
-ptnguy01, 11/17/2025, Uploaded basic controlling movement to feature/MainGame
-willjdes, 11/15/2025, Used built-in xpad.c module from bbb and tested functionality with tetris.c using QT
-ptnguy01, 11/14/2025, Uploaded controller.c and Makefile - Makefile needs modification to run on BeagleBone
-willjdes, 11/13/2025, Google Doc created
-willjdes, 11/13/2025, Git repo created
+- **Framebuffer Rendering:** Direct `/dev/fb0` drawing at 60 FPS  
+- **Controller Input:** USB gamepad (D-Pad, A/B/X/Y, L/R, Start/Select)  
+- **UART Communication:** Real-time PvP sync between two devices  
+- **Boot Animation:** Game Boy-style splash intro  
+- **ARM Optimized:** Compatible with BeagleBone userland + Qt C++17  
+
+---
+
+## 📁 Project Structure
+
+```
+General/          → Core backend logic & window handling  
+Intro_Screen/     → Startup logo + intro sequence  
+Overworld/        → Maps, collisions, player movement  
+Battle/           → Full battle engine, UI, and animations  
+assets.qrc        → Resource file (sprites, maps, UI graphics)  
+QtPokemonGame.pro → Main Qt project configuration  
+Makefile          → Build rules for Linux/ARM  
+```
+
+---
+
+## 🚀 Entry Point
+
+The game begins in:
+
+```
+General/main.cpp
+```
+
+It initializes the Qt application, displays the intro sequence, and transitions into the overworld.
+
+---
+
+## 🛠️ Build System
+
+- **Qt Project File:** `QtPokemonGame.pro`  
+- **Makefile:** `Makefile`  
+- **Resource Pack:** `assets.qrc`  
+- Supports **desktop debugging** and **ARM cross-compiling** for BeagleBone.
+
+---
+
+# 📜 UPDATE LOG
+
+| Name | Date | Description |
+|------|------|-------------|
+| **ptnguy01** | 12/5/2025 | Battle system overhaul + animation fixes, added attack impact graphics, smoother frame transitions |
+| **willjdes** | 12/5/2025 | `/etc/inittab` startup compatibility, UART stability improvements |
+| **ptnguy01** | 12/4/2025 | Added trainer throw animation, intro sequence, tutorial lab map w/ starter selection |
+| **willjdes** | 12/4/2025 | Major project folder clean-up, UART improvements |
+| **willjdes** | 12/2/2025 | Added Pokéball catching + GUI fixes |
+| **ptnguy01** | 11/24/2025 | Finished intro boot graphics |
+| **willjdes** | 11/23/2025 | Added ARM Makefile compatibility (Qt: C++17, Logic: C++11) |
+| **willjdes** | 11/20/2025 | Updated Pokémon JSON data + battle logic basics |
+| **willjdes** | 11/19/2025 | Implemented Pokémon database parser |
+| **ptnguy01** | 11/19/2025 | Added player animation + overworld collision |
+| **ptnguy01** | 11/18/2025 | Uploaded graphics implementation to `feature/graphics` |
+| **ptnguy01** | 11/17/2025 | Added initial movement logic |
+| **willjdes** | 11/15/2025 | Gamepad support via xpad.c, tested with Tetris |
+| **ptnguy01** | 11/14/2025 | Added controller.c + Makefile |
+| **willjdes** | 11/13/2025 | Google doc planning |
+| **willjdes** | 11/13/2025 | Repo created |
+
