@@ -3,7 +3,7 @@
 A Pokemon-style RPG game built with **C++** and **Qt Framework**, designed to run on BeagleBone Black with LCD touchscreen cape. Features turn-based battles, PvP multiplayer via UART, and smooth battle animations.
 
 ## Gameplay Features:
-![Walking Demo](misc/WalkingDemo.gif)
+![Walking Demo](misc/Walking.gif)
 
 
 Battle through Pokemon encounters with turn-based combat featuring:
