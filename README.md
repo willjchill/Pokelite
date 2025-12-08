@@ -75,19 +75,6 @@ assets.qrc        → Resource file (sprites, maps, UI graphics)
 QtPokemonGame.pro → Main Qt project configuration  
 Makefile          → Build rules for Linux/ARM  
 ```
-
----
-
-## 🚀 Entry Point
-
-The game begins in:
-
-```
-General/main.cpp
-```
-
-It initializes the Qt application, displays the intro sequence, and transitions into the overworld.
-
 ---
 
 ## 🛠️ Build System
@@ -98,6 +85,65 @@ It initializes the Qt application, displays the intro sequence, and transitions 
 - Supports **desktop debugging** and **ARM cross-compiling** for BeagleBone.
 
 ---
+
+## 🚀 How to Build and Run
+
+### Prerequisites
+
+- Qt Framework installed (Qt 5.x or later)
+- C++17 compatible compiler
+- For BeagleBone: ARM cross-compiler toolchain
+
+### Building the Project
+
+1. **Clone the repository:**
+```bash
+   git clone 
+   cd 
+```
+
+2. **Generate Makefile using qmake:**
+```bash
+   qmake QtPokemonGame.pro
+```
+
+3. **Build the project:**
+```bash
+   make
+```
+
+### Running the Game
+
+**On Desktop (for testing):**
+```bash
+./QtPokemonGame
+```
+
+**On BeagleBone Black:**
+```bash
+# Transfer the compiled binary to BeagleBone
+scp QtPokemonGame debian@:~/
+
+# SSH into BeagleBone
+ssh debian@
+
+# Run the game
+./QtPokemonGame
+```
+
+### Cross-Compiling for BeagleBone
+
+If cross-compiling from a host machine:
+```bash
+# Use ARM-specific qmake
+arm-linux-gnueabihf-qmake QtPokemonGame.pro
+
+# Build for ARM
+make
+```
+
+---
+
 
 # 📜 UPDATE LOG
 
