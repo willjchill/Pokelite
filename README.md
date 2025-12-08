@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="misc/Banner" width="450">
+  <img src="misc/Banner.png" width="650">
 </p>
 
 # Pokelite
