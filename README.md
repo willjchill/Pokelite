@@ -121,4 +121,5 @@ It initializes the Qt application, displays the intro sequence, and transitions 
 | **willjdes** | 11/13/2025 | Repo created |
 
 Credits:
-(Banner generated using Nano Banana Pro in Gemini)
+- Banner generated using Nano Banana Pro in Gemini
+- Assets taken from The Spriter Resources Pokemon FireRed / LeafGreen
