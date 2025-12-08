@@ -113,20 +113,41 @@ void Window::initializePlayer()
 {
     // Initialize Pokemon data if not already done
     initializePokemonDataFromJSON();
-    
+
     // Create player if not exists
     if (!gamePlayer) {
         gamePlayer = new Player("Player", PlayerType::HUMAN);
-        // Randomly select a starter Pokemon (Bulbasaur=1, Charmander=4, Squirtle=7)
-        int starterDexNumbers[] = {1, 4, 7}; // Bulbasaur, Charmander, Squirtle
-        int randomIndex = QRandomGenerator::global()->bounded(3);
-        int starterDex = starterDexNumbers[randomIndex];
+
+        int starterDex = 1; // Default to Bulbasaur if no choice was made
+
+        if (!chosenStarterName.isEmpty()) {
+            // Map starter name to dex number
+            if (chosenStarterName == "Bulbasaur") {
+                starterDex = 1;
+            } else if (chosenStarterName == "Charmander") {
+                starterDex = 4;
+            } else if (chosenStarterName == "Squirtle") {
+                starterDex = 7;
+            }
+        }
+
         Pokemon starter(starterDex, 5);
         gamePlayer->addPokemon(starter);
     }
-    
+
     // Set player in overworld
     overworld->setPlayer(gamePlayer);
+}
+
+void Window::setChosenStarter(const QString& starterName)
+{
+    chosenStarterName = starterName;
+    // Reinitialize player with the chosen starter
+    if (gamePlayer) {
+        delete gamePlayer;
+        gamePlayer = nullptr;
+    }
+    initializePlayer();
 }
 
 void Window::onWildEncounterTriggered()

@@ -29,6 +29,7 @@ public:
     ~Window();
     void setPlayerSpawnPosition(const QPointF &pos);
     void clearMovementState();
+    void setChosenStarter(const QString& starterName);
 
 signals:
     void returnToLab();
@@ -58,7 +59,7 @@ private:
     // ============================================================
     Overworld *overworld = nullptr;
     BattleSequence *battleSequence = nullptr;
-
+    QString chosenStarterName;
     // ============================================================
     // GAME STATE
     // ============================================================

@@ -23,6 +23,7 @@ public:
     explicit LabMap(QWidget *parent = nullptr);
     ~LabMap();
     void setPlayerSpawnPosition(const QPointF &pos);
+    QString getChosenStarter() const { return chosenStarter; }
 
 signals:
     void exitToOverworld();

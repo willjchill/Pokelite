@@ -58,13 +58,14 @@ int main(int argc, char *argv[])
     QObject::connect(&lab, &LabMap::exitToOverworld,
                      [&, labFade, worldFade]() {
                          labFade->fadeOut(300);
-
                          static QMetaObject::Connection conn;
                          conn = QObject::connect(labFade, &FadeEffect::fadeOutFinished, [&, worldFade]() {
                              QObject::disconnect(conn);
-
                              QPoint pos = lab.pos();
                              lab.hide();
+
+                             QString starter = lab.getChosenStarter();
+                             w.setChosenStarter(starter);
 
                              w.clearMovementState();
                              w.move(pos);
@@ -72,9 +73,7 @@ int main(int argc, char *argv[])
                              w.show();
                              w.raise();
                              w.activateWindow();
-
                              worldFade->fadeIn(300);
-
                              QTimer::singleShot(50, &w, [&w]() {
                                  w.setFocus();
                                  w.activateWindow();

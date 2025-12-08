@@ -44,6 +44,13 @@ QString BattleSequence::capitalizeFirst(const QString& str) const
 
 void BattleSequence::startBattle(Player* player, Player* enemy, BattleSystem* bs)
 {
+    // Clean up any existing battle scene first
+    if (battleScene) {
+        battleScene->clear();
+        delete battleScene;
+        battleScene = nullptr;
+    }
+
     gamePlayer = player;
     enemyPlayer = enemy;
     battleSystem = bs;
@@ -323,6 +330,30 @@ void BattleSequence::closeBattle()
     destroyMoveMenu();
     destroyBagMenu();
     destroyPokemonMenu();
+
+    // Clean up battle scene to prevent memory leaks and crashes
+    if (battleScene) {
+        battleScene->clear();  // Remove all items
+        delete battleScene;
+        battleScene = nullptr;
+    }
+
+    // Reset all sprite pointers
+    battleTrainerItem = nullptr;
+    battlePlayerPokemonItem = nullptr;
+    battleEnemyItem = nullptr;
+    dialogueBoxSprite = nullptr;
+    commandBoxSprite = nullptr;
+    battleCursorSprite = nullptr;
+    battleTextItem = nullptr;
+    enemyPokemonNameText = nullptr;
+    playerPokemonNameText = nullptr;
+    enemyHpBackSprite = nullptr;
+    playerHpBackSprite = nullptr;
+    enemyHpMask = nullptr;
+    playerHpMask = nullptr;
+    enemyHpFill = nullptr;
+    playerHpFill = nullptr;
 
     emit battleEnded();
 }
@@ -725,17 +756,36 @@ void BattleSequence::updateBattleCursor()
 
     if (inBagMenu && !bagMenuOptions.isEmpty() && battleMenuIndex < bagMenuOptions.size()) {
         target = bagMenuOptions[battleMenuIndex];
+        // Small menu cursor - inside box
+        if (target) {
+            battleCursorSprite->setPos(target->pos().x() - 12,
+                                       target->pos().y() + 2);
+        }
+        return;
     } else if (inPokemonMenu && !pokemonMenuOptions.isEmpty() && battleMenuIndex < pokemonMenuOptions.size()) {
         target = pokemonMenuOptions[battleMenuIndex];
+        // Small menu cursor - inside box
+        if (target) {
+            battleCursorSprite->setPos(target->pos().x() - 12,
+                                       target->pos().y() + 2);
+        }
+        return;
     } else if (battleSystem && battleSystem->isWaitingForPlayerMove() && !moveMenuOptions.isEmpty() && battleMenuIndex < moveMenuOptions.size()) {
         target = moveMenuOptions[battleMenuIndex];
+        // Small menu cursor - inside box
+        if (target) {
+            battleCursorSprite->setPos(target->pos().x() - 12,
+                                       target->pos().y() + 2);
+        }
+        return;
     } else if (!battleMenuOptions.isEmpty() && battleMenuIndex < battleMenuOptions.size()) {
         target = battleMenuOptions[battleMenuIndex];
-    }
-
-    if (target) {
-        battleCursorSprite->setPos(target->pos().x() - 28,
-                                   target->pos().y() - 2);
+        // MAIN COMMAND BOX cursor - original position
+        if (target) {
+            battleCursorSprite->setPos(target->pos().x() - 22,
+                                       target->pos().y() - 5);
+        }
+        return;
     }
 }
 
@@ -755,14 +805,22 @@ void BattleSequence::playerSelectedOption(int index)
         std::vector<int> maxPP = battleSystem->getPlayerMoveMaxPP();
 
         QFont f("Pokemon Fire Red", 9, QFont::Bold);
+        f.setStyleStrategy(QFont::NoAntialias);  // Smoother text
 
         const qreal boxW = 240, boxH = 80;
         qreal boxX = dialogueBoxSprite->pos().x() + 10;
         qreal boxY = dialogueBoxSprite->pos().y() - boxH - 4;
 
+        // Shadow for depth
+        QGraphicsRectItem *shadow = new QGraphicsRectItem(boxX + 3, boxY + 3, boxW, boxH);
+        shadow->setBrush(QColor(0, 0, 0, 100));
+        shadow->setPen(Qt::NoPen);
+        shadow->setZValue(2);
+        battleScene->addItem(shadow);
+
         moveMenuRect = new QGraphicsRectItem(boxX, boxY, boxW, boxH);
-        moveMenuRect->setBrush(Qt::white);
-        moveMenuRect->setPen(QPen(Qt::black, 2));
+        moveMenuRect->setBrush(QColor(245, 245, 220));  // Beige background
+        moveMenuRect->setPen(QPen(QColor(70, 130, 180), 3));  // Blue border
         moveMenuRect->setZValue(3);
         battleScene->addItem(moveMenuRect);
 
@@ -782,7 +840,7 @@ void BattleSequence::playerSelectedOption(int index)
 
             QGraphicsTextItem *t = new QGraphicsTextItem(label);
             t->setFont(f);
-            t->setDefaultTextColor(Qt::black);
+            t->setDefaultTextColor(QColor(44, 62, 80));  // Dark blue-gray text
 
             int row = i / 2;
             int col = i % 2;
@@ -1209,14 +1267,22 @@ void BattleSequence::showBagMenu()
     std::vector<int> quantities = battleSystem->getBagItemQuantities();
 
     QFont f("Pokemon Fire Red", 9, QFont::Bold);
+    f.setStyleStrategy(QFont::NoAntialias);
 
     const qreal boxW = 240, boxH = 120;
     qreal boxX = dialogueBoxSprite->pos().x() + 10;
     qreal boxY = dialogueBoxSprite->pos().y() - boxH - 4;
 
+    // Shadow for depth
+    QGraphicsRectItem *shadow = new QGraphicsRectItem(boxX + 3, boxY + 3, boxW, boxH);
+    shadow->setBrush(QColor(0, 0, 0, 100));
+    shadow->setPen(Qt::NoPen);
+    shadow->setZValue(2);
+    battleScene->addItem(shadow);
+
     bagMenuRect = new QGraphicsRectItem(boxX, boxY, boxW, boxH);
-    bagMenuRect->setBrush(Qt::white);
-    bagMenuRect->setPen(QPen(Qt::black, 2));
+    bagMenuRect->setBrush(QColor(245, 245, 220));
+    bagMenuRect->setPen(QPen(QColor(70, 130, 180), 3));
     bagMenuRect->setZValue(3);
     battleScene->addItem(bagMenuRect);
 
@@ -1237,7 +1303,7 @@ void BattleSequence::showBagMenu()
 
                 QGraphicsTextItem *t = new QGraphicsTextItem(label);
                 t->setFont(f);
-                t->setDefaultTextColor(Qt::black);
+                t->setDefaultTextColor(QColor(44, 62, 80));
 
                 int row = menuIndex / 2;
                 int col = menuIndex % 2;
@@ -1247,7 +1313,7 @@ void BattleSequence::showBagMenu()
 
                 battleScene->addItem(t);
                 bagMenuOptions.push_back(t);
-                bagMenuItemIndices.push_back(static_cast<int>(i)); // Store original index
+                bagMenuItemIndices.push_back(static_cast<int>(i));
                 menuIndex++;
             }
         }
@@ -1256,7 +1322,7 @@ void BattleSequence::showBagMenu()
         if (menuIndex < 6) {
             QGraphicsTextItem *t = new QGraphicsTextItem("BACK");
             t->setFont(f);
-            t->setDefaultTextColor(Qt::black);
+            t->setDefaultTextColor(QColor(44, 62, 80));
             int row = menuIndex / 2;
             int col = menuIndex % 2;
             t->setPos(boxX + 12 + col * 115,
@@ -1264,7 +1330,7 @@ void BattleSequence::showBagMenu()
             t->setZValue(4);
             battleScene->addItem(t);
             bagMenuOptions.push_back(t);
-            bagMenuItemIndices.push_back(-1); // -1 means BACK
+            bagMenuItemIndices.push_back(-1);
         }
     }
 
@@ -1294,14 +1360,22 @@ void BattleSequence::showPokemonMenu()
     int activeIndex = battleSystem->getActivePokemonIndex();
 
     QFont f("Pokemon Fire Red", 9, QFont::Bold);
+    f.setStyleStrategy(QFont::NoAntialias);
 
     const qreal boxW = 240, boxH = 140;
     qreal boxX = dialogueBoxSprite->pos().x() + 10;
     qreal boxY = dialogueBoxSprite->pos().y() - boxH - 4;
 
+    // Shadow for depth
+    QGraphicsRectItem *shadow = new QGraphicsRectItem(boxX + 3, boxY + 3, boxW, boxH);
+    shadow->setBrush(QColor(0, 0, 0, 100));
+    shadow->setPen(Qt::NoPen);
+    shadow->setZValue(2);
+    battleScene->addItem(shadow);
+
     pokemonMenuRect = new QGraphicsRectItem(boxX, boxY, boxW, boxH);
-    pokemonMenuRect->setBrush(Qt::white);
-    pokemonMenuRect->setPen(QPen(Qt::black, 2));
+    pokemonMenuRect->setBrush(QColor(245, 245, 220));
+    pokemonMenuRect->setPen(QPen(QColor(70, 130, 180), 3));
     pokemonMenuRect->setZValue(3);
     battleScene->addItem(pokemonMenuRect);
 
@@ -1325,11 +1399,10 @@ void BattleSequence::showPokemonMenu()
 
         QGraphicsTextItem *t = new QGraphicsTextItem(label);
         t->setFont(f);
-        // Make fainted Pokemon appear grayed out
         if (i < (int)names.size() && fainted[i]) {
             t->setDefaultTextColor(Qt::gray);
         } else {
-            t->setDefaultTextColor(Qt::black);
+            t->setDefaultTextColor(QColor(44, 62, 80));
         }
 
         int row = i / 2;
@@ -1619,6 +1692,18 @@ void BattleSequence::playerSelectedPokemon(int index)
 
 void BattleSequence::destroyMoveMenu()
 {
+    // Clean up shadows
+    if (battleScene) {
+        QList<QGraphicsItem*> items = battleScene->items();
+        for (QGraphicsItem* item : items) {
+            QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(item);
+            if (rectItem && rectItem->zValue() == 2) {
+                battleScene->removeItem(rectItem);
+                delete rectItem;
+            }
+        }
+    }
+
     if (battleScene) {
         for (QGraphicsTextItem *t : moveMenuOptions) {
             if (t) {
@@ -1639,6 +1724,18 @@ void BattleSequence::destroyMoveMenu()
 
 void BattleSequence::destroyBagMenu()
 {
+    // Clean up shadows
+    if (battleScene) {
+        QList<QGraphicsItem*> items = battleScene->items();
+        for (QGraphicsItem* item : items) {
+            QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(item);
+            if (rectItem && rectItem->zValue() == 2) {
+                battleScene->removeItem(rectItem);
+                delete rectItem;
+            }
+        }
+    }
+
     if (battleScene) {
         for (QGraphicsTextItem *t : bagMenuOptions) {
             if (t) {
@@ -1660,6 +1757,18 @@ void BattleSequence::destroyBagMenu()
 
 void BattleSequence::destroyPokemonMenu()
 {
+    // Clean up shadows
+    if (battleScene) {
+        QList<QGraphicsItem*> items = battleScene->items();
+        for (QGraphicsItem* item : items) {
+            QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(item);
+            if (rectItem && rectItem->zValue() == 2) {
+                battleScene->removeItem(rectItem);
+                delete rectItem;
+            }
+        }
+    }
+
     if (battleScene) {
         for (QGraphicsTextItem *t : pokemonMenuOptions) {
             if (t) {

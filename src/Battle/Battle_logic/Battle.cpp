@@ -108,51 +108,57 @@ void Battle::displayPokemonMenu() const {
 
 int Battle::calculateDamage(Pokemon& attacker, Pokemon& defender, Attack& move) {
     if (move.getCategory() == MoveCategory::STATUS) {
-        return 0;  // Status moves don't deal damage
+        return 7;  // STATUS moves deal fixed 7 damage in this game
     }
-    
+
     // Gen 3 Damage Formula:
     // Damage = (((2 * Level / 5 + 2) * BasePower * (Attack / Defense)) / 50 + 2) * Modifier
-    
+
     int level = attacker.getLevel();
     int basePower = move.getPower();
+
+    // FIX: If move has 0 or null power but is not a STATUS move, deal fixed 7 damage
+    if (basePower == 0) {
+        return 7;
+    }
+
     int attackStat = attacker.getAttackStat(move.getCategory());
     int defenseStat = defender.getDefenseStat(move.getCategory());
-    
+
     // Base damage calculation
     int damage = ((2 * level / 5 + 2) * basePower * attackStat / defenseStat) / 50 + 2;
-    
+
     // Modifier calculation
     double modifier = 1.0;
-    
+
     // 1. STAB (Same-Type Attack Bonus) - 1.5x if move type matches Pokemon type
-    if (move.getType() == attacker.getPrimaryType() || 
+    if (move.getType() == attacker.getPrimaryType() ||
         move.getType() == attacker.getSecondaryType()) {
         modifier *= 1.5;
     }
-    
+
     // 2. Type effectiveness
     double typeEffectiveness = getTypeEffectiveness(
-        move.getType(), 
-        defender.getPrimaryType(), 
+        move.getType(),
+        defender.getPrimaryType(),
         defender.getSecondaryType()
-    );
+        );
     modifier *= typeEffectiveness;
-    
+
     // 3. Critical hit (Gen 3: 1/16 chance for most moves, 2x damage)
     bool isCritical = checkCriticalHit();
     if (isCritical) {
         modifier *= 2.0;
         std::cout << "Critical hit!\n";
     }
-    
+
     // 4. Random factor (85-100%)
     int randomFactor = damageRandom(gen);
     modifier *= (randomFactor / 100.0);
-    
+
     // Apply modifier
     damage = static_cast<int>(damage * modifier);
-    
+
     // Type effectiveness messages
     if (typeEffectiveness > 1.0) {
         std::cout << "It's super effective!\n";
@@ -162,7 +168,7 @@ int Battle::calculateDamage(Pokemon& attacker, Pokemon& defender, Attack& move) 
         std::cout << "It doesn't affect " << defender.getName() << "!\n";
         return 0;
     }
-    
+
     return std::max(1, damage);  // Minimum 1 damage
 }
 

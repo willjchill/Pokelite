@@ -193,29 +193,49 @@ LabMap::LabMap(QWidget *parent)
     starters.append({"Charmander", "FIRE", ":/Battle/assets/pokemon_sprites/004_charmander/front.png"});
     starters.append({"Squirtle", "WATER", ":/Battle/assets/pokemon_sprites/007_squirtle/front.png"});
 
-    dialogueParts.append("There you are! I'm Professor Oak! You must be the new trainer everyone's been talking about!");
+    dialogueParts.append("There you are! I'm Professor Oak!");
 
-    dialogueParts.append("Welcome to the wonderful world of Pokemon! I've dedicated my entire life to studying these amazing creatures.");
+    dialogueParts.append("You must be the new trainer everyone's been talking about!");
 
-    dialogueParts.append("Pokemon are incredible beings that live alongside humans. Some become our best friends, others help us in battle, and all of them make our world beautiful!");
+    dialogueParts.append("Welcome to the wonderful world of Pokemon!");
 
-    dialogueParts.append("Your dream is to become the Pokemon Champion of Bostonia, right? Well, it won't be easy! You'll need to defeat 8 Gym Leaders and prove your strength!");
+    dialogueParts.append("I've dedicated my entire life to studying these amazing creatures.");
 
-    dialogueParts.append("But every great journey starts with a single step... and a partner Pokemon! It's time for you to choose your very first Pokemon!");
+    dialogueParts.append("Pokemon are incredible beings that live alongside humans.");
+
+    dialogueParts.append("Some become our best friends, others help us in battle.");
+
+    dialogueParts.append("All of them make our world beautiful!");
+
+    dialogueParts.append("Your dream is to become the Pokemon Champion of Bostonia, right?");
+
+    dialogueParts.append("Well, it won't be easy!");
+
+    dialogueParts.append("You'll need to defeat 8 Gym Leaders and prove your strength!");
+
+    dialogueParts.append("But every great journey starts with a single step...");
+
+    dialogueParts.append("...and a partner Pokemon!");
+
+    dialogueParts.append("It's time for you to choose your very first Pokemon!");
 
     npcDialogueParts.append("Oh hey, you're back! How's your journey going?");
 
-    npcDialogueParts.append("Remember, type advantages are crucial in battle! "
-                            "Fire beats Grass, Water beats Fire, and Grass beats Water.");
+    npcDialogueParts.append("Remember, type advantages are crucial in battle!");
 
-    npcDialogueParts.append("Don't forget to heal your Pokemon at Pokemon Centers! "
-                            "They're completely free and can be found in every town.");
+    npcDialogueParts.append("Fire beats Grass, Water beats Fire, and Grass beats Water.");
 
-    npcDialogueParts.append("If you're ever stuck, try talking to people in towns. "
-                            "They often have useful tips and information!");
+    npcDialogueParts.append("Don't forget to heal your Pokemon at Pokemon Centers!");
 
-    npcDialogueParts.append("Good luck out there, young trainer! "
-                            "I believe you'll become a great Champion someday!");
+    npcDialogueParts.append("They're completely free and can be found in every town.");
+
+    npcDialogueParts.append("If you're ever stuck, try talking to people in towns.");
+
+    npcDialogueParts.append("They often have useful tips and information!");
+
+    npcDialogueParts.append("Good luck out there, young trainer!");
+
+    npcDialogueParts.append("I believe you'll become a great Champion someday!");
 
     connect(&typeTimer, &QTimer::timeout, this, &LabMap::typeNextCharacter);
     connect(&glowTimer, &QTimer::timeout, this, &LabMap::updatePromptGlow);
@@ -370,14 +390,20 @@ void LabMap::selectStarter()
     dialogueLabel->show();
 
     QStringList finalDialogue;
-    finalDialogue.append("Excellent choice! " + chosenStarter + " is a fantastic Pokemon!");
-    finalDialogue.append("You and " + chosenStarter + " are going to make an amazing team! "
-                                                      "Remember to train hard and treat your Pokemon with love and respect.");
-    finalDialogue.append("Now, the door to your adventure awaits! Step outside when you're ready, "
-                         "and your journey to become the Champion begins!");
+    finalDialogue.append("Excellent choice!");
 
+    finalDialogue.append(chosenStarter + " is a fantastic Pokemon!");
+
+    finalDialogue.append("You and " + chosenStarter + " are going to make an amazing team!");
+
+    finalDialogue.append("Remember to train hard and treat your Pokemon with love and respect.");
+
+    finalDialogue.append("Now, the door to your adventure awaits!");
+
+    finalDialogue.append("Step outside when you're ready, and your journey to become the Champion begins!");
     dialogueParts = finalDialogue;
     startTyping(dialogueParts[0]);
+
 }
 void LabMap::startDialogue()
 {
