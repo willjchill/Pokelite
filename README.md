@@ -22,6 +22,8 @@ Fight wild Pokemon to level up your team, or connect two BeagleBones via UART fo
 - Smooth HP bar transitions with color coding
 - Battle transitions and fade effects
 - White flash on critical hits
+  
+![Battle Demo](misc/Battle.gif)
 
 ### Interactive UI
 - Custom battle menus with cursor navigation
