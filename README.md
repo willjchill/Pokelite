@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="misc/Banner" width="450">
+</p>
+
 # Pokelite
 
 A polished Pokémon-style RPG built with **C++** and the **Qt Framework**, designed for the **BeagleBone Black** with an LCD touchscreen display.  
