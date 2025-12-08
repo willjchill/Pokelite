@@ -98,7 +98,7 @@ Makefile          → Build rules for Linux/ARM
 
 1. **Clone the repository:**
 ```bash
-   git clone 
+   git clone git@github.com:willjchill/Pokelite.git
    cd 
 ```
 
