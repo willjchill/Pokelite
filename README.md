@@ -15,7 +15,7 @@ Featuring smooth overworld exploration, full turn-based battles, PvP multiplayer
 
 Explore maps, encounter Pokémon, and engage in classic turn-based combat featuring:
 
-- **Attack** – 3 unique moves per Pokémon  
+- **Attack** – 3+ unique moves per Pokémon  
 - **Items** – Potions, revives, and Pokéballs  
 - **Switch** – Swap party members mid-battle  
 - **Catch** – Capture wild Pokémon  
