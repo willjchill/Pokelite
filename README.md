@@ -15,6 +15,8 @@ Battle through Pokemon encounters with turn-based combat featuring:
 
 Fight wild Pokemon to level up your team, or connect two BeagleBones via UART for real-time PvP battles.
 
+![Pokemon Starter](misc/PokemonStarter.gif)
+
 ### Battle Animations
 - Pokeball throw animation with arc trajectory and rotation
 - Attack impact effects with screen shake
