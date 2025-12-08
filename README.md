@@ -1,4 +1,4 @@
-# RPG Embedded Game
+# Pokelite
 
 A polished Pokémon-style RPG built with **C++** and the **Qt Framework**, designed for the **BeagleBone Black** with an LCD touchscreen cape.  
 Experience smooth overworld exploration, full turn-based battles, PvP multiplayer via UART, and custom battle animations optimized for embedded hardware.
