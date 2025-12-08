@@ -1,7 +1,6 @@
 <p align="center">
   <img src="misc/Banner.png" width="650">
 </p>
-(Banner generated using Nano Banana Pro in Gemini)
 
 A polished Pokémon-style RPG built with **C++** and the **Qt Framework**, designed for the **BeagleBone Black** with an LCD touchscreen display.  
 Experience smooth overworld exploration, full turn-based battles, PvP multiplayer via UART, and custom battle animations optimized for embedded hardware.
@@ -121,3 +120,5 @@ It initializes the Qt application, displays the intro sequence, and transitions 
 | **willjdes** | 11/13/2025 | Google doc planning |
 | **willjdes** | 11/13/2025 | Repo created |
 
+Credits:
+(Banner generated using Nano Banana Pro in Gemini)
