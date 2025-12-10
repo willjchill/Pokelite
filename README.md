@@ -122,13 +122,12 @@ Makefile          → Build rules for Linux/ARM
 **On BeagleBone Black:**
 ```bash
 # Transfer the compiled binary to BeagleBone
-scp QtPokemonGame debian@:~/
-
-# SSH into BeagleBone
-ssh debian@
+rz (using ZMODEM)
 
 # Run the game
-./QtPokemonGame
+./Pokelite/src/QtPokemonGame
+
+# Note that you can also edit /etc/inittab to automate game startup during BBB boot sequence
 ```
 
 ### Cross-Compiling for BeagleBone
